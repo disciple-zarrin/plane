@@ -4,19 +4,22 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { CollaborationState, EditorRefApi } from "@plane/editor";
+import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@plane/types";
 // hooks
 import { usePageFallback } from "@/hooks/use-page-fallback";
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { usePagesPaneExtensions, useExtendedEditorProps } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
+import { useAppRouter } from "@/hooks/use-app-router";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
+import { registerSubpageCreateHandler } from "../subpage-create-bridge";
 import { PageNavigationPaneRoot } from "../navigation-pane";
 import { PageVersionsOverlay } from "../version";
 import { PagesVersionEditor } from "../version/editor";
@@ -123,8 +126,56 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     error: errorHandler,
   };
 
+  const router = useAppRouter();
+  const creatingSubpageRef = useRef(false);
+
+  const createSubpage = useCallback(() => {
+    void (async () => {
+      if (!page.id || creatingSubpageRef.current) return;
+      creatingSubpageRef.current = true;
+      try {
+        const created = await handlers.create({
+          name: "صفحه فرعی",
+          parent: page.id,
+        });
+        if (!created?.id) {
+          throw new Error("empty");
+        }
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "ساخته شد",
+          message: "صفحه فرعی اضافه شد.",
+        });
+        router.push(handlers.getRedirectionLink(created.id));
+      } catch {
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا",
+          message: "ساخت صفحه فرعی انجام نشد.",
+        });
+      } finally {
+        creatingSubpageRef.current = false;
+      }
+    })();
+  }, [handlers, page.id, router]);
+
+  const createSubpageRef = useRef(createSubpage);
+  createSubpageRef.current = createSubpage;
+
+  useEffect(() => {
+    const run = () => createSubpageRef.current();
+    window.__planeCreateSubpage = run;
+    const unregister = registerSubpageCreateHandler(run);
+    window.addEventListener("plane-create-subpage", run);
+    return () => {
+      if (window.__planeCreateSubpage === run) delete window.__planeCreateSubpage;
+      unregister();
+      window.removeEventListener("plane-create-subpage", run);
+    };
+  }, []);
+
   // Get extended editor extensions configuration
-  const extendedEditorProps = useExtendedEditorProps({
+  const baseExtendedEditorProps = useExtendedEditorProps({
     workspaceSlug,
     page,
     storeType,
@@ -133,6 +184,14 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     extensionHandlers: editorExtensionHandlers,
     projectId,
   });
+
+  const extendedEditorProps = useMemo(
+    () => ({
+      ...baseExtendedEditorProps,
+      onCreateSubpage: createSubpage,
+    }),
+    [baseExtendedEditorProps, createSubpage]
+  );
 
   const handleRestoreVersion = useCallback(
     async (descriptionHTML: string) => {

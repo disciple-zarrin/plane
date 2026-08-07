@@ -32,9 +32,15 @@ function triggerCreateSubpage(extendedEditorProps: IEditorProps["extendedEditorP
 
   if (typeof window === "undefined") return;
 
-  const w = window as Window & { __planeCreateSubpage?: () => void };
+  const w = window as Window & {
+    __planeCreateSubpage?: () => void;
+    __planeRequestCreateSubpage?: () => boolean;
+  };
   if (typeof w.__planeCreateSubpage === "function") {
     w.__planeCreateSubpage();
+    return;
+  }
+  if (typeof w.__planeRequestCreateSubpage === "function" && w.__planeRequestCreateSubpage()) {
     return;
   }
 

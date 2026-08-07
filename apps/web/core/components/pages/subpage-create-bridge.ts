@@ -8,8 +8,18 @@ type TSubpageHandler = () => void | Promise<void>;
 
 let activeHandler: TSubpageHandler | null = null;
 
+declare global {
+  interface Window {
+    __planeCreateSubpage?: () => void;
+    __planeRequestCreateSubpage?: () => boolean;
+  }
+}
+
 export function registerSubpageCreateHandler(handler: TSubpageHandler) {
   activeHandler = handler;
+  if (typeof window !== "undefined") {
+    window.__planeRequestCreateSubpage = requestCreateSubpage;
+  }
   return () => {
     if (activeHandler === handler) activeHandler = null;
   };
