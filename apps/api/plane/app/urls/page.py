@@ -75,8 +75,6 @@ urlpatterns = [
         PageDuplicateEndpoint.as_view(),
         name="page-duplicate",
     ),
-]
-
     # Workspace Wiki pages (is_global)
     path(
         "workspaces/<str:slug>/pages/",
@@ -103,4 +101,4 @@ urlpatterns = [
         WorkspacePagesDescriptionEndpoint.as_view(),
         name="workspace-page-description",
     ),
-
+]

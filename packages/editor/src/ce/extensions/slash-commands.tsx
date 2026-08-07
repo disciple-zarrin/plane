@@ -28,6 +28,7 @@ export const coreEditorAdditionalSlashCommandOptions = (props: Props): TSlashCom
       searchTerms: ["page", "subpage", "wiki", "صفحه", "فرعی"],
       icon: <FilePlus2 className="size-3.5" />,
       section: "general",
+      pushAfter: "text",
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).run();
         if (typeof window !== "undefined") {
