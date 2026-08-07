@@ -10,13 +10,44 @@ import type { IEditorProps } from "@/types";
 
 type Props = Pick<IEditorProps, "disabledExtensions" | "flaggedExtensions" | "extendedEditorProps">;
 
+type TExtendedSlashProps = {
+  slashCommandAdditionalOptions?: TSlashCommandAdditionalOption[];
+  onCreateSubpage?: () => void;
+};
+
+function triggerCreateSubpage(extendedEditorProps: IEditorProps["extendedEditorProps"]) {
+  const ext =
+    extendedEditorProps && typeof extendedEditorProps === "object"
+      ? (extendedEditorProps as TExtendedSlashProps)
+      : undefined;
+
+  if (typeof ext?.onCreateSubpage === "function") {
+    try {
+      ext.onCreateSubpage();
+      return;
+    } catch {
+      /* fall through */
+    }
+  }
+
+  if (typeof window === "undefined") return;
+
+  const w = window as Window & { __planeCreateSubpage?: () => void };
+  if (typeof w.__planeCreateSubpage === "function") {
+    w.__planeCreateSubpage();
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent("plane-create-subpage"));
+  window.dispatchEvent(new CustomEvent("plane-wiki-create-subpage"));
+}
+
 export const coreEditorAdditionalSlashCommandOptions = (props: Props): TSlashCommandAdditionalOption[] => {
   const fromProps =
     props.extendedEditorProps &&
     typeof props.extendedEditorProps === "object" &&
     "slashCommandAdditionalOptions" in props.extendedEditorProps
-      ? (props.extendedEditorProps as { slashCommandAdditionalOptions?: TSlashCommandAdditionalOption[] })
-          .slashCommandAdditionalOptions || []
+      ? (props.extendedEditorProps as TExtendedSlashProps).slashCommandAdditionalOptions || []
       : [];
 
   const builtIn: TSlashCommandAdditionalOption[] = [
@@ -25,15 +56,14 @@ export const coreEditorAdditionalSlashCommandOptions = (props: Props): TSlashCom
       key: "subpage",
       title: "صفحه فرعی",
       description: "ساخت صفحه تو‌در‌تو مثل Notion",
-      searchTerms: ["page", "subpage", "wiki", "صفحه", "فرعی"],
+      searchTerms: ["page", "subpage", "wiki", "صفحه", "فرعی", "nested"],
       icon: <FilePlus2 className="size-3.5" />,
       section: "general",
       pushAfter: "text",
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).run();
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("plane-wiki-create-subpage"));
-        }
+        // Defer so TipTap finishes closing the slash menu first
+        setTimeout(() => triggerCreateSubpage(props.extendedEditorProps), 0);
       },
     },
   ];

@@ -8,6 +8,7 @@ export type IEditorExtensionOptions = unknown;
 
 export type IEditorPropsExtended = {
   slashCommandAdditionalOptions?: import("@/extensions").TSlashCommandAdditionalOption[];
+  onCreateSubpage?: () => void;
 };
 
 export type ICollaborativeDocumentEditorPropsExtended = unknown;
