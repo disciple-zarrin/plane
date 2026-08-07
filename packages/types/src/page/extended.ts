@@ -4,4 +4,7 @@
  * See the LICENSE file for details.
  */
 
-export type TPageExtended = object;
+export type TPageExtended = {
+  parent?: string | null;
+  is_global?: boolean;
+};

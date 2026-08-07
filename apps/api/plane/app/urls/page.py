@@ -11,6 +11,8 @@ from plane.app.views import (
     PagesDescriptionViewSet,
     PageVersionEndpoint,
     PageDuplicateEndpoint,
+    WorkspacePageViewSet,
+    WorkspacePagesDescriptionEndpoint,
 )
 
 urlpatterns = [
@@ -74,3 +76,31 @@ urlpatterns = [
         name="page-duplicate",
     ),
 ]
+
+    # Workspace Wiki pages (is_global)
+    path(
+        "workspaces/<str:slug>/pages/",
+        WorkspacePageViewSet.as_view({"get": "list", "post": "create"}),
+        name="workspace-pages",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/",
+        WorkspacePageViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
+        name="workspace-pages-detail",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/archive/",
+        WorkspacePageViewSet.as_view({"post": "archive", "delete": "unarchive"}),
+        name="workspace-pages-archive",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/lock/",
+        WorkspacePageViewSet.as_view({"post": "lock", "delete": "unlock"}),
+        name="workspace-pages-lock",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/description/",
+        WorkspacePagesDescriptionEndpoint.as_view(),
+        name="workspace-page-description",
+    ),
+

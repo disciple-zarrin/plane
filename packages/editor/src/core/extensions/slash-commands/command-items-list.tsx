@@ -57,7 +57,7 @@ export type TSlashCommandSection = {
 export const getSlashCommandFilteredSections =
   (args: TExtensionProps) =>
   ({ query }: { query: string }): TSlashCommandSection[] => {
-    const { additionalOptions: externalAdditionalOptions, disabledExtensions, flaggedExtensions } = args;
+    const { additionalOptions: externalAdditionalOptions, disabledExtensions, flaggedExtensions, extendedEditorProps } = args;
     const SLASH_COMMAND_SECTIONS: TSlashCommandSection[] = [
       {
         key: "general",
@@ -308,6 +308,7 @@ export const getSlashCommandFilteredSections =
       ...coreEditorAdditionalSlashCommandOptions({
         disabledExtensions,
         flaggedExtensions,
+        extendedEditorProps,
       }),
     ]?.forEach((item) => {
       const sectionToPushTo = SLASH_COMMAND_SECTIONS.find((s) => s.key === item.section) ?? SLASH_COMMAND_SECTIONS[0];

@@ -174,6 +174,7 @@ from .page.base import (
     PagesDescriptionViewSet,
     PageDuplicateEndpoint,
 )
+from .page.workspace import WorkspacePageViewSet, WorkspacePagesDescriptionEndpoint
 from .page.version import PageVersionEndpoint
 
 from .search.base import GlobalSearchEndpoint, SearchEndpoint

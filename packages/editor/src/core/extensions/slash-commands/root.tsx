@@ -123,7 +123,7 @@ const Command = Extension.create<SlashCommandOptions>({
   },
 });
 
-export type TExtensionProps = Pick<IEditorProps, "disabledExtensions" | "flaggedExtensions"> & {
+export type TExtensionProps = Pick<IEditorProps, "disabledExtensions" | "flaggedExtensions" | "extendedEditorProps"> & {
   additionalOptions?: TSlashCommandAdditionalOption[];
 };
 

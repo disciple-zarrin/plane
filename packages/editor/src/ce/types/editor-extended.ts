@@ -6,7 +6,9 @@
 
 export type IEditorExtensionOptions = unknown;
 
-export type IEditorPropsExtended = unknown;
+export type IEditorPropsExtended = {
+  slashCommandAdditionalOptions?: import("@/extensions").TSlashCommandAdditionalOption[];
+};
 
 export type ICollaborativeDocumentEditorPropsExtended = unknown;
 

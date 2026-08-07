@@ -17,6 +17,7 @@ import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 // local imports
 import { EditorMentionsRoot } from "../embeds/mentions";
+import { getCachedPageMentionName } from "../embeds/mentions/page-cache";
 
 type DocumentEditorWrapperProps = MakeOptional<
   Omit<IDocumentEditorProps, "fileHandler" | "mentionHandler" | "user" | "extendedEditorProps">,
@@ -93,9 +94,11 @@ export const DocumentEditor = forwardRef(function DocumentEditor(
           return res;
         },
         renderComponent: EditorMentionsRoot,
-        getMentionedEntityDetails: (id: string) => ({ display_name: getUserDetails(id)?.display_name ?? "" }),
+        getMentionedEntityDetails: (id: string) => ({
+          display_name: getUserDetails(id)?.display_name ?? getCachedPageMentionName(id) ?? "",
+        }),
       }}
-      extendedEditorProps={extendedEditorProps}
+      extendedEditorProps={extendedEditorProps ?? {}}
       {...rest}
       containerClassName={cn("relative pb-3 pl-3", containerClassName)}
     />

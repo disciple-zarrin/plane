@@ -4,15 +4,38 @@
  * See the LICENSE file for details.
  */
 
-// extensions
+import { FilePlus2 } from "lucide-react";
 import type { TSlashCommandAdditionalOption } from "@/extensions";
-// types
 import type { IEditorProps } from "@/types";
 
-type Props = Pick<IEditorProps, "disabledExtensions" | "flaggedExtensions">;
+type Props = Pick<IEditorProps, "disabledExtensions" | "flaggedExtensions" | "extendedEditorProps">;
 
 export const coreEditorAdditionalSlashCommandOptions = (props: Props): TSlashCommandAdditionalOption[] => {
-  const {} = props;
-  const options: TSlashCommandAdditionalOption[] = [];
-  return options;
+  const fromProps =
+    props.extendedEditorProps &&
+    typeof props.extendedEditorProps === "object" &&
+    "slashCommandAdditionalOptions" in props.extendedEditorProps
+      ? (props.extendedEditorProps as { slashCommandAdditionalOptions?: TSlashCommandAdditionalOption[] })
+          .slashCommandAdditionalOptions || []
+      : [];
+
+  const builtIn: TSlashCommandAdditionalOption[] = [
+    {
+      commandKey: "text" as TSlashCommandAdditionalOption["commandKey"],
+      key: "subpage",
+      title: "صفحه فرعی",
+      description: "ساخت صفحه تو‌در‌تو مثل Notion",
+      searchTerms: ["page", "subpage", "wiki", "صفحه", "فرعی"],
+      icon: <FilePlus2 className="size-3.5" />,
+      section: "general",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("plane-wiki-create-subpage"));
+        }
+      },
+    },
+  ];
+
+  return [...builtIn, ...fromProps];
 };

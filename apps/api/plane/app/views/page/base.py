@@ -78,7 +78,7 @@ class PageViewSet(BaseViewSet):
     permission_classes = [ProjectPagePermission]
     search_fields = ["name"]
 
-    def get_queryset(self):
+    def _membership_queryset(self):
         subquery = UserFavorite.objects.filter(
             user=self.request.user,
             entity_type="page",
@@ -94,7 +94,6 @@ class PageViewSet(BaseViewSet):
                 projects__project_projectmember__is_active=True,
                 projects__archived_at__isnull=True,
             )
-            .filter(parent__isnull=True)
             .filter(Q(owned_by=self.request.user) | Q(access=0))
             .prefetch_related("projects")
             .select_related("workspace")
@@ -126,6 +125,22 @@ class PageViewSet(BaseViewSet):
             .distinct()
         )
 
+    def get_queryset(self):
+        qs = self._membership_queryset()
+        parent = self.request.GET.get("parent") if hasattr(self, "request") else None
+        root_only = "1"
+        if hasattr(self, "request"):
+            root_only = self.request.GET.get("root_only", "1")
+        # retrieve/update actions must see nested pages
+        action = getattr(self, "action", None)
+        if action in ("retrieve", "partial_update", "destroy", "archive", "unarchive", "lock", "unlock", "access"):
+            return qs
+        if parent:
+            return qs.filter(parent_id=parent)
+        if root_only in ("1", "true", "True"):
+            return qs.filter(parent__isnull=True)
+        return qs
+
     def create(self, request, slug, project_id):
         serializer = PageSerializer(
             data=request.data,
@@ -146,7 +161,7 @@ class PageViewSet(BaseViewSet):
                 old_description_html=None,
                 page_id=serializer.data["id"],
             )
-            page = self.get_queryset().get(pk=serializer.data["id"])
+            page = self._membership_queryset().get(pk=serializer.data["id"])
             serializer = PageDetailSerializer(page)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -200,7 +215,7 @@ class PageViewSet(BaseViewSet):
             )
 
     def retrieve(self, request, slug, project_id, page_id=None):
-        page = self.get_queryset().filter(pk=page_id).first()
+        page = self._membership_queryset().filter(pk=page_id).first()
         project = Project.objects.get(pk=project_id)
         track_visit = request.query_params.get("track_visit", "true").lower() == "true"
 

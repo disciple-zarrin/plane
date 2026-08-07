@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// local imports
 import { EditorUserMention } from "./user";
+import { EditorPageMention } from "./page";
 import type { TCallbackMentionComponentProps } from "@plane/editor";
 
 export function EditorMentionsRoot(props: TCallbackMentionComponentProps) {
@@ -14,6 +14,9 @@ export function EditorMentionsRoot(props: TCallbackMentionComponentProps) {
   switch (entity_name) {
     case "user_mention":
       return <EditorUserMention id={entity_identifier} />;
+    case "page_mention":
+    case "page":
+      return <EditorPageMention id={entity_identifier} />;
     default:
       return null;
   }
