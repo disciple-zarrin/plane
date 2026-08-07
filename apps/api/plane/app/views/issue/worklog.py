@@ -144,7 +144,7 @@ class WorkspaceWorkLogEndpoint(BaseAPIView):
                 .annotate(total_minutes=Sum("duration_minutes"))
                 .order_by("-total_minutes")
             )
-            data = [
+            by_person = [
                 {
                     "actor_id": str(r["actor_id"]),
                     "display_name": r["actor__display_name"]
@@ -156,7 +156,52 @@ class WorkspaceWorkLogEndpoint(BaseAPIView):
                 }
                 for r in rows
             ]
-            return Response({"results": data}, status=status.HTTP_200_OK)
+
+            # Hours by label/tag (full duration counted per label on the issue)
+            from plane.db.models import IssueLabel
+
+            label_rows = (
+                qs.filter(issue__labels__isnull=False)
+                .values("issue__labels__id", "issue__labels__name", "issue__labels__color")
+                .annotate(total_minutes=Sum("duration_minutes"))
+                .order_by("-total_minutes")
+            )
+            by_label = []
+            for r in label_rows:
+                lid = r["issue__labels__id"]
+                if not lid:
+                    continue
+                by_label.append(
+                    {
+                        "label_id": str(lid),
+                        "name": r["issue__labels__name"] or "بدون نام",
+                        "color": r["issue__labels__color"] or "#94a3b8",
+                        "total_minutes": r["total_minutes"] or 0,
+                        "total_hours": round((r["total_minutes"] or 0) / 60.0, 2),
+                    }
+                )
+
+            labeled_issue_ids = IssueLabel.objects.filter(
+                issue_id__in=qs.values_list("issue_id", flat=True)
+            ).values_list("issue_id", flat=True)
+            unlabeled = (
+                qs.exclude(issue_id__in=labeled_issue_ids).aggregate(total=Sum("duration_minutes"))["total"] or 0
+            )
+            if unlabeled:
+                by_label.append(
+                    {
+                        "label_id": "none",
+                        "name": "بدون تگ",
+                        "color": "#64748b",
+                        "total_minutes": unlabeled,
+                        "total_hours": round(unlabeled / 60.0, 2),
+                    }
+                )
+
+            return Response(
+                {"results": by_person, "by_person": by_person, "by_label": by_label},
+                status=status.HTTP_200_OK,
+            )
 
         qs = qs.order_by("-logged_at", "-created_at")[:1000]
         return Response(IssueWorkLogSerializer(qs, many=True).data, status=status.HTTP_200_OK)

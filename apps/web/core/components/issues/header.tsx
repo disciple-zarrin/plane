@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
-import { Circle } from "lucide-react";
+import { Circle, Timer } from "lucide-react";
 // plane imports
 import {
   EUserPermissions,
@@ -110,6 +110,18 @@ export const IssuesHeader = observer(function IssuesHeader() {
         )}
       </Header.LeftItem>
       <Header.RightItem>
+        <Button
+          variant="secondary"
+          size="lg"
+          onClick={() => {
+            const pid = projectId?.toString() || "";
+            const q = pid ? `?project_id=${pid}` : "";
+            router.push(`/${workspaceSlug}/worklogs${q}`);
+          }}
+        >
+          <Timer className="h-4 w-4" />
+          <span className="hidden sm:inline">کارکرد</span>
+        </Button>
         <div className="hidden gap-2 md:flex">
           <HeaderFilters
             projectId={projectId}

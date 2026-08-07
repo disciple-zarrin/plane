@@ -38,6 +38,20 @@ export type TWorkLogSummaryRow = {
   total_hours: number
 }
 
+export type TWorkLogLabelRow = {
+  label_id: string
+  name: string
+  color: string
+  total_minutes: number
+  total_hours: number
+}
+
+export type TWorkLogSummaryResponse = {
+  results: TWorkLogSummaryRow[]
+  by_person?: TWorkLogSummaryRow[]
+  by_label?: TWorkLogLabelRow[]
+}
+
 export class WorkLogService extends APIService {
   constructor() {
     super(API_BASE_URL)
@@ -75,7 +89,7 @@ export class WorkLogService extends APIService {
   async workspaceWorkLogs(
     workspaceSlug: string,
     params?: { project_id?: string; actor_id?: string; start_date?: string; end_date?: string; summary?: boolean }
-  ): Promise<TIssueWorkLog[] | { results: TWorkLogSummaryRow[] }> {
+  ): Promise<TIssueWorkLog[] | TWorkLogSummaryResponse> {
     const q = new URLSearchParams()
     if (params?.project_id) q.set("project_id", params.project_id)
     if (params?.actor_id) q.set("actor_id", params.actor_id)
