@@ -58,9 +58,10 @@ export const WORKSPACE_SETTINGS: Record<TWorkspaceSettingsTabs, TWorkspaceSettin
   worklogs: {
     key: "worklogs",
     i18n_label: "workspace_settings.settings.worklogs.title",
-    href: `/settings/worklogs`,
+    href: `/worklogs`,
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
-    highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/settings/worklogs/`,
+    highlight: (pathname: string, baseUrl: string) =>
+      pathname === `${baseUrl}/worklogs` || pathname === `${baseUrl}/worklogs/`,
   },
   webhooks: {
     key: "webhooks",
