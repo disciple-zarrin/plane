@@ -2,7 +2,7 @@ name: Build Plane FA/RTL images
 
 on:
   push:
-    branches: [hesar-v1.4.0-fa-rtl]
+    branches: [hesar-v1.4.0-fa-rtl, hesar-v1.4.0-fa-rtl-time]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +33,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/disciple-zarrin/plane-frontend:v1.4.0-fa-rtl
+            ghcr.io/disciple-zarrin/plane-frontend:v1.4.0-fa-rtl-time
             ghcr.io/disciple-zarrin/plane-frontend:hesar-fa-rtl
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -61,5 +62,32 @@ jobs:
           tags: |
             ghcr.io/disciple-zarrin/plane-admin:v1.4.0-fa-rtl
             ghcr.io/disciple-zarrin/plane-admin:hesar-fa-rtl
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/api
+          file: apps/api/Dockerfile.api
+          push: true
+          tags: |
+            ghcr.io/disciple-zarrin/plane-backend:v1.4.0-fa-rtl-time
+            ghcr.io/disciple-zarrin/plane-backend:hesar-time
           cache-from: type=gha
           cache-to: type=gha,mode=max

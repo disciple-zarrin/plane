@@ -187,7 +187,7 @@
       "worklogs": {
         "title": "Worklogs",
         "heading": "Worklogs",
-        "description": "Download worklogs AKA timesheets for anyone in any project."
+        "description": "Logged hours by person across work items"
       },
       "group_syncing": {
         "title": "Group syncing",
