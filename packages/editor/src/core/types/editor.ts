@@ -12,7 +12,7 @@ import type { NodeViewProps as TNodeViewProps } from "@tiptap/react";
 // plane imports
 import type { TCustomComponentsMetaData } from "@plane/utils";
 // extension types
-import type { TTextAlign } from "@/extensions";
+import type { TTextAlign, TTextDirection } from "@/extensions";
 // plane editor imports
 import type {
   IEditorPropsExtended,
@@ -62,6 +62,7 @@ export type TEditorCommands =
   | "text-color"
   | "background-color"
   | "text-align"
+  | "text-direction"
   | "callout"
   | "attachment"
   | "emoji"
@@ -87,6 +88,9 @@ export type TCommandExtraProps = {
   };
   "text-align": {
     alignment: TTextAlign;
+  };
+  "text-direction": {
+    direction: TTextDirection;
   };
 };
 

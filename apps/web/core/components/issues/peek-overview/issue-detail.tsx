@@ -20,10 +20,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
-import { cn } from "@plane/utils";
 // plane web components
 import { IssueTypeSwitcher } from "@/components/issues/issue-type-switcher";
-// plane web hooks
 // services
 import { WorkItemVersionService } from "@/services/issue";
 // local components
@@ -109,40 +107,29 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
       />
 
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="text-11 text-tertiary">جهت متن توضیحات</span>
-        <EditorRtlToggle
-          isRtl={Boolean(issue.description_rtl)}
-          disabled={disabled || isArchived}
-          onChange={(next) => {
-            if (!issue.project_id) return;
-            void issueOperations.update(workspaceSlug, issue.project_id, issue.id, {
-              description_rtl: next,
-            });
-          }}
-        />
+        <span className="text-11 text-tertiary">جهت پاراگراف فعلی</span>
+        <EditorRtlToggle editorRef={editorRef} disabled={disabled || isArchived} />
       </div>
-      <div dir={issue.description_rtl ? "rtl" : "ltr"} className={cn(issue.description_rtl && "text-right")}>
-        <DescriptionInput
-          issueSequenceId={issue.sequence_id}
-          containerClassName="-ml-3 border-none"
-          disabled={disabled || isArchived}
-          editorRef={editorRef}
-          entityId={issue.id}
-          fileAssetType={EFileAssetType.ISSUE_DESCRIPTION}
-          initialValue={issueDescription}
-          key={issue.id}
-          onSubmit={async (value, isMigrationUpdate) => {
-            if (!issue.id || !issue.project_id) return;
-            await issueOperations.update(workspaceSlug, issue.project_id, issue.id, {
-              description_html: value.description_html,
-              ...(isMigrationUpdate ? { skip_activity: "true" } : {}),
-            });
-          }}
-          setIsSubmitting={(value) => setIsSubmitting(value)}
-          projectId={issue.project_id}
-          workspaceSlug={workspaceSlug}
-        />
-      </div>
+      <DescriptionInput
+        issueSequenceId={issue.sequence_id}
+        containerClassName="-ml-3 border-none"
+        disabled={disabled || isArchived}
+        editorRef={editorRef}
+        entityId={issue.id}
+        fileAssetType={EFileAssetType.ISSUE_DESCRIPTION}
+        initialValue={issueDescription}
+        key={issue.id}
+        onSubmit={async (value, isMigrationUpdate) => {
+          if (!issue.id || !issue.project_id) return;
+          await issueOperations.update(workspaceSlug, issue.project_id, issue.id, {
+            description_html: value.description_html,
+            ...(isMigrationUpdate ? { skip_activity: "true" } : {}),
+          });
+        }}
+        setIsSubmitting={(value) => setIsSubmitting(value)}
+        projectId={issue.project_id}
+        workspaceSlug={workspaceSlug}
+      />
       <div className="flex items-center justify-between gap-2">
         {currentUser && (
           <IssueReaction

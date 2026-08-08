@@ -272,7 +272,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
               <PageEditorHeaderRoot page={page} projectId={projectId} />
             </div>
           </div>
-          <div dir={page.view_props?.is_rtl ? "rtl" : "ltr"} className={cn(page.view_props?.is_rtl && "text-right")}>
+          <div>
             <CollaborativeDocumentEditorWithRef
               editable={isContentEditable}
               id={pageId}

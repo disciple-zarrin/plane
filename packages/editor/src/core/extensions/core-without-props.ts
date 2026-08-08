@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import TaskItem from "@tiptap/extension-task-item";
-import TaskList from "@tiptap/extension-task-list";
+import { TaskItem } from "@tiptap/extension-task-item";
+import { TaskList } from "@tiptap/extension-task-list";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Underline } from "@tiptap/extension-underline";
 // plane editor imports
@@ -25,6 +25,7 @@ import { CustomQuoteExtension } from "./quote";
 import { CustomStarterKitExtension } from "./starter-kit";
 import { TableHeader, TableCell, TableRow, Table } from "./table";
 import { CustomTextAlignExtension } from "./text-align";
+import { CustomTextDirectionExtension } from "./text-direction";
 import { WorkItemEmbedExtensionConfig } from "./work-item-embed/extension-config";
 
 export const CoreEditorExtensionsWithoutProps = [
@@ -58,6 +59,7 @@ export const CoreEditorExtensionsWithoutProps = [
   TableRow,
   CustomMentionExtensionConfig,
   CustomTextAlignExtension,
+  CustomTextDirectionExtension,
   CustomCalloutExtensionConfig,
   CustomColorExtension,
   ...CoreEditorAdditionalExtensionsWithoutProps,

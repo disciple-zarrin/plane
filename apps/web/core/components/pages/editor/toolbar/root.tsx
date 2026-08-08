@@ -11,7 +11,6 @@ import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@plane/propel/tooltip";
 import { cn } from "@plane/utils";
 // components
-import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
 import { PageToolbar } from "@/components/pages/editor/toolbar";
 // hooks
 import { usePageFilters } from "@/hooks/use-page-filters";
@@ -55,18 +54,7 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
           )}
         >
           <div className="flex w-full max-w-full items-center justify-between">
-            <div className="flex flex-1 items-center gap-1">
-              {editorRef && <PageToolbar editorRef={editorRef} />}
-              {editorRef && (
-                <EditorRtlToggle
-                  isRtl={Boolean(page.view_props?.is_rtl)}
-                  disabled={!isContentEditable}
-                  onChange={(next) => {
-                    void page.updateRtl(next);
-                  }}
-                />
-              )}
-            </div>
+            <div className="flex flex-1 items-center gap-1">{editorRef && <PageToolbar editorRef={editorRef} />}</div>
             <div className="flex items-center gap-2">
               {!isNavigationPaneOpen && (
                 <button

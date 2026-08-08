@@ -98,8 +98,8 @@ export const insertTableCommand = (editor: Editor, range?: Range) => {
     const selection = window.getSelection();
     if (selection) {
       if (selection.rangeCount !== 0) {
-        const range = selection.getRangeAt(0);
-        if (findTableAncestor(range.startContainer)) {
+        const domRange = selection.getRangeAt(0);
+        if (findTableAncestor(domRange.startContainer)) {
           return;
         }
       }
@@ -180,6 +180,12 @@ export const toggleBackgroundColor = (color: string | undefined, editor: Editor,
 
 export const setTextAlign = (alignment: string, editor: Editor) => {
   editor.chain().focus().setTextAlign(alignment).run();
+};
+
+export const setTextDirection = (direction: "ltr" | "rtl", editor: Editor) => {
+  // Word-like: direction also drives default alignment for that paragraph.
+  const alignment = direction === "rtl" ? "right" : "left";
+  editor.chain().focus().setTextDirection(direction).setTextAlign(alignment).run();
 };
 
 export const insertHorizontalRule = (editor: Editor, range?: Range) => {

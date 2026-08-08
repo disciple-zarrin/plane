@@ -33,11 +33,7 @@ export function treeIsRtl(tree: TExportTree): boolean {
 }
 
 /** Rewrite page mentions to internal anchors for export documents. */
-export function rewritePageMentionsToBookmarks(
-  html: string,
-  pages: TExportTreePage[],
-  isRtl?: boolean
-): string {
+export function rewritePageMentionsToBookmarks(html: string, pages: TExportTreePage[], isRtl?: boolean): string {
   const labels = exportLabels(isRtl ?? treeIsRtl({ root: pages[0]?.id || "", pages }));
   const byId = new Map(pages.map((p) => [p.id, p]));
   return html.replace(/<mention-component([^>]*?)>/gi, (full, attrs: string) => {
@@ -95,7 +91,7 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
     const body = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl);
     // Each page keeps its own direction — matches what the editor shows.
     parts.push(
-      `<div id="${p.bookmark_id}" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}"><h1 class="page-title">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
+      `<div id="${p.bookmark_id}" dir="${rtl ? "rtl" : "ltr"}"><h1 class="page-title">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
     );
   });
   return sanitizeHtmlForPdf(parts.join("\n"));

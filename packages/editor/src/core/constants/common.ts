@@ -58,6 +58,29 @@ export const TYPOGRAPHY_ITEMS: ToolbarMenuItem<"text" | "h1" | "h2" | "h3" | "h4
   { itemKey: "h6", renderKey: "h6", name: "Heading 6", icon: Heading6, editors: ["document"] },
 ];
 
+export const TEXT_DIRECTION_ITEMS: ToolbarMenuItem<"text-direction">[] = [
+  {
+    itemKey: "text-direction",
+    renderKey: "text-direction-ltr",
+    name: "LTR",
+    icon: AlignLeft,
+    editors: ["lite", "document"],
+    extraProps: {
+      direction: "ltr",
+    },
+  },
+  {
+    itemKey: "text-direction",
+    renderKey: "text-direction-rtl",
+    name: "RTL",
+    icon: AlignRight,
+    editors: ["lite", "document"],
+    extraProps: {
+      direction: "rtl",
+    },
+  },
+];
+
 export const TEXT_ALIGNMENT_ITEMS: ToolbarMenuItem<"text-align">[] = [
   {
     itemKey: "text-align",
@@ -175,6 +198,7 @@ export const TOOLBAR_ITEMS: {
 } = {
   lite: {
     basic: BASIC_MARK_ITEMS.filter((item) => item.editors.includes("lite")),
+    direction: TEXT_DIRECTION_ITEMS.filter((item) => item.editors.includes("lite")),
     alignment: TEXT_ALIGNMENT_ITEMS.filter((item) => item.editors.includes("lite")),
     list: LIST_ITEMS.filter((item) => item.editors.includes("lite")),
     userAction: USER_ACTION_ITEMS.filter((item) => item.editors.includes("lite")),
@@ -182,6 +206,7 @@ export const TOOLBAR_ITEMS: {
   },
   document: {
     basic: BASIC_MARK_ITEMS.filter((item) => item.editors.includes("document")),
+    direction: TEXT_DIRECTION_ITEMS.filter((item) => item.editors.includes("document")),
     alignment: TEXT_ALIGNMENT_ITEMS.filter((item) => item.editors.includes("document")),
     list: LIST_ITEMS.filter((item) => item.editors.includes("document")),
     userAction: USER_ACTION_ITEMS.filter((item) => item.editors.includes("document")),

@@ -158,7 +158,7 @@ export function ExportPageModal(props: Props) {
               const rtl = pageIsRtl(root);
               const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, rtl);
               return sanitizeHtmlForPdf(
-                `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}"><h1 class="page-title">${escapeHtml(title)}</h1>${body}</div>`
+                `<div dir="${rtl ? "rtl" : "ltr"}"><h1 class="page-title">${escapeHtml(title)}</h1>${body}</div>`
               );
             })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
@@ -166,11 +166,7 @@ export function ExportPageModal(props: Props) {
         noAssets: selectedContentVariety === "no-assets",
       });
       const blob = await pdf(
-        <PDFDocument
-          content={sanitizeHtmlForPdf(parsed)}
-          pageFormat={selectedPageFormat}
-          isRtl={treeIsRtl(tree)}
-        />
+        <PDFDocument content={sanitizeHtmlForPdf(parsed)} pageFormat={selectedPageFormat} isRtl={treeIsRtl(tree)} />
       ).toBlob();
       initiateDownload(blob, selectedScope === "page_and_subpages" ? `${fileName}-tree.pdf` : `${fileName}.pdf`);
       return;
@@ -179,7 +175,7 @@ export function ExportPageModal(props: Props) {
     const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
     const rtl = Boolean(isRtl);
     const pageContent = sanitizeHtmlForPdf(
-      `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}"><h1 class="page-title">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
+      `<div dir="${rtl ? "rtl" : "ltr"}"><h1 class="page-title">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
     );
     const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
       htmlContent: pageContent,
