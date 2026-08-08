@@ -175,7 +175,7 @@ from .page.base import (
     PageDuplicateEndpoint,
 )
 from .page.workspace import WorkspacePageViewSet, WorkspacePagesDescriptionEndpoint
-from .page.version import PageVersionEndpoint
+from .page.version import PageVersionEndpoint, WorkspacePageVersionEndpoint
 
 from .search.base import GlobalSearchEndpoint, SearchEndpoint
 from .search.issue import IssueSearchEndpoint

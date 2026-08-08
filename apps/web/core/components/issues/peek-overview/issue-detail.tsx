@@ -162,6 +162,7 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
                 ),
             }}
             handleRestore={(descriptionHTML) => editorRef.current?.setEditorValue(descriptionHTML, true)}
+            currentDescriptionHtml={issue.description_html || ""}
             projectId={issue.project_id}
             workspaceSlug={workspaceSlug}
           />

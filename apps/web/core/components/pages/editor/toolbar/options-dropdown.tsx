@@ -131,6 +131,8 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         pageTitle={name ?? ""}
+        pageId={page.id}
+        exportContext="project"
       />
       <PageActions
         extraOptions={EXTRA_MENU_OPTIONS}

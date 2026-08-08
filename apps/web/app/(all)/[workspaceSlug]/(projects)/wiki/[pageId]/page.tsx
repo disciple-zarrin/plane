@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { ArrowRight, FilePlus2, FileText, Plus } from "lucide-react";
+import { ArrowRight, Download, FilePlus2, FileText, Plus, Upload } from "lucide-react";
 import { Link, useParams } from "react-router";
 import type { EditorRefApi, IEditorPropsExtended } from "@plane/editor";
 import { Button } from "@plane/propel/button";
@@ -14,11 +14,15 @@ import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TPage, TSearchEntityRequestPayload } from "@plane/types";
 import { EFileAssetType } from "@plane/types";
 import { cn } from "@plane/utils";
+import { HesarBackButton } from "@/components/common/hesar-back-button";
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { PageHead } from "@/components/core/page-title";
 import { DocumentEditor } from "@/components/editor/document/editor";
 import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
+import { ExportPageModal } from "@/components/pages/modals/export-page-modal";
+import { parseMarkdownZip } from "@/components/pages/export/markdown-zip";
 import { registerSubpageCreateHandler } from "@/components/pages/subpage-create-bridge";
+import { WikiVersionPanel } from "@/components/pages/wiki/wiki-version-panel";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -52,6 +56,7 @@ export default observer(function WikiDetailPage() {
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [initialHtml, setInitialHtml] = useState("<p></p>");
+  const [exportOpen, setExportOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!slug || !id) return;
@@ -226,6 +231,7 @@ export default observer(function WikiDetailPage() {
       <PageHead title={pageTitle} />
       <div className="flex items-center justify-between gap-3 border-b border-subtle px-4 py-2">
         <div className="flex min-w-0 items-center gap-2 text-body-xs-regular text-tertiary">
+          <HesarBackButton fallbackHref={`/${slug}/wiki`} />
           <Link to={`/${slug}/wiki`} className="hover:text-primary">
             ویکی
           </Link>
@@ -233,11 +239,65 @@ export default observer(function WikiDetailPage() {
           <span className="truncate text-primary">{title || "بدون عنوان"}</span>
           {saving && <span className="text-tertiary">در حال ذخیره…</span>}
         </div>
-        <Button variant="secondary" size="sm" onClick={() => void createChild()} disabled={creating}>
-          <Plus className="size-3.5" />
-          {creating ? "…" : "صفحه فرعی"}
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <WikiVersionPanel
+            workspaceSlug={slug}
+            pageId={id}
+            currentHtml={editorRef.current?.getDocument()?.html || initialHtml}
+            onRestore={async (html) => {
+              editorRef.current?.setEditorValue(html);
+              setInitialHtml(html);
+              await pageService.updateDescription(slug, id, { description_html: html, description_json: {} });
+            }}
+          />
+          <Button variant="secondary" size="sm" onClick={() => setExportOpen(true)}>
+            <Download className="size-3.5" />
+            خروجی
+          </Button>
+          <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-subtle px-2 py-1.5 text-11 text-secondary hover:bg-layer-transparent-hover">
+            <Upload className="size-3.5" />
+            ایمپورت MD
+            <input
+              type="file"
+              accept=".zip,application/zip"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file || !slug) return;
+                try {
+                  const parsed = await parseMarkdownZip(file);
+                  await parsed.reduce<Promise<void>>(async (chain, p) => {
+                    await chain;
+                    const parentId = p.parent && p.parent !== id ? p.parent : id;
+                    await pageService.create(slug, {
+                      name: p.title,
+                      parent: parentId === id ? id : parentId,
+                      description_html: p.html,
+                    } as Partial<TPage> & { description_html?: string });
+                  }, Promise.resolve());
+                  setToast({ type: TOAST_TYPE.SUCCESS, title: "ایمپورت شد", message: `${parsed.length} صفحه` });
+                  await load();
+                } catch {
+                  setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق" });
+                }
+              }}
+            />
+          </label>
+          <Button variant="secondary" size="sm" onClick={() => void createChild()} disabled={creating}>
+            <Plus className="size-3.5" />
+            {creating ? "…" : "صفحه فرعی"}
+          </Button>
+        </div>
       </div>
+      <ExportPageModal
+        editorRef={editorRef.current}
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        pageTitle={title || "wiki"}
+        pageId={id}
+        exportContext="wiki"
+      />
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[720px] px-6 py-8">

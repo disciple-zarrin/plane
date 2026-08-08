@@ -9,194 +9,199 @@ import type { PageProps } from "@react-pdf/renderer";
 import { pdf } from "@react-pdf/renderer";
 import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router";
-// plane editor
 import type { EditorRefApi } from "@plane/editor";
-// plane ui
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
-// components
 import { PDFDocument } from "@/components/editor/pdf";
-// hooks
+import { buildDocxFromTree } from "@/components/pages/export/docx-builder";
+import { buildMarkdownZipFromTree } from "@/components/pages/export/markdown-zip";
+import { buildCombinedHtml } from "@/components/pages/export/tree-utils";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
+import { PageExportService } from "@/services/page/page-export.service";
 
 type Props = {
   editorRef: EditorRefApi | null;
   isOpen: boolean;
   onClose: () => void;
   pageTitle: string;
+  /** When set, enables tree export (PDF/DOCX/MD zip with subpages). */
+  pageId?: string;
+  /** wiki = workspace pages; project = project pages */
+  exportContext?: "wiki" | "project";
 };
 
-type TExportFormats = "pdf" | "markdown";
+type TExportFormats = "pdf" | "markdown" | "docx";
 type TPageFormats = Exclude<PageProps["size"], undefined>;
 type TContentVariety = "everything" | "no-assets";
+type TExportScope = "this_page" | "page_and_subpages";
 
 type TFormValues = {
   export_format: TExportFormats;
   page_format: TPageFormats;
   content_variety: TContentVariety;
+  export_scope: TExportScope;
 };
 
-const EXPORT_FORMATS: {
-  key: TExportFormats;
-  label: string;
-}[] = [
-  {
-    key: "pdf",
-    label: "PDF",
-  },
-  {
-    key: "markdown",
-    label: "Markdown",
-  },
+const EXPORT_FORMATS: { key: TExportFormats; label: string }[] = [
+  { key: "pdf", label: "PDF" },
+  { key: "docx", label: "Word (DOCX)" },
+  { key: "markdown", label: "Markdown (+ تصاویر)" },
 ];
 
-const PAGE_FORMATS: {
-  key: TPageFormats;
-  label: string;
-}[] = [
-  {
-    key: "A4",
-    label: "A4",
-  },
-  {
-    key: "A3",
-    label: "A3",
-  },
-  {
-    key: "A2",
-    label: "A2",
-  },
-  {
-    key: "LETTER",
-    label: "Letter",
-  },
-  {
-    key: "LEGAL",
-    label: "Legal",
-  },
-  {
-    key: "TABLOID",
-    label: "Tabloid",
-  },
+const PAGE_FORMATS: { key: TPageFormats; label: string }[] = [
+  { key: "A4", label: "A4" },
+  { key: "A3", label: "A3" },
+  { key: "LETTER", label: "Letter" },
 ];
 
-const CONTENT_VARIETY: {
-  key: TContentVariety;
-  label: string;
-}[] = [
-  {
-    key: "everything",
-    label: "Everything",
-  },
-  {
-    key: "no-assets",
-    label: "No images",
-  },
+const CONTENT_VARIETY: { key: TContentVariety; label: string }[] = [
+  { key: "everything", label: "همه چیز" },
+  { key: "no-assets", label: "بدون تصویر" },
+];
+
+const EXPORT_SCOPES: { key: TExportScope; label: string }[] = [
+  { key: "this_page", label: "فقط این صفحه" },
+  { key: "page_and_subpages", label: "این صفحه + صفحات فرعی" },
 ];
 
 const defaultValues: TFormValues = {
   export_format: "pdf",
   page_format: "A4",
   content_variety: "everything",
+  export_scope: "page_and_subpages",
 };
 
+const exportService = new PageExportService();
+
+function initiateDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export function ExportPageModal(props: Props) {
-  const { editorRef, isOpen, onClose, pageTitle } = props;
-  // states
+  const { editorRef, isOpen, onClose, pageTitle, pageId, exportContext = "project" } = props;
   const [isExporting, setIsExporting] = useState(false);
-  // params
   const { workspaceSlug, projectId } = useParams();
-  // form info
-  const { control, reset, watch } = useForm<TFormValues>({
-    defaultValues,
-  });
-  // parse editor content
+  const { control, reset, watch } = useForm<TFormValues>({ defaultValues });
   const { replaceCustomComponentsFromHTMLContent, replaceCustomComponentsFromMarkdownContent } = useParseEditorContent({
     projectId,
     workspaceSlug: workspaceSlug ?? "",
   });
-  // derived values
+
   const selectedExportFormat = watch("export_format");
   const selectedPageFormat = watch("page_format");
   const selectedContentVariety = watch("content_variety");
+  const selectedScope = watch("export_scope");
   const isPDFSelected = selectedExportFormat === "pdf";
-  const fileName = pageTitle
-    ?.toLowerCase()
-    ?.replace(/[^a-z0-9-_]/g, "-")
-    .replace(/-+/g, "-");
-  // handle modal close
+  const fileName =
+    pageTitle
+      ?.toLowerCase()
+      ?.replace(/[^a-z0-9-_آ-ی]/gi, "-")
+      .replace(/-+/g, "-") || "page";
+
   const handleClose = () => {
     onClose();
-    setTimeout(() => {
-      reset();
-    }, 300);
+    setTimeout(() => reset(), 300);
   };
 
-  const initiateDownload = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 1000);
+  const fetchTree = async () => {
+    if (!workspaceSlug || !pageId) throw new Error("missing page");
+    if (exportContext === "wiki") {
+      return exportService.fetchWikiTree(workspaceSlug.toString(), pageId);
+    }
+    if (!projectId) throw new Error("missing project");
+    return exportService.fetchProjectTree(workspaceSlug.toString(), projectId.toString(), pageId);
   };
 
-  // handle export as a PDF
   const handleExportAsPDF = async () => {
-    try {
-      const pageContent = `<h1 class="page-title">${pageTitle}</h1>${editorRef?.getDocument().html ?? "<p></p>"}`;
-      const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
-        htmlContent: pageContent,
+    if (selectedScope === "page_and_subpages" && pageId) {
+      const tree = await fetchTree();
+      const combined = buildCombinedHtml(tree, { includeToc: true });
+      const parsed = await replaceCustomComponentsFromHTMLContent({
+        htmlContent: combined,
         noAssets: selectedContentVariety === "no-assets",
       });
-
-      const blob = await pdf(<PDFDocument content={parsedPageContent} pageFormat={selectedPageFormat} />).toBlob();
-      initiateDownload(blob, `${fileName}-${selectedPageFormat.toString().toLowerCase()}.pdf`);
-    } catch (error) {
-      throw new Error(`Error in exporting as a PDF: ${error}`);
+      const blob = await pdf(<PDFDocument content={parsed} pageFormat={selectedPageFormat} />).toBlob();
+      initiateDownload(blob, `${fileName}-tree.pdf`);
+      return;
     }
+    const pageContent = `<h1 class="page-title">${pageTitle}</h1>${editorRef?.getDocument().html ?? "<p></p>"}`;
+    const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
+      htmlContent: pageContent,
+      noAssets: selectedContentVariety === "no-assets",
+    });
+    const blob = await pdf(<PDFDocument content={parsedPageContent} pageFormat={selectedPageFormat} />).toBlob();
+    initiateDownload(blob, `${fileName}.pdf`);
   };
-  // handle export as markdown
+
   const handleExportAsMarkdown = async () => {
-    try {
-      const markdownContent = editorRef?.getMarkDown() ?? "";
-      const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
-        markdownContent,
-        noAssets: selectedContentVariety === "no-assets",
-      });
-
-      const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
-      initiateDownload(blob, `${fileName}.md`);
-    } catch (error) {
-      throw new Error(`Error in exporting as markdown: ${error}`);
+    if (selectedScope === "page_and_subpages" && pageId) {
+      const tree = await fetchTree();
+      const blob = await buildMarkdownZipFromTree(tree);
+      initiateDownload(blob, `${fileName}-export.zip`);
+      return;
     }
+    const markdownContent = editorRef?.getMarkDown() ?? "";
+    const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
+      markdownContent,
+      noAssets: selectedContentVariety === "no-assets",
+    });
+    const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
+    initiateDownload(blob, `${fileName}.md`);
   };
-  // handle export
+
+  const handleExportAsDocx = async () => {
+    if (!pageId) {
+      // single page synthetic tree
+      const html = editorRef?.getDocument().html ?? "<p></p>";
+      const tree = {
+        root: "current",
+        pages: [
+          {
+            id: "current",
+            name: pageTitle,
+            parent: null,
+            description_html: html,
+            description_json: {},
+            children_ids: [],
+            bookmark_id: "page_current",
+          },
+        ],
+      };
+      const blob = await buildDocxFromTree(tree);
+      initiateDownload(blob, `${fileName}.docx`);
+      return;
+    }
+    const tree = await fetchTree();
+    const scoped =
+      selectedScope === "this_page"
+        ? {
+            root: tree.root,
+            pages: tree.pages
+              .filter((p) => p.id === tree.root)
+              .map((p) => Object.assign({}, p, { children_ids: [] as string[] })),
+          }
+        : tree;
+    const blob = await buildDocxFromTree(scoped);
+    initiateDownload(blob, `${fileName}.docx`);
+  };
+
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      if (selectedExportFormat === "pdf") {
-        await handleExportAsPDF();
-      }
-      if (selectedExportFormat === "markdown") {
-        await handleExportAsMarkdown();
-      }
-      setToast({
-        type: TOAST_TYPE.SUCCESS,
-        title: "Success!",
-        message: "Page exported successfully.",
-      });
+      if (selectedExportFormat === "pdf") await handleExportAsPDF();
+      if (selectedExportFormat === "markdown") await handleExportAsMarkdown();
+      if (selectedExportFormat === "docx") await handleExportAsDocx();
+      setToast({ type: TOAST_TYPE.SUCCESS, title: "موفق", message: "خروجی آماده شد." });
       handleClose();
     } catch (error) {
-      console.error("Error in exporting page:", error);
-      setToast({
-        type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Page could not be exported. Please try again later.",
-      });
+      console.error(error);
+      setToast({ type: TOAST_TYPE.ERROR, title: "خطا", message: "خروجی گرفته نشد." });
     } finally {
       setIsExporting(false);
     }
@@ -206,16 +211,16 @@ export function ExportPageModal(props: Props) {
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.SM}>
       <div>
         <div className="space-y-5 p-5">
-          <h3 className="text-18 font-medium text-secondary">Export page</h3>
+          <h3 className="text-18 font-medium text-secondary">خروجی صفحه</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">Export format</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">فرمت</h6>
               <Controller
                 control={control}
                 name="export_format"
                 render={({ field: { onChange, value } }) => (
                   <CustomSelect
-                    label={EXPORT_FORMATS.find((format) => format.key === value)?.label}
+                    label={EXPORT_FORMATS.find((f) => f.key === value)?.label}
                     buttonClassName="border-none"
                     value={value}
                     onChange={(val: TExportFormats) => onChange(val)}
@@ -231,14 +236,39 @@ export function ExportPageModal(props: Props) {
                 )}
               />
             </div>
+            {pageId && (
+              <div className="flex items-center justify-between gap-2">
+                <h6 className="flex-shrink-0 text-13 text-secondary">محدوده</h6>
+                <Controller
+                  control={control}
+                  name="export_scope"
+                  render={({ field: { onChange, value } }) => (
+                    <CustomSelect
+                      label={EXPORT_SCOPES.find((s) => s.key === value)?.label}
+                      buttonClassName="border-none"
+                      value={value}
+                      onChange={(val: TExportScope) => onChange(val)}
+                      className="flex-shrink-0"
+                      placement="bottom-end"
+                    >
+                      {EXPORT_SCOPES.map((s) => (
+                        <CustomSelect.Option key={s.key} value={s.key}>
+                          {s.label}
+                        </CustomSelect.Option>
+                      ))}
+                    </CustomSelect>
+                  )}
+                />
+              </div>
+            )}
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">Include content</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">محتوا</h6>
               <Controller
                 control={control}
                 name="content_variety"
                 render={({ field: { onChange, value } }) => (
                   <CustomSelect
-                    label={CONTENT_VARIETY.find((variety) => variety.key === value)?.label}
+                    label={CONTENT_VARIETY.find((v) => v.key === value)?.label}
                     buttonClassName="border-none"
                     value={value}
                     onChange={(val: TContentVariety) => onChange(val)}
@@ -256,13 +286,13 @@ export function ExportPageModal(props: Props) {
             </div>
             {isPDFSelected && (
               <div className="flex items-center justify-between gap-2">
-                <h6 className="flex-shrink-0 text-13 text-secondary">Page format</h6>
+                <h6 className="flex-shrink-0 text-13 text-secondary">اندازه صفحه</h6>
                 <Controller
                   control={control}
                   name="page_format"
                   render={({ field: { onChange, value } }) => (
                     <CustomSelect
-                      label={PAGE_FORMATS.find((format) => format.key === value)?.label}
+                      label={PAGE_FORMATS.find((f) => f.key === value)?.label}
                       buttonClassName="border-none"
                       value={value}
                       onChange={(val: TPageFormats) => onChange(val)}
@@ -283,10 +313,10 @@ export function ExportPageModal(props: Props) {
         </div>
         <div className="flex items-center justify-end gap-2 border-t-[0.5px] border-subtle px-5 py-4">
           <Button variant="secondary" size="lg" onClick={handleClose}>
-            Cancel
+            انصراف
           </Button>
           <Button variant="primary" size="lg" loading={isExporting} onClick={handleExport}>
-            {isExporting ? "Exporting" : "Export"}
+            {isExporting ? "در حال خروجی…" : "خروجی"}
           </Button>
         </div>
       </div>

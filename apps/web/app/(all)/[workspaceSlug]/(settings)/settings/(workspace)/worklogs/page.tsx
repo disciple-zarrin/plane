@@ -16,6 +16,7 @@ import { Card, ECardSpacing } from "@plane/ui";
 import { cn } from "@plane/utils";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { CountChip } from "@/components/common/count-chip";
+import { HesarBackButton } from "@/components/common/hesar-back-button";
 import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
@@ -160,6 +161,7 @@ function WorklogsPage() {
         <SettingsHeading
           title={
             <span className="flex items-center gap-2.5">
+              <HesarBackButton fallbackHref={`/${workspaceSlug}`} />
               <span className="flex size-8 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
                 <Timer className="size-4" />
               </span>

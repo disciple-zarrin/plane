@@ -276,6 +276,11 @@ urlpatterns = [
         name="work-item-versions",
     ),
     path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:work_item_id>/description-versions/<uuid:pk>/restore/",
+        WorkItemDescriptionVersionEndpoint.as_view(),
+        name="work-item-version-restore",
+    ),
+    path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/meta/",
         IssueMetaEndpoint.as_view(),
         name="issue-meta",

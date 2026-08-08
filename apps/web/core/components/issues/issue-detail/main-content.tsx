@@ -155,6 +155,7 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
                   workItemVersionService.retrieveDescriptionVersion(workspaceSlug, projectId, issueId, versionId),
               }}
               handleRestore={(descriptionHTML) => editorRef.current?.setEditorValue(descriptionHTML, true)}
+              currentDescriptionHtml={issue.description_html || ""}
               projectId={projectId}
               workspaceSlug={workspaceSlug}
             />

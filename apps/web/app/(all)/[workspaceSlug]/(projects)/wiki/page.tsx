@@ -13,6 +13,7 @@ import { WikiIcon } from "@plane/propel/icons";
 import type { TPage } from "@plane/types";
 import { cn } from "@plane/utils";
 import { PageHead } from "@/components/core/page-title";
+import { HesarBackButton } from "@/components/common/hesar-back-button";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { WorkspacePageService } from "@/services/page/workspace-page.service";
@@ -124,6 +125,7 @@ export default observer(function WikiListPage() {
       <PageHead title={pageTitle} />
       <div className="flex items-center justify-between gap-3 border-b border-subtle px-6 py-4">
         <div className="flex items-center gap-3">
+          <HesarBackButton fallbackHref={`/${slug}`} />
           <span className="flex size-9 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
             <WikiIcon className="size-5" />
           </span>

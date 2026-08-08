@@ -12,10 +12,15 @@ from plane.app.permissions import WorkspaceEntityPermission
 from plane.app.serializers.page import PageBinaryUpdateSerializer, PageSerializer
 from plane.app.views.base import BaseAPIView, BaseViewSet
 from plane.bgtasks.page_transaction_task import page_transaction
+from plane.bgtasks.page_version_task import track_page_version
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.db.models import Page, UserFavorite, Workspace, WorkspaceMember
 
 from .base import unarchive_archive_page_and_descendants
+from .export_tree import collect_page_descendants, serialize_export_tree
+
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
 
 class WorkspacePageSerializer(PageSerializer):
@@ -214,6 +219,14 @@ class WorkspacePageViewSet(BaseViewSet):
         page.save(update_fields=["is_locked"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def export_tree(self, request, slug, page_id):
+        page = self._base_queryset().filter(pk=page_id).first()
+        if not page:
+            return Response({"error": "Page not found"}, status=status.HTTP_404_NOT_FOUND)
+        qs = Page.objects.filter(workspace__slug=slug, is_global=True)
+        pages = collect_page_descendants(page, qs)
+        return Response(serialize_export_tree(page, pages), status=status.HTTP_200_OK)
+
 
 class WorkspacePagesDescriptionEndpoint(BaseAPIView):
     permission_classes = [WorkspaceEntityPermission]
@@ -242,6 +255,7 @@ class WorkspacePagesDescriptionEndpoint(BaseAPIView):
             return Response({"error": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
 
         old_html = page.description_html
+        existing_instance = json.dumps({"description_html": old_html}, cls=DjangoJSONEncoder)
         serializer = PageBinaryUpdateSerializer(page, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -251,5 +265,10 @@ class WorkspacePagesDescriptionEndpoint(BaseAPIView):
                 new_description_html=request.data.get("description_html", "<p></p>"),
                 old_description_html=old_html,
                 page_id=page_id,
+            )
+            track_page_version.delay(
+                page_id=page_id,
+                existing_instance=existing_instance,
+                user_id=request.user.id,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
