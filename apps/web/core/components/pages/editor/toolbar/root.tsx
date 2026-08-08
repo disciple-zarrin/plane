@@ -11,6 +11,7 @@ import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@plane/propel/tooltip";
 import { cn } from "@plane/utils";
 // components
+import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
 import { PageToolbar } from "@/components/pages/editor/toolbar";
 // hooks
 import { usePageFilters } from "@/hooks/use-page-filters";
@@ -53,8 +54,13 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
             }
           )}
         >
-          <div className="flex w-full max-w-full items-center justify-between">
-            <div className="flex flex-1 items-center gap-1">{editorRef && <PageToolbar editorRef={editorRef} />}</div>
+          <div className="flex w-full max-w-full items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              {editorRef && <PageToolbar editorRef={editorRef} />}
+              {editorRef && (
+                <EditorRtlToggle editorRef={editorRef} disabled={!isContentEditable} className="shrink-0" />
+              )}
+            </div>
             <div className="flex items-center gap-2">
               {!isNavigationPaneOpen && (
                 <button
@@ -68,7 +74,21 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
             </div>
           </div>
         </div>
+        {/* Mobile: page-toolbar-content is md:flex only — keep direction controls visible */}
+        {!shouldHideToolbar && isContentEditable && editorRef && (
+          <div className="flex items-center justify-end gap-2 px-page-x py-1.5 md:hidden">
+            <span className="text-11 text-tertiary">جهت پاراگراف</span>
+            <EditorRtlToggle editorRef={editorRef} />
+          </div>
+        )}
       </div>
+      {/* Always-visible paragraph direction when sticky toolbar is off */}
+      {shouldHideToolbar && isContentEditable && editorRef && (
+        <div className="flex items-center justify-end gap-2 px-page-x py-1.5">
+          <span className="text-11 text-tertiary">جهت پاراگراف</span>
+          <EditorRtlToggle editorRef={editorRef} />
+        </div>
+      )}
       {shouldHideToolbar && (
         <div className="absolute top-0 right-0 z-10 flex h-[52px] items-center px-page-x">
           {!isNavigationPaneOpen && (

@@ -81,6 +81,8 @@ export const TEXT_DIRECTION_ITEMS: ToolbarMenuItem<"text-direction">[] = [
   },
 ];
 
+// Keep direction only on the labeled EditorRtlToggle — icon-only toolbar
+// buttons look identical to text-align and confuse users.
 export const TEXT_ALIGNMENT_ITEMS: ToolbarMenuItem<"text-align">[] = [
   {
     itemKey: "text-align",
@@ -198,7 +200,6 @@ export const TOOLBAR_ITEMS: {
 } = {
   lite: {
     basic: BASIC_MARK_ITEMS.filter((item) => item.editors.includes("lite")),
-    direction: TEXT_DIRECTION_ITEMS.filter((item) => item.editors.includes("lite")),
     alignment: TEXT_ALIGNMENT_ITEMS.filter((item) => item.editors.includes("lite")),
     list: LIST_ITEMS.filter((item) => item.editors.includes("lite")),
     userAction: USER_ACTION_ITEMS.filter((item) => item.editors.includes("lite")),
@@ -206,7 +207,6 @@ export const TOOLBAR_ITEMS: {
   },
   document: {
     basic: BASIC_MARK_ITEMS.filter((item) => item.editors.includes("document")),
-    direction: TEXT_DIRECTION_ITEMS.filter((item) => item.editors.includes("document")),
     alignment: TEXT_ALIGNMENT_ITEMS.filter((item) => item.editors.includes("document")),
     list: LIST_ITEMS.filter((item) => item.editors.includes("document")),
     userAction: USER_ACTION_ITEMS.filter((item) => item.editors.includes("document")),
