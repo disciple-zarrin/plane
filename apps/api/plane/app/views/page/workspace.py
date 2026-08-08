@@ -18,9 +18,7 @@ from plane.db.models import Page, UserFavorite, Workspace, WorkspaceMember
 
 from .base import unarchive_archive_page_and_descendants
 from .export_tree import collect_mentioned_pages, collect_page_descendants, serialize_export_tree
-
-from django.core.serializers.json import DjangoJSONEncoder
-import json
+from plane.utils.page_version_snapshot import encode_page_snapshot
 
 
 class WorkspacePageSerializer(PageSerializer):
@@ -255,7 +253,7 @@ class WorkspacePagesDescriptionEndpoint(BaseAPIView):
             return Response({"error": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
 
         old_html = page.description_html
-        existing_instance = json.dumps({"description_html": old_html}, cls=DjangoJSONEncoder)
+        existing_instance = encode_page_snapshot(page)
         serializer = PageBinaryUpdateSerializer(page, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
