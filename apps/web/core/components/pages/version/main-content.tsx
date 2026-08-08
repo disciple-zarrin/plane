@@ -187,7 +187,12 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
           </div>
           <div className="vertical-scrollbar scrollbar-sm h-full overflow-y-scroll px-5 pt-6">
             {showDiff && versionDetails ? (
-              <DocumentHtmlDiff beforeHtml={beforeHtml} afterHtml={afterHtml} caption={caption} />
+              <DocumentHtmlDiff
+                beforeHtml={beforeHtml}
+                afterHtml={afterHtml}
+                caption={caption}
+                fileName={`${currentPage?.name || "document"}.md`}
+              />
             ) : (
               <VersionEditor activeVersion={activeVersion} storeType={storeType} versionDetails={versionDetails} />
             )}
