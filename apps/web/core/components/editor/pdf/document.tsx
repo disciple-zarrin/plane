@@ -7,7 +7,7 @@
 import type { PageProps, Styles } from "@react-pdf/renderer";
 import { Document, Font, Page, StyleSheet } from "@react-pdf/renderer";
 import { Html } from "react-pdf-html";
-// assets
+// assets — Vazirmatn for Persian/RTL; Inter kept for latin-heavy legacy pages
 import interBold from "@/app/assets/fonts/inter/bold.ttf?url";
 import interHeavy from "@/app/assets/fonts/inter/heavy.ttf?url";
 import interLight from "@/app/assets/fonts/inter/light.ttf?url";
@@ -17,11 +17,13 @@ import interSemibold from "@/app/assets/fonts/inter/semibold.ttf?url";
 import interThin from "@/app/assets/fonts/inter/thin.ttf?url";
 import interUltraBold from "@/app/assets/fonts/inter/ultrabold.ttf?url";
 import interUltraLight from "@/app/assets/fonts/inter/ultralight.ttf?url";
+import vazirBold from "@/app/assets/fonts/vazirmatn/Vazirmatn-Bold.ttf?url";
+import vazirRegular from "@/app/assets/fonts/vazirmatn/Vazirmatn-Regular.ttf?url";
 // plane imports
 import { convertRemToPixel } from "@plane/utils";
 
 const EDITOR_PDF_FONT_FAMILY_STYLES: Styles = {
-  "*:not(.courier, .courier-bold)": { fontFamily: "Inter" },
+  "*:not(.courier, .courier-bold)": { fontFamily: "Vazirmatn" },
   ".courier": { fontFamily: "Courier" },
   ".courier-bold": { fontFamily: "Courier-Bold" },
 };
@@ -101,7 +103,7 @@ const EDITOR_PDF_LIST_STYLES: Styles = {
   "div.input-checkbox": {
     position: "absolute",
     top: convertRemToPixel(0.15),
-    left: -convertRemToPixel(1.2),
+    right: -convertRemToPixel(1.2),
     height: convertRemToPixel(0.75),
     width: convertRemToPixel(0.75),
     borderWidth: "1.5px",
@@ -187,6 +189,25 @@ const EDITOR_PDF_DOCUMENT_STYLESHEET = StyleSheet.create({
   "table p": {
     fontSize: convertRemToPixel(0.7),
   },
+  a: {
+    color: "#0563C1",
+    textDecoration: "underline",
+  },
+});
+
+Font.register({
+  family: "Vazirmatn",
+  fonts: [
+    { src: vazirRegular, fontWeight: "thin" },
+    { src: vazirRegular, fontWeight: "ultralight" },
+    { src: vazirRegular, fontWeight: "light" },
+    { src: vazirRegular, fontWeight: "normal" },
+    { src: vazirRegular, fontWeight: "medium" },
+    { src: vazirBold, fontWeight: "semibold" },
+    { src: vazirBold, fontWeight: "bold" },
+    { src: vazirBold, fontWeight: "ultrabold" },
+    { src: vazirBold, fontWeight: "heavy" },
+  ],
 });
 
 Font.register({
@@ -218,8 +239,14 @@ type Props = {
   pageFormat: PageProps["size"];
 };
 
+function hasPersian(text: string): boolean {
+  return /[\u0600-\u06FF]/.test(text);
+}
+
 export function PDFDocument(props: Props) {
   const { content, pageFormat } = props;
+  const rtl = hasPersian(content);
+  const wrapped = `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"}; text-align:${rtl ? "right" : "left"}">${content}</div>`;
 
   return (
     <Document>
@@ -227,10 +254,12 @@ export function PDFDocument(props: Props) {
         size={pageFormat}
         style={{
           backgroundColor: "#ffffff",
-          padding: 64,
+          padding: 48,
+          direction: rtl ? "rtl" : "ltr",
+          fontFamily: "Vazirmatn",
         }}
       >
-        <Html stylesheet={EDITOR_PDF_DOCUMENT_STYLESHEET}>{content}</Html>
+        <Html stylesheet={EDITOR_PDF_DOCUMENT_STYLESHEET}>{wrapped}</Html>
       </Page>
     </Document>
   );

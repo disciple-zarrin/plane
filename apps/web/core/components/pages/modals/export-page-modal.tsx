@@ -16,9 +16,16 @@ import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@plane/ui"
 import { PDFDocument } from "@/components/editor/pdf";
 import { buildDocxFromTree } from "@/components/pages/export/docx-builder";
 import { buildMarkdownZipFromTree } from "@/components/pages/export/markdown-zip";
-import { buildCombinedHtml } from "@/components/pages/export/tree-utils";
+import {
+  buildCombinedHtml,
+  escapeHtml,
+  flattenExportTree,
+  rewritePageMentionsToBookmarks,
+  sanitizeHtmlForPdf,
+} from "@/components/pages/export/tree-utils";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 import { PageExportService } from "@/services/page/page-export.service";
+import type { TExportTree } from "@/services/page/page-export.service";
 
 type Props = {
   editorRef: EditorRefApi | null;
@@ -118,24 +125,62 @@ export function ExportPageModal(props: Props) {
     return exportService.fetchProjectTree(workspaceSlug.toString(), projectId.toString(), pageId);
   };
 
+  const scopeTree = (tree: TExportTree): TExportTree => {
+    if (selectedScope !== "this_page") return tree;
+    return {
+      root: tree.root,
+      pages: tree.pages
+        .filter((p) => p.id === tree.root)
+        .map((p) => Object.assign({}, p, { children_ids: [] as string[] })),
+    };
+  };
+
+  /** Prefer live editor HTML; fall back to export-tree API (needed for list ⋯ menu where editorRef is null). */
+  const resolveSinglePageHtml = async (): Promise<{ title: string; html: string }> => {
+    const liveHtml = editorRef?.getDocument()?.html;
+    if (liveHtml) {
+      return { title: pageTitle, html: liveHtml };
+    }
+    if (!pageId) {
+      return { title: pageTitle, html: "<p></p>" };
+    }
+    const tree = await fetchTree();
+    const root = flattenExportTree(tree)[0];
+    return {
+      title: root?.name || pageTitle,
+      html: rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages),
+    };
+  };
+
   const handleExportAsPDF = async () => {
-    if (selectedScope === "page_and_subpages" && pageId) {
-      const tree = await fetchTree();
-      const combined = buildCombinedHtml(tree, { includeToc: true });
+    if (pageId && (selectedScope === "page_and_subpages" || !editorRef?.getDocument()?.html)) {
+      const tree = scopeTree(await fetchTree());
+      const combined =
+        selectedScope === "page_and_subpages"
+          ? buildCombinedHtml(tree, { includeToc: true })
+          : (() => {
+              const root = flattenExportTree(tree)[0];
+              const title = root?.name || pageTitle;
+              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages);
+              return sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(title)}</h1>${body}`);
+            })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
         htmlContent: combined,
         noAssets: selectedContentVariety === "no-assets",
       });
-      const blob = await pdf(<PDFDocument content={parsed} pageFormat={selectedPageFormat} />).toBlob();
-      initiateDownload(blob, `${fileName}-tree.pdf`);
+      const blob = await pdf(<PDFDocument content={sanitizeHtmlForPdf(parsed)} pageFormat={selectedPageFormat} />).toBlob();
+      initiateDownload(blob, selectedScope === "page_and_subpages" ? `${fileName}-tree.pdf` : `${fileName}.pdf`);
       return;
     }
-    const pageContent = `<h1 class="page-title">${pageTitle}</h1>${editorRef?.getDocument().html ?? "<p></p>"}`;
+    const { title, html } = await resolveSinglePageHtml();
+    const pageContent = sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(title)}</h1>${html}`);
     const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
       htmlContent: pageContent,
       noAssets: selectedContentVariety === "no-assets",
     });
-    const blob = await pdf(<PDFDocument content={parsedPageContent} pageFormat={selectedPageFormat} />).toBlob();
+    const blob = await pdf(
+      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} />
+    ).toBlob();
     initiateDownload(blob, `${fileName}.pdf`);
   };
 
@@ -146,12 +191,23 @@ export function ExportPageModal(props: Props) {
       initiateDownload(blob, `${fileName}-export.zip`);
       return;
     }
-    const markdownContent = editorRef?.getMarkDown() ?? "";
-    const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
-      markdownContent,
-      noAssets: selectedContentVariety === "no-assets",
-    });
-    const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
+    const liveMd = editorRef?.getMarkDown();
+    if (liveMd) {
+      const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
+        markdownContent: liveMd,
+        noAssets: selectedContentVariety === "no-assets",
+      });
+      const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
+      initiateDownload(blob, `${fileName}.md`);
+      return;
+    }
+    if (pageId) {
+      const tree = scopeTree(await fetchTree());
+      const blob = await buildMarkdownZipFromTree(tree);
+      initiateDownload(blob, `${fileName}-export.zip`);
+      return;
+    }
+    const blob = new Blob([""], { type: "text/markdown" });
     initiateDownload(blob, `${fileName}.md`);
   };
 

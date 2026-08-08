@@ -54,18 +54,27 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
     ordered.forEach((p, idx) => {
       const depth = getDepth(p, tree);
       parts.push(
-        `<li style="margin-right:${depth * 12}px"><a href="#${p.bookmark_id}">${idx + 1}. ${escapeHtml(p.name)}</a></li>`
+        `<li style="margin-inline-start:${depth * 12}px"><a href="#${p.bookmark_id}">${idx + 1}. ${escapeHtml(p.name)}</a></li>`
       );
     });
-    parts.push(`</ul><hr />`);
+    parts.push(`</ul><div data-type="horizontalRule"></div>`);
   }
   ordered.forEach((p) => {
     const body = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages);
+    // Use div (not section/hr) — react-pdf-html drops unsupported tags and can wipe the page body.
     parts.push(
-      `<section id="${p.bookmark_id}"><h1 class="page-title">${escapeHtml(p.name)}</h1>${body}</section>`
+      `<div id="${p.bookmark_id}"><h1 class="page-title">${escapeHtml(p.name)}</h1>${body}</div>`
     );
   });
-  return parts.join("\n");
+  return sanitizeHtmlForPdf(parts.join("\n"));
+}
+
+/** Normalize editor HTML so react-pdf-html can render it reliably. */
+export function sanitizeHtmlForPdf(html: string): string {
+  return (html || "<p></p>")
+    .replace(/<\/?section\b[^>]*>/gi, (tag) => (tag.startsWith("</") ? "</div>" : tag.replace(/^<section/i, "<div")))
+    .replace(/<hr\s*\/?>/gi, '<div data-type="horizontalRule"></div>')
+    .replace(/\u00a0/g, " ");
 }
 
 function getDepth(page: TExportTreePage, tree: TExportTree): number {
@@ -79,8 +88,8 @@ function getDepth(page: TExportTreePage, tree: TExportTree): number {
   return d;
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+export function escapeHtml(s: string): string {
+  return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export function stripHtmlToText(html: string): string {
