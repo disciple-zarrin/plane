@@ -5,6 +5,7 @@
  */
 
 import type { TExportTree, TExportTreePage } from "@/services/page/page-export.service";
+import { getCachedPageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 
 export type TExportLabels = {
   toc: string;
@@ -75,23 +76,123 @@ export function treeIsRtl(tree: TExportTree): boolean {
 }
 
 /** Rewrite page mentions to internal anchors for export documents. */
-export function rewritePageMentionsToBookmarks(html: string, pages: TExportTreePage[], isRtl?: boolean): string {
+export function rewritePageMentionsToBookmarks(
+  html: string,
+  pages: TExportTreePage[],
+  isRtl?: boolean,
+  options?: { webBaseUrl?: string }
+): string {
   const labels = exportLabels(isRtl ?? treeIsRtl({ root: pages[0]?.id || "", pages }));
   const byId = new Map(pages.map((p) => [p.id, p]));
-  return html.replace(/<mention-component([^>]*?)>/gi, (full, attrs: string) => {
-    const idMatch = attrs.match(/entity_identifier=["']([^"']+)["']/i) || attrs.match(/\bid=["']([^"']+)["']/i);
-    const entityMatch = attrs.match(/entity_name=["']([^"']+)["']/i);
-    const entity = entityMatch?.[1] || "";
-    const id = idMatch?.[1];
-    if (!id || (entity && entity !== "page" && entity !== "page_mention")) {
-      return full;
+  const webBase = (options?.webBaseUrl || "").replace(/\/$/, "");
+
+  if (typeof DOMParser !== "undefined") {
+    try {
+      const doc = new DOMParser().parseFromString(`<div id="__export_root">${html || ""}</div>`, "text/html");
+      const root = doc.getElementById("__export_root");
+      if (root) {
+        root.querySelectorAll("mention-component").forEach((component) => {
+          const id = component.getAttribute("entity_identifier") || component.getAttribute("id") || "";
+          const entity = component.getAttribute("entity_name") || "";
+          if (!id || (entity && entity !== "page" && entity !== "page_mention")) {
+            component.replaceWith(doc.createTextNode(component.textContent || ""));
+            return;
+          }
+          const page = byId.get(id);
+          const title = page?.name || getCachedPageMentionName(id) || labels.page;
+          if (page) {
+            const a = doc.createElement("a");
+            a.setAttribute("href", `#${page.bookmark_id}`);
+            a.setAttribute("class", "page-link-internal");
+            a.textContent = title;
+            component.replaceWith(a);
+            return;
+          }
+          if (webBase) {
+            const a = doc.createElement("a");
+            a.setAttribute("href", `${webBase}/${id}`);
+            a.setAttribute("class", "page-link-external");
+            a.textContent = title;
+            component.replaceWith(a);
+            return;
+          }
+          const span = doc.createElement("span");
+          span.setAttribute("class", "page-link-external");
+          span.textContent = title;
+          component.replaceWith(span);
+        });
+        return root.innerHTML;
+      }
+    } catch {
+      // fall through to regex path
     }
-    const page = byId.get(id);
-    if (!page) {
-      return `<span class="page-link-external">${id}</span>`;
+  }
+
+  return (html || "").replace(
+    /<mention-component([^>]*?)>\s*<\/mention-component>|<mention-component([^>]*?)\s*\/>/gi,
+    (full, attrsA?: string, attrsB?: string) => {
+      const attrs = attrsA || attrsB || "";
+      const idMatch = attrs.match(/entity_identifier=["']([^"']+)["']/i) || attrs.match(/\bid=["']([^"']+)["']/i);
+      const entityMatch = attrs.match(/entity_name=["']([^"']+)["']/i);
+      const entity = entityMatch?.[1] || "";
+      const id = idMatch?.[1];
+      if (!id || (entity && entity !== "page" && entity !== "page_mention")) {
+        return "";
+      }
+      const page = byId.get(id);
+      const title = escapeHtml(page?.name || getCachedPageMentionName(id) || labels.page);
+      if (page) {
+        return `<a href="#${page.bookmark_id}" class="page-link-internal">${title}</a>`;
+      }
+      if (webBase) {
+        return `<a href="${webBase}/${id}" class="page-link-external">${title}</a>`;
+      }
+      return `<span class="page-link-external">${title}</span>`;
     }
-    return `<a href="#${page.bookmark_id}" class="page-link-internal">${escapeHtml(page.name || labels.page)}</a>`;
-  });
+  );
+}
+
+/** Collect page ids referenced by mention-components in HTML. */
+export function extractMentionedPageIds(html: string | undefined | null): string[] {
+  if (!html) return [];
+  const ids = new Set<string>();
+  const re = /<mention-component[^>]*?(?:entity_identifier|id)=["']([0-9a-fA-F-]{36})["'][^>]*?>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html)) !== null) {
+    ids.add(match[1]);
+  }
+  return [...ids];
+}
+
+/**
+ * Keep pages referenced from the root content even when exporting "this page only",
+ * so internal links still resolve.
+ */
+export function retainMentionedPages(tree: TExportTree, rootHtml?: string | null): TExportTree {
+  const root = tree.pages.find((p) => p.id === tree.root);
+  const html = rootHtml ?? root?.description_html ?? "";
+  const mentioned = new Set(extractMentionedPageIds(html));
+  if (!mentioned.size) {
+    return {
+      root: tree.root,
+      pages: tree.pages
+        .filter((p) => p.id === tree.root)
+        .map((p) => Object.assign({}, p, { children_ids: [] as string[] })),
+    };
+  }
+  const keep = new Set<string>([tree.root, ...mentioned]);
+  return {
+    root: tree.root,
+    pages: tree.pages
+      .filter((p) => keep.has(p.id))
+      .map((p) =>
+        p.id === tree.root
+          ? Object.assign({}, p, {
+              children_ids: (p.children_ids || []).filter((id) => keep.has(id)),
+            })
+          : Object.assign({}, p, { children_ids: [] as string[] })
+      ),
+  };
 }
 
 /** Depth-first ordered list of pages starting at root. */
@@ -111,7 +212,7 @@ export function flattenExportTree(tree: TExportTree): TExportTreePage[] {
   return ordered;
 }
 
-export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: boolean }): string {
+export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: boolean; webBaseUrl?: string }): string {
   const ordered = flattenExportTree(tree);
   const rtlDoc = treeIsRtl(tree);
   const labels = exportLabels(rtlDoc);
@@ -131,9 +232,11 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
   ordered.forEach((p) => {
     const rtl = pageIsRtl(p);
     const body = applyInlineDirectionStyles(
-      rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl)
+      rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl, {
+        webBaseUrl: options?.webBaseUrl,
+      })
     );
-    // Title uses page-level default; body paragraphs keep their own dir attrs/styles.
+    // Destination id on the wrapper so PDF Link src="#id" can jump here.
     parts.push(
       `<div id="${p.bookmark_id}"><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
     );

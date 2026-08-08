@@ -4,9 +4,20 @@
 
 """Helpers to build a page + descendants tree for export."""
 
+from __future__ import annotations
+
+import re
+from uuid import UUID
+
 from plane.db.models import Page
 
 MAX_EXPORT_PAGES = 50
+
+# TipTap serializes page mentions as <mention-component ... entity_identifier="uuid" ...>
+_MENTION_ID_RE = re.compile(
+    r"<mention-component[^>]*?(?:entity_identifier|id)=[\"']([0-9a-fA-F-]{36})[\"'][^>]*?>",
+    re.IGNORECASE,
+)
 
 
 def collect_page_descendants(root: Page, qs) -> list[Page]:
@@ -26,11 +37,48 @@ def collect_page_descendants(root: Page, qs) -> list[Page]:
     return result
 
 
+def _extract_mentioned_page_ids(html: str | None) -> set[str]:
+    if not html:
+        return set()
+    ids: set[str] = set()
+    for match in _MENTION_ID_RE.finditer(html):
+        raw = match.group(1)
+        try:
+            ids.add(str(UUID(raw)))
+        except ValueError:
+            continue
+    return ids
+
+
+def collect_mentioned_pages(pages: list[Page], qs, limit: int = MAX_EXPORT_PAGES) -> list[Page]:
+    """
+    Pull pages referenced via mention-component that are not already in the tree.
+    Needed so PDF/DOCX internal links resolve to real bookmarks.
+    """
+    seen = {str(p.id) for p in pages}
+    mentioned: set[str] = set()
+    for page in pages:
+        mentioned |= _extract_mentioned_page_ids(page.description_html)
+
+    missing = [mid for mid in mentioned if mid not in seen]
+    if not missing:
+        return pages
+
+    room = max(0, limit - len(pages))
+    if room <= 0:
+        return pages
+
+    extras = list(qs.filter(id__in=missing[:room], archived_at__isnull=True))
+    # Preserve original order, append extras
+    return [*pages, *extras]
+
+
 def serialize_export_tree(root: Page, pages: list[Page]) -> dict:
+    page_ids = {str(p.id) for p in pages}
     by_parent: dict[str | None, list[str]] = {}
     for p in pages:
-        key = str(p.parent_id) if p.parent_id else None
-        by_parent.setdefault(key, []).append(str(p.id))
+        if p.parent_id and str(p.parent_id) in page_ids:
+            by_parent.setdefault(str(p.parent_id), []).append(str(p.id))
 
     serialized = []
     for p in pages:

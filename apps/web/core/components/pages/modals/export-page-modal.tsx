@@ -22,10 +22,12 @@ import {
   flattenExportTree,
   injectLiveRootHtml,
   pageIsRtl,
+  retainMentionedPages,
   rewritePageMentionsToBookmarks,
   sanitizeHtmlForPdf,
   treeIsRtl,
 } from "@/components/pages/export/tree-utils";
+import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 import { PageExportService } from "@/services/page/page-export.service";
 import type { TExportTree } from "@/services/page/page-export.service";
@@ -130,35 +132,56 @@ export function ExportPageModal(props: Props) {
     return exportService.fetchProjectTree(workspaceSlug.toString(), projectId.toString(), pageId);
   };
 
-  const scopeTree = (tree: TExportTree): TExportTree => {
+  const scopeTree = (tree: TExportTree, liveHtml?: string | null): TExportTree => {
+    // Warm page-name cache for mention labels in export.
+    tree.pages.forEach((p) => {
+      if (p.id && p.name) cachePageMentionName(p.id, p.name);
+    });
     if (selectedScope !== "this_page") return tree;
-    return {
-      root: tree.root,
-      pages: tree.pages
-        .filter((p) => p.id === tree.root)
-        .map((p) => Object.assign({}, p, { children_ids: [] as string[] })),
-    };
+    return retainMentionedPages(tree, liveHtml);
   };
 
   const prepareTree = async (): Promise<TExportTree> => {
     if (!pageId) throw new Error("missing page");
     const liveHtml = editorRef?.getDocument()?.html;
-    return injectLiveRootHtml(scopeTree(await fetchTree()), liveHtml, pageTitle, isRtl);
+    const withLive = injectLiveRootHtml(await fetchTree(), liveHtml, pageTitle, isRtl);
+    return scopeTree(withLive, liveHtml);
   };
+
+  const webBaseUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/${workspaceSlug || ""}${
+          exportContext === "wiki" ? "/wiki" : projectId ? `/projects/${projectId}/pages` : "/wiki"
+        }`
+      : "";
 
   const handleExportAsPDF = async () => {
     if (pageId) {
       const tree = await prepareTree();
       const combined =
         selectedScope === "page_and_subpages"
-          ? buildCombinedHtml(tree, { includeToc: true })
+          ? buildCombinedHtml(tree, { includeToc: true, webBaseUrl })
           : (() => {
               const root = flattenExportTree(tree)[0];
               const title = root?.name || pageTitle;
               const rtl = pageIsRtl(root);
-              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, rtl);
+              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, rtl, {
+                webBaseUrl,
+              });
+              // Include sibling/mentioned page sections so #bookmarks resolve in PDF.
+              const extras = flattenExportTree(tree)
+                .slice(1)
+                .map((p) => {
+                  const pRtl = pageIsRtl(p);
+                  const pBody = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, pRtl, {
+                    webBaseUrl,
+                  });
+                  return `<div id="${p.bookmark_id}"><h1 class="page-title">${escapeHtml(p.name || title)}</h1>${pBody}</div>`;
+                })
+                .join("\n");
+              const rootId = root?.bookmark_id ? ` id="${root.bookmark_id}"` : "";
               return sanitizeHtmlForPdf(
-                `<div><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>`
+                `<div${rootId}><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>${extras}`
               );
             })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
@@ -221,12 +244,12 @@ export function ExportPageModal(props: Props) {
           },
         ],
       };
-      const blob = await buildDocxFromTree(tree);
+      const blob = await buildDocxFromTree(tree, { webBaseUrl });
       initiateDownload(blob, `${fileName}.docx`);
       return;
     }
     const tree = await prepareTree();
-    const blob = await buildDocxFromTree(tree);
+    const blob = await buildDocxFromTree(tree, { webBaseUrl });
     initiateDownload(blob, `${fileName}.docx`);
   };
 

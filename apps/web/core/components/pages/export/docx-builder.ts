@@ -16,6 +16,7 @@ import {
   AlignmentType,
 } from "docx";
 import type { TExportTree } from "@/services/page/page-export.service";
+import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 import {
   directionFromAttrs,
   exportLabels,
@@ -113,12 +114,16 @@ function htmlToParagraphs(html: string, fallbackRtl: boolean): Paragraph[] {
   return paragraphs;
 }
 
-export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
+export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUrl?: string }): Promise<Blob> {
   const ordered = flattenExportTree(tree);
+  tree.pages.forEach((p) => {
+    if (p.id && p.name) cachePageMentionName(p.id, p.name);
+  });
   const docRtl = treeIsRtl(tree);
   const labels = exportLabels(docRtl);
   const align = docRtl ? AlignmentType.RIGHT : AlignmentType.LEFT;
   const children: Paragraph[] = [];
+  const webBaseUrl = options?.webBaseUrl;
 
   children.push(
     new Paragraph({
@@ -178,7 +183,9 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
         ],
       })
     );
-    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, titleRtl);
+    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, titleRtl, {
+      webBaseUrl,
+    });
     // Unset paragraphs default to LTR so mixed docs match the editor (not whole-page RTL).
     const fallbackRtl = htmlHasRtl(body) ? false : titleRtl;
     children.push(...htmlToParagraphs(body, fallbackRtl));

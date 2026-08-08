@@ -54,7 +54,7 @@ from plane.bgtasks.page_version_task import track_page_version
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.bgtasks.copy_s3_object import copy_s3_objects_of_description_and_assets
 from plane.app.permissions import ProjectPagePermission
-from .export_tree import collect_page_descendants, serialize_export_tree
+from .export_tree import collect_mentioned_pages, collect_page_descendants, serialize_export_tree
 
 
 def unarchive_archive_page_and_descendants(page_id, archived_at):
@@ -295,7 +295,7 @@ class PageViewSet(BaseViewSet):
         except Page.DoesNotExist:
             return Response({"error": "Page not found"}, status=status.HTTP_404_NOT_FOUND)
         qs = self._membership_queryset()
-        pages = collect_page_descendants(page, qs)
+        pages = collect_mentioned_pages(collect_page_descendants(page, qs), qs)
         return Response(serialize_export_tree(page, pages), status=status.HTTP_200_OK)
 
     def access(self, request, slug, project_id, page_id):

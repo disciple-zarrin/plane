@@ -9,7 +9,7 @@ import { FileText } from "lucide-react";
 import type { TMentionSection } from "@plane/editor";
 import type { TPageSearchResponse, TSearchEntities, TSearchResponse } from "@plane/types";
 import { useParams } from "next/navigation";
-import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
+import { cachePageMentionName, getCachedPageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 
 export type TUseAdditionalEditorMentionArgs = {
   enableAdvancedMentions: boolean;
@@ -76,12 +76,12 @@ export const useAdditionalEditorMention = (args: TUseAdditionalEditorMentionArgs
       if (projectId) {
         return {
           redirectionPath: `/${slug}/projects/${projectId}/pages/${id}`,
-          textContent: "page",
+          textContent: getCachedPageMentionName(id) || "page",
         };
       }
       return {
         redirectionPath: `/${slug}/wiki/${id}`,
-        textContent: "page",
+        textContent: getCachedPageMentionName(id) || "page",
       };
     },
     [workspaceSlug, projectId]

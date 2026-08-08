@@ -17,7 +17,7 @@ from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.db.models import Page, UserFavorite, Workspace, WorkspaceMember
 
 from .base import unarchive_archive_page_and_descendants
-from .export_tree import collect_page_descendants, serialize_export_tree
+from .export_tree import collect_mentioned_pages, collect_page_descendants, serialize_export_tree
 
 from django.core.serializers.json import DjangoJSONEncoder
 import json
@@ -224,7 +224,7 @@ class WorkspacePageViewSet(BaseViewSet):
         if not page:
             return Response({"error": "Page not found"}, status=status.HTTP_404_NOT_FOUND)
         qs = Page.objects.filter(workspace__slug=slug, is_global=True)
-        pages = collect_page_descendants(page, qs)
+        pages = collect_mentioned_pages(collect_page_descendants(page, qs), qs)
         return Response(serialize_export_tree(page, pages), status=status.HTTP_200_OK)
 
 

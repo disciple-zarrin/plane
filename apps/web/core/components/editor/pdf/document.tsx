@@ -5,8 +5,9 @@
  */
 
 import type { PageProps, Styles } from "@react-pdf/renderer";
-import { Document, Font, Page, StyleSheet } from "@react-pdf/renderer";
+import { Document, Font, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { Html } from "react-pdf-html";
+import React from "react";
 import interBold from "@/app/assets/fonts/inter/bold.ttf?url";
 import interHeavy from "@/app/assets/fonts/inter/heavy.ttf?url";
 import interLight from "@/app/assets/fonts/inter/light.ttf?url";
@@ -243,6 +244,28 @@ type Props = {
   isRtl?: boolean;
 };
 
+/** Pass HTML `id` through so Link src="#id" can jump (react-pdf-html drops ids by default). */
+function renderWithId(
+  Component: typeof View | typeof Text,
+  // oxlint-disable-next-line typescript/no-explicit-any
+  args: { style?: any; children?: React.ReactNode; element?: { attributes?: Record<string, string> } }
+) {
+  const { style, children, element } = args;
+  const id = element?.attributes?.id;
+  return React.createElement(Component, { style, ...(id ? { id } : {}) }, children);
+}
+
+const htmlRenderers = {
+  // oxlint-disable-next-line typescript/no-explicit-any
+  div: (args: any) => renderWithId(View, args),
+  // oxlint-disable-next-line typescript/no-explicit-any
+  h1: (args: any) => renderWithId(Text, args),
+  // oxlint-disable-next-line typescript/no-explicit-any
+  h2: (args: any) => renderWithId(Text, args),
+  // oxlint-disable-next-line typescript/no-explicit-any
+  h3: (args: any) => renderWithId(Text, args),
+};
+
 export function PDFDocument(props: Props) {
   const { content, pageFormat } = props;
   // Prefer explicit block dirs in HTML; prop is only a soft default for chrome.
@@ -267,7 +290,9 @@ export function PDFDocument(props: Props) {
           fontFamily: "Vazirmatn",
         }}
       >
-        <Html stylesheet={stylesheet}>{wrapped}</Html>
+        <Html stylesheet={stylesheet} renderers={htmlRenderers}>
+          {wrapped}
+        </Html>
       </Page>
     </Document>
   );
