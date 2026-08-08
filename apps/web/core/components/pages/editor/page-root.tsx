@@ -141,11 +141,15 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
           throw new Error("empty");
         }
         cachePageMentionName(created.id, created.name || "صفحه فرعی");
-        const mentionHtml = `<p><mention-component id="${created.id}" entity_identifier="${created.id}" entity_name="page"></mention-component></p>`;
         try {
-          editorRef.current?.insertText(mentionHtml, true);
+          if (typeof editorRef.current?.insertPageLink === "function") {
+            editorRef.current.insertPageLink(created.id, created.name || "صفحه فرعی");
+          } else {
+            const mentionHtml = `<p><mention-component id="${created.id}" entity_identifier="${created.id}" entity_name="page"></mention-component></p>`;
+            editorRef.current?.insertText(mentionHtml, true);
+          }
         } catch {
-          /* optional — children still listed after refresh if we add UI */
+          /* keep toast even if editor insert fails */
         }
         setToast({
           type: TOAST_TYPE.SUCCESS,

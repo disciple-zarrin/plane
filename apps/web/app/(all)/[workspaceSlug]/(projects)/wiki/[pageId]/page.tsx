@@ -121,9 +121,13 @@ export default observer(function WikiDetailPage() {
           throw new Error("empty");
         }
         cachePageMentionName(child.id, child.name || "صفحه فرعی");
-        const mentionHtml = `<p><mention-component id="${child.id}" entity_identifier="${child.id}" entity_name="page"></mention-component></p>`;
         try {
-          editorRef.current?.insertText(mentionHtml, true);
+          if (typeof editorRef.current?.insertPageLink === "function") {
+            editorRef.current.insertPageLink(child.id, child.name || "صفحه فرعی");
+          } else {
+            const mentionHtml = `<p><mention-component id="${child.id}" entity_identifier="${child.id}" entity_name="page"></mention-component></p>`;
+            editorRef.current?.insertText(mentionHtml, true);
+          }
         } catch {
           /* optional */
         }

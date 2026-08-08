@@ -181,7 +181,17 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
     insertText: (contentHTML, insertOnNextLine) => {
       if (!editor) return;
       const { from, to, empty } = editor.state.selection;
-      if (empty) return;
+
+      // Cursor-only (empty selection): still insert — needed after slash commands
+      if (empty) {
+        const chain = editor.chain().focus();
+        if (insertOnNextLine) {
+          chain.insertContent({ type: CORE_EXTENSIONS.PARAGRAPH });
+        }
+        chain.insertContent(contentHTML).run();
+        return;
+      }
+
       if (insertOnNextLine) {
         // move cursor to the end of the selection and insert a new line
         editor.chain().focus().setTextSelection(to).insertContent("<br />").insertContent(contentHTML).run();
@@ -189,6 +199,30 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
         // replace selected text with the content provided
         editor.chain().focus().deleteRange({ from, to }).insertContent(contentHTML).run();
       }
+    },
+    insertPageLink: (pageId, title) => {
+      if (!editor || !pageId) return;
+      // Notion-style: insert a clickable page mention block at the cursor
+      editor
+        .chain()
+        .focus()
+        .insertContent([
+          {
+            type: CORE_EXTENSIONS.PARAGRAPH,
+            content: [
+              {
+                type: CORE_EXTENSIONS.MENTION,
+                attrs: {
+                  id: pageId,
+                  entity_identifier: pageId,
+                  entity_name: "page",
+                  ...(title ? { title } : {}),
+                },
+              },
+            ],
+          },
+        ])
+        .run();
     },
     isEditorReadyToDiscard: () => editor?.storage?.utility?.uploadInProgress === false,
     isMenuItemActive: (props) => {

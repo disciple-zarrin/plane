@@ -21,17 +21,20 @@ export const EditorPageMention = observer(function EditorPageMention(props: Prop
   const slug = workspaceSlug?.toString() || "";
   const project = projectId?.toString();
   const href = project ? `/${slug}/projects/${project}/pages/${id}` : `/${slug}/wiki/${id}`;
-  const name = getCachedPageMentionName(id) || "صفحه";
+  const name = getCachedPageMentionName(id) || "صفحه فرعی";
 
   return (
     <Link
       to={href}
+      contentEditable={false}
       className={cn(
-        "not-prose inline-flex items-center gap-1 rounded-sm bg-accent-subtle-active px-1 py-0.5 text-accent-primary no-underline hover:underline"
+        "not-prose my-0.5 inline-flex min-w-[14rem] max-w-full items-center gap-2 rounded-md px-2 py-1.5",
+        "bg-surface-1 text-body-sm-medium text-primary no-underline",
+        "hover:bg-layer-transparent-hover"
       )}
     >
-      <FileText className="size-3" />
-      <span>{name}</span>
+      <FileText className="size-4 shrink-0 text-tertiary" />
+      <span className="truncate">{name}</span>
     </Link>
   );
 });
