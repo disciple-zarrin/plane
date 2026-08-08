@@ -31,6 +31,7 @@ export type TBasePage = TPage & {
   update: (pageData: Partial<TPage>) => Promise<Partial<TPage> | undefined>;
   updateTitle: (title: string) => void;
   updateDescription: (document: TDocumentPayload) => Promise<void>;
+  updateRtl: (isRtl: boolean) => Promise<void>;
   makePublic: (params: { shouldSync?: boolean }) => Promise<void>;
   makePrivate: (params: { shouldSync?: boolean }) => Promise<void>;
   lock: (params: { shouldSync?: boolean; recursive?: boolean }) => Promise<void>;
@@ -97,6 +98,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   archived_at: string | null | undefined;
   workspace: string | undefined;
   project_ids?: string[] | undefined;
+  view_props: TPage["view_props"];
   created_by: string | undefined;
   updated_by: string | undefined;
   created_at: Date | undefined;
@@ -134,6 +136,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     this.archived_at = page?.archived_at || undefined;
     this.workspace = page?.workspace || undefined;
     this.project_ids = page?.project_ids || undefined;
+    this.view_props = page?.view_props || { full_width: false, is_rtl: false };
     this.created_by = page?.created_by || undefined;
     this.updated_by = page?.updated_by || undefined;
     this.created_at = page?.created_at || undefined;
@@ -159,6 +162,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       archived_at: observable.ref,
       workspace: observable.ref,
       project_ids: observable,
+      view_props: observable,
       created_by: observable.ref,
       updated_by: observable.ref,
       created_at: observable.ref,
@@ -176,6 +180,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       update: action,
       updateTitle: action,
       updateDescription: action,
+      updateRtl: action,
       makePublic: action,
       makePrivate: action,
       lock: action,
@@ -235,6 +240,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       archived_at: this.archived_at,
       workspace: this.workspace,
       project_ids: this.project_ids,
+      view_props: this.view_props,
       created_by: this.created_by,
       updated_by: this.updated_by,
       created_at: this.created_at,
@@ -290,6 +296,12 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       });
       throw error;
     }
+  };
+
+  /** Persist document direction from the RTL toggle (not language). */
+  updateRtl = async (isRtl: boolean) => {
+    const next = { ...(this.view_props || {}), is_rtl: isRtl };
+    await this.update({ view_props: next });
   };
 
   /**

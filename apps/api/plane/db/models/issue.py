@@ -138,6 +138,7 @@ class Issue(ChangeTrackerMixin, ProjectBaseModel):
     description_html = models.TextField(blank=True, default="<p></p>")
     description_stripped = models.TextField(blank=True, null=True)
     description_binary = models.BinaryField(null=True)
+    description_rtl = models.BooleanField(default=False)
     priority = models.CharField(
         max_length=30,
         choices=PRIORITY_CHOICES,

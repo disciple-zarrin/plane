@@ -6,46 +6,39 @@
 
 import type { TExportTree, TExportTreePage } from "@/services/page/page-export.service";
 
-export type TExportLocale = "fa" | "en";
+export type TExportLabels = {
+  toc: string;
+  page: string;
+  untitled: string;
+  link: string;
+};
 
-const LABELS = {
-  fa: {
-    toc: "فهرست مطالب",
-    page: "صفحه",
-    untitled: "بدون عنوان",
-    link: "لینک",
-  },
-  en: {
-    toc: "Table of Contents",
-    page: "Page",
-    untitled: "Untitled",
-    link: "Link",
-  },
-} as const;
-
-/** FA if any Arabic/Persian letters exist; otherwise EN. Mixed docs use FA+Vazirmatn (covers Latin). */
-export function detectExportLocale(...chunks: Array<string | null | undefined>): TExportLocale {
-  const text = chunks.filter(Boolean).join("\n");
-  return /[\u0600-\u06FF]/.test(text) ? "fa" : "en";
+/** Labels follow document direction (RTL toggle), not UI/language locale. */
+export function exportLabels(isRtl: boolean): TExportLabels {
+  return isRtl
+    ? { toc: "فهرست مطالب", page: "صفحه", untitled: "بدون عنوان", link: "لینک" }
+    : { toc: "Table of Contents", page: "Page", untitled: "Untitled", link: "Link" };
 }
 
-export function exportLabels(locale: TExportLocale) {
-  return LABELS[locale];
+export function pageIsRtl(page: Pick<TExportTreePage, "is_rtl"> | undefined | null): boolean {
+  return Boolean(page?.is_rtl);
 }
 
-export function detectLocaleFromTree(tree: TExportTree): TExportLocale {
-  return detectExportLocale(
-    ...tree.pages.map((p) => `${p.name || ""}\n${p.description_html || ""}`)
-  );
+/** Majority RTL among tree pages (for TOC / shared chrome). */
+export function treeIsRtl(tree: TExportTree): boolean {
+  const pages = tree.pages || [];
+  if (!pages.length) return false;
+  const rtlCount = pages.filter((p) => p.is_rtl).length;
+  return rtlCount * 2 >= pages.length;
 }
 
 /** Rewrite page mentions to internal anchors for export documents. */
 export function rewritePageMentionsToBookmarks(
   html: string,
   pages: TExportTreePage[],
-  locale?: TExportLocale
+  isRtl?: boolean
 ): string {
-  const labels = exportLabels(locale ?? detectExportLocale(html, ...pages.map((p) => p.name)));
+  const labels = exportLabels(isRtl ?? treeIsRtl({ root: pages[0]?.id || "", pages }));
   const byId = new Map(pages.map((p) => [p.id, p]));
   return html.replace(/<mention-component([^>]*?)>/gi, (full, attrs: string) => {
     const idMatch = attrs.match(/entity_identifier=["']([^"']+)["']/i) || attrs.match(/\bid=["']([^"']+)["']/i);
@@ -80,31 +73,35 @@ export function flattenExportTree(tree: TExportTree): TExportTreePage[] {
   return ordered;
 }
 
-export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: boolean; locale?: TExportLocale }): string {
+export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: boolean }): string {
   const ordered = flattenExportTree(tree);
-  const locale = options?.locale ?? detectLocaleFromTree(tree);
-  const labels = exportLabels(locale);
+  const rtlDoc = treeIsRtl(tree);
+  const labels = exportLabels(rtlDoc);
   const parts: string[] = [];
   if (options?.includeToc !== false) {
-    parts.push(`<h1 class="page-title">${labels.toc}</h1><ul class="toc">`);
+    parts.push(
+      `<div dir="${rtlDoc ? "rtl" : "ltr"}" style="direction:${rtlDoc ? "rtl" : "ltr"};text-align:${rtlDoc ? "right" : "left"}"><h1 class="page-title">${labels.toc}</h1><ul class="toc">`
+    );
     ordered.forEach((p, idx) => {
       const depth = getDepth(p, tree);
       parts.push(
         `<li style="margin-inline-start:${depth * 12}px"><a href="#${p.bookmark_id}">${idx + 1}. ${escapeHtml(p.name || labels.untitled)}</a></li>`
       );
     });
-    parts.push(`</ul><div data-type="horizontalRule"></div>`);
+    parts.push(`</ul><div data-type="horizontalRule"></div></div>`);
   }
   ordered.forEach((p) => {
-    const body = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, locale);
+    const rtl = pageIsRtl(p);
+    const body = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl);
+    // Each page keeps its own direction — matches what the editor shows.
     parts.push(
-      `<div id="${p.bookmark_id}"><h1 class="page-title">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
+      `<div id="${p.bookmark_id}" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}"><h1 class="page-title">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
     );
   });
   return sanitizeHtmlForPdf(parts.join("\n"));
 }
 
-/** Normalize editor HTML so react-pdf-html can render EN/FA content reliably. */
+/** Normalize editor HTML so react-pdf-html can render content reliably. */
 export function sanitizeHtmlForPdf(html: string): string {
   let out = html || "<p></p>";
   out = out
@@ -113,7 +110,6 @@ export function sanitizeHtmlForPdf(html: string): string {
     .replace(/<\/?(colgroup|col|thead|tbody|tfoot)\b[^>]*>/gi, "")
     .replace(/<th\b([^>]*)>/gi, "<td$1>")
     .replace(/<\/th>/gi, "</td>")
-    // drop editor chrome / null colors that confuse the PDF HTML parser
     .replace(/\sstyle="[^"]*background-color:\s*null[^"]*"/gi, "")
     .replace(/\sstyle="[^"]*color:\s*null[^"]*"/gi, "")
     .replace(/\u00a0/g, " ");
@@ -150,8 +146,13 @@ export function stripHtmlToText(html: string): string {
 }
 
 /** Patch live editor HTML into the tree root (keeps unsaved edits in exports). */
-export function injectLiveRootHtml(tree: TExportTree, html: string | undefined | null, name?: string): TExportTree {
-  if (!html && !name) return tree;
+export function injectLiveRootHtml(
+  tree: TExportTree,
+  html: string | undefined | null,
+  name?: string,
+  isRtl?: boolean
+): TExportTree {
+  if (html == null && !name && isRtl === undefined) return tree;
   return {
     ...tree,
     pages: tree.pages.map((p) =>
@@ -160,6 +161,7 @@ export function injectLiveRootHtml(tree: TExportTree, html: string | undefined |
             ...p,
             description_html: html ?? p.description_html,
             name: name?.trim() ? name : p.name,
+            is_rtl: isRtl !== undefined ? isRtl : p.is_rtl,
           }
         : p
     ),

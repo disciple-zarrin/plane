@@ -61,6 +61,7 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
         pageTitle={name ?? "page"}
         pageId={id}
         exportContext="project"
+        isRtl={Boolean(page.view_props?.is_rtl)}
       />
       <div className="cursor-default">
         <Tooltip tooltipHeading="Owned by" tooltipContent={ownerDetails?.display_name}>

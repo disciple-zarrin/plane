@@ -15,6 +15,8 @@ export type TExportTreePage = {
   description_json: object;
   children_ids: string[];
   bookmark_id: string;
+  /** Per-document direction from the editor RTL toggle (not language). */
+  is_rtl?: boolean;
 };
 
 export type TExportTree = {

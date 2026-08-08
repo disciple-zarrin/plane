@@ -44,6 +44,7 @@ def serialize_export_tree(root: Page, pages: list[Page]) -> dict:
                 "description_json": p.description_json or {},
                 "children_ids": by_parent.get(pid, []),
                 "bookmark_id": f"page_{pid.replace('-', '')}",
+                "is_rtl": bool((p.view_props or {}).get("is_rtl")),
             }
         )
 

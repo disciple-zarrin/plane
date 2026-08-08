@@ -8,7 +8,7 @@ import JSZip from "jszip";
 import { marked } from "marked";
 import { convertHTMLToMarkdown } from "@plane/utils";
 import type { TExportTree, TExportTreePage } from "@/services/page/page-export.service";
-import { detectLocaleFromTree, exportLabels, flattenExportTree } from "./tree-utils";
+import { exportLabels, flattenExportTree, treeIsRtl } from "./tree-utils";
 
 function pageMdPath(id: string) {
   return `pages/${id}.md`;
@@ -59,10 +59,10 @@ async function extractAndRewriteImages(html: string, zip: JSZip): Promise<string
 export async function buildMarkdownZipFromTree(tree: TExportTree): Promise<Blob> {
   const zip = new JSZip();
   const ordered = flattenExportTree(tree);
-  const locale = detectLocaleFromTree(tree);
-  const labels = exportLabels(locale);
-  const indexTitle = locale === "fa" ? "خروجی ویکی" : "Wiki export";
-  const indexPages = locale === "fa" ? "صفحات" : "Pages";
+  const localeRtl = treeIsRtl(tree);
+  const labels = exportLabels(localeRtl);
+  const indexTitle = localeRtl ? "خروجی ویکی" : "Wiki export";
+  const indexPages = localeRtl ? "صفحات" : "Pages";
   const indexLines = [`# ${indexTitle}`, "", `## ${indexPages}`, ""];
 
   const pageFiles = await Promise.all(

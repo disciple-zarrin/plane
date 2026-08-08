@@ -17,7 +17,7 @@ from .base import BaseModel
 
 
 def get_view_props():
-    return {"full_width": False}
+    return {"full_width": False, "is_rtl": False}
 
 
 class Page(BaseModel):

@@ -18,13 +18,13 @@ import { buildDocxFromTree } from "@/components/pages/export/docx-builder";
 import { buildMarkdownZipFromTree } from "@/components/pages/export/markdown-zip";
 import {
   buildCombinedHtml,
-  detectExportLocale,
-  detectLocaleFromTree,
   escapeHtml,
   flattenExportTree,
   injectLiveRootHtml,
+  pageIsRtl,
   rewritePageMentionsToBookmarks,
   sanitizeHtmlForPdf,
+  treeIsRtl,
 } from "@/components/pages/export/tree-utils";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 import { PageExportService } from "@/services/page/page-export.service";
@@ -39,6 +39,8 @@ type Props = {
   pageId?: string;
   /** wiki = workspace pages; project = project pages */
   exportContext?: "wiki" | "project";
+  /** Live editor RTL toggle — overrides API value for the root page. */
+  isRtl?: boolean;
 };
 
 type TExportFormats = "pdf" | "markdown" | "docx";
@@ -94,7 +96,7 @@ function initiateDownload(blob: Blob, filename: string) {
 }
 
 export function ExportPageModal(props: Props) {
-  const { editorRef, isOpen, onClose, pageTitle, pageId, exportContext = "project" } = props;
+  const { editorRef, isOpen, onClose, pageTitle, pageId, exportContext = "project", isRtl } = props;
   const [isExporting, setIsExporting] = useState(false);
   const { workspaceSlug, projectId } = useParams();
   const { control, reset, watch } = useForm<TFormValues>({ defaultValues });
@@ -141,42 +143,50 @@ export function ExportPageModal(props: Props) {
   const prepareTree = async (): Promise<TExportTree> => {
     if (!pageId) throw new Error("missing page");
     const liveHtml = editorRef?.getDocument()?.html;
-    return injectLiveRootHtml(scopeTree(await fetchTree()), liveHtml, pageTitle);
+    return injectLiveRootHtml(scopeTree(await fetchTree()), liveHtml, pageTitle, isRtl);
   };
 
   const handleExportAsPDF = async () => {
     if (pageId) {
       const tree = await prepareTree();
-      const locale = detectLocaleFromTree(tree);
       const combined =
         selectedScope === "page_and_subpages"
-          ? buildCombinedHtml(tree, { includeToc: true, locale })
+          ? buildCombinedHtml(tree, { includeToc: true })
           : (() => {
               const root = flattenExportTree(tree)[0];
               const title = root?.name || pageTitle;
-              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, locale);
-              return sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(title)}</h1>${body}`);
+              const rtl = pageIsRtl(root);
+              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, rtl);
+              return sanitizeHtmlForPdf(
+                `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}"><h1 class="page-title">${escapeHtml(title)}</h1>${body}</div>`
+              );
             })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
         htmlContent: combined,
         noAssets: selectedContentVariety === "no-assets",
       });
       const blob = await pdf(
-        <PDFDocument content={sanitizeHtmlForPdf(parsed)} pageFormat={selectedPageFormat} locale={locale} />
+        <PDFDocument
+          content={sanitizeHtmlForPdf(parsed)}
+          pageFormat={selectedPageFormat}
+          isRtl={treeIsRtl(tree)}
+        />
       ).toBlob();
       initiateDownload(blob, selectedScope === "page_and_subpages" ? `${fileName}-tree.pdf` : `${fileName}.pdf`);
       return;
     }
 
     const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
-    const pageContent = sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(pageTitle)}</h1>${liveHtml}`);
-    const locale = detectExportLocale(pageTitle, liveHtml);
+    const rtl = Boolean(isRtl);
+    const pageContent = sanitizeHtmlForPdf(
+      `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}"><h1 class="page-title">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
+    );
     const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
       htmlContent: pageContent,
       noAssets: selectedContentVariety === "no-assets",
     });
     const blob = await pdf(
-      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} locale={locale} />
+      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} isRtl={rtl} />
     ).toBlob();
     initiateDownload(blob, `${fileName}.pdf`);
   };
@@ -211,6 +221,7 @@ export function ExportPageModal(props: Props) {
             description_json: {},
             children_ids: [],
             bookmark_id: "page_current",
+            is_rtl: Boolean(isRtl),
           },
         ],
       };

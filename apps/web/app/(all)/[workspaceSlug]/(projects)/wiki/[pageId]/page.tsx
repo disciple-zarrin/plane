@@ -23,6 +23,7 @@ import { ExportPageModal } from "@/components/pages/modals/export-page-modal";
 import { parseMarkdownZip } from "@/components/pages/export/markdown-zip";
 import { registerSubpageCreateHandler } from "@/components/pages/subpage-create-bridge";
 import { WikiVersionPanel } from "@/components/pages/wiki/wiki-version-panel";
+import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -242,6 +243,15 @@ export default observer(function WikiDetailPage() {
           {saving && <span className="text-tertiary">در حال ذخیره…</span>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <EditorRtlToggle
+            isRtl={Boolean(page?.view_props?.is_rtl)}
+            onChange={async (next) => {
+              if (!slug || !id || !page) return;
+              const nextProps = { ...(page.view_props || {}), is_rtl: next };
+              setPage({ ...page, view_props: nextProps });
+              await pageService.update(slug, id, { view_props: nextProps });
+            }}
+          />
           <input
             ref={importInputRef}
             type="file"
@@ -322,10 +332,14 @@ export default observer(function WikiDetailPage() {
         pageTitle={title || "wiki"}
         pageId={id}
         exportContext="wiki"
+        isRtl={Boolean(page?.view_props?.is_rtl)}
       />
 
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[720px] px-6 py-8">
+        <div
+          className={cn("mx-auto w-full max-w-[720px] px-6 py-8", page?.view_props?.is_rtl && "text-right")}
+          dir={page?.view_props?.is_rtl ? "rtl" : "ltr"}
+        >
           <input
             className="mb-4 w-full border-none bg-transparent text-h1-semibold text-primary outline-none placeholder:text-placeholder"
             value={title}

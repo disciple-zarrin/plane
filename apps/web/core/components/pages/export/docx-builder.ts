@@ -17,12 +17,12 @@ import {
 } from "docx";
 import type { TExportTree } from "@/services/page/page-export.service";
 import {
-  detectLocaleFromTree,
   exportLabels,
   flattenExportTree,
+  pageIsRtl,
   rewritePageMentionsToBookmarks,
   stripHtmlToText,
-  type TExportLocale,
+  treeIsRtl,
 } from "./tree-utils";
 
 function depthOf(pageId: string, tree: TExportTree): number {
@@ -44,12 +44,8 @@ const HEADING_BY_DEPTH = [
   HeadingLevel.HEADING_5,
 ];
 
-function parseInline(
-  html: string,
-  locale: TExportLocale
-): (TextRun | InternalHyperlink | ExternalHyperlink)[] {
-  const rtl = locale === "fa";
-  const labels = exportLabels(locale);
+function parseInline(html: string, isRtl: boolean): (TextRun | InternalHyperlink | ExternalHyperlink)[] {
+  const labels = exportLabels(isRtl);
   const runs: (TextRun | InternalHyperlink | ExternalHyperlink)[] = [];
   const parts = html.split(/(<a\s+[^>]*>.*?<\/a>)/gi);
   for (const part of parts) {
@@ -62,29 +58,28 @@ function parseInline(
         runs.push(
           new InternalHyperlink({
             anchor: href.slice(1),
-            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {}, rightToLeft: rtl })],
+            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {}, rightToLeft: isRtl })],
           })
         );
       } else if (href) {
         runs.push(
           new ExternalHyperlink({
             link: href,
-            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {}, rightToLeft: rtl })],
+            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {}, rightToLeft: isRtl })],
           })
         );
       } else {
-        runs.push(new TextRun({ text, rightToLeft: rtl }));
+        runs.push(new TextRun({ text, rightToLeft: isRtl }));
       }
       continue;
     }
     const text = stripHtmlToText(part);
-    if (text) runs.push(new TextRun({ text, rightToLeft: rtl }));
+    if (text) runs.push(new TextRun({ text, rightToLeft: isRtl }));
   }
   return runs.length ? runs : [new TextRun({ text: "" })];
 }
 
-function htmlToParagraphs(html: string, locale: TExportLocale): Paragraph[] {
-  const rtl = locale === "fa";
+function htmlToParagraphs(html: string, isRtl: boolean): Paragraph[] {
   const cleaned = html
     .replace(/<\/?(section|div)[^>]*>/gi, "")
     .replace(/<br\s*\/?>/gi, "</p><p>");
@@ -95,10 +90,10 @@ function htmlToParagraphs(html: string, locale: TExportLocale): Paragraph[] {
     if (!trimmed || !stripHtmlToText(trimmed)) continue;
     paragraphs.push(
       new Paragraph({
-        bidirectional: rtl,
-        alignment: rtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        bidirectional: isRtl,
+        alignment: isRtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
         spacing: { after: 120 },
-        children: parseInline(trimmed, locale),
+        children: parseInline(trimmed, isRtl),
       })
     );
   }
@@ -107,18 +102,17 @@ function htmlToParagraphs(html: string, locale: TExportLocale): Paragraph[] {
 
 export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
   const ordered = flattenExportTree(tree);
-  const locale = detectLocaleFromTree(tree);
-  const labels = exportLabels(locale);
-  const rtl = locale === "fa";
-  const align = rtl ? AlignmentType.RIGHT : AlignmentType.LEFT;
+  const docRtl = treeIsRtl(tree);
+  const labels = exportLabels(docRtl);
+  const align = docRtl ? AlignmentType.RIGHT : AlignmentType.LEFT;
   const children: Paragraph[] = [];
 
   children.push(
     new Paragraph({
       heading: HeadingLevel.TITLE,
-      bidirectional: rtl,
+      bidirectional: docRtl,
       alignment: align,
-      children: [new TextRun({ text: labels.toc, bold: true, size: 32, rightToLeft: rtl })],
+      children: [new TextRun({ text: labels.toc, bold: true, size: 32, rightToLeft: docRtl })],
     })
   );
 
@@ -126,9 +120,9 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
     const indent = depthOf(p.id, tree);
     children.push(
       new Paragraph({
-        bidirectional: rtl,
+        bidirectional: docRtl,
         alignment: align,
-        indent: rtl ? { right: indent * 200 } : { left: indent * 200 },
+        indent: docRtl ? { right: indent * 200 } : { left: indent * 200 },
         children: [
           new InternalHyperlink({
             anchor: p.bookmark_id,
@@ -138,7 +132,7 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
                 style: "Hyperlink",
                 color: "0563C1",
                 underline: {},
-                rightToLeft: rtl,
+                rightToLeft: docRtl,
               }),
             ],
           }),
@@ -150,12 +144,13 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
   children.push(new Paragraph({ children: [] }));
 
   for (const page of ordered) {
+    const rtl = pageIsRtl(page);
     const depth = Math.min(depthOf(page.id, tree), HEADING_BY_DEPTH.length - 1);
     children.push(
       new Paragraph({
         heading: HEADING_BY_DEPTH[depth],
         bidirectional: rtl,
-        alignment: align,
+        alignment: rtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
         children: [
           new Bookmark({
             id: page.bookmark_id,
@@ -170,8 +165,8 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
         ],
       })
     );
-    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, locale);
-    children.push(...htmlToParagraphs(body, locale));
+    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, rtl);
+    children.push(...htmlToParagraphs(body, rtl));
     children.push(new Paragraph({ children: [] }));
   }
 

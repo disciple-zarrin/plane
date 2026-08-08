@@ -133,6 +133,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
         pageTitle={name ?? ""}
         pageId={page.id}
         exportContext="project"
+        isRtl={Boolean(page.view_props?.is_rtl)}
       />
       <PageActions
         extraOptions={EXTRA_MENU_OPTIONS}

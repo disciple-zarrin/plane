@@ -19,7 +19,6 @@ import interUltraLight from "@/app/assets/fonts/inter/ultralight.ttf?url";
 import vazirBold from "@/app/assets/fonts/vazirmatn/Vazirmatn-Bold.ttf?url";
 import vazirRegular from "@/app/assets/fonts/vazirmatn/Vazirmatn-Regular.ttf?url";
 import { convertRemToPixel } from "@plane/utils";
-import { detectExportLocale, type TExportLocale } from "@/components/pages/export/tree-utils";
 
 const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
   "h1.page-title": {
@@ -168,9 +167,9 @@ const EDITOR_PDF_SHARED: Styles = {
   },
 };
 
-function buildStylesheet(locale: TExportLocale) {
-  const fontFamily = locale === "fa" ? "Vazirmatn" : "Inter";
-
+function buildStylesheet(isRtl: boolean) {
+  // Vazirmatn covers Latin + Persian so mixed content stays readable either direction.
+  const fontFamily = "Vazirmatn";
   return StyleSheet.create({
     "*:not(.courier, .courier-bold)": { fontFamily },
     ".courier": { fontFamily: "Courier" },
@@ -179,7 +178,7 @@ function buildStylesheet(locale: TExportLocale) {
     "div.input-checkbox": {
       position: "absolute",
       top: convertRemToPixel(0.15),
-      ...(locale === "fa" ? { right: -convertRemToPixel(1.2) } : { left: -convertRemToPixel(1.2) }),
+      ...(isRtl ? { right: -convertRemToPixel(1.2) } : { left: -convertRemToPixel(1.2) }),
       height: convertRemToPixel(0.75),
       width: convertRemToPixel(0.75),
       borderWidth: "1.5px",
@@ -231,18 +230,20 @@ Font.register({
 type Props = {
   content: string;
   pageFormat: PageProps["size"];
-  locale?: TExportLocale;
+  /** Document direction from the editor RTL toggle — not inferred from language. */
+  isRtl?: boolean;
 };
 
 export function PDFDocument(props: Props) {
   const { content, pageFormat } = props;
-  const locale = props.locale ?? detectExportLocale(content);
-  const rtl = locale === "fa";
-  // Vazirmatn covers Latin too — use it whenever FA is present so mixed FA+EN glyphs render.
-  // Pure English keeps Inter for cleaner Latin typography.
-  const fontFamily = rtl ? "Vazirmatn" : "Inter";
-  const stylesheet = buildStylesheet(locale);
-  const wrapped = `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${content}</div>`;
+  // Prefer explicit prop; fall back to dir attrs already embedded in HTML sections.
+  const isRtl = props.isRtl ?? /dir=["']rtl["']/i.test(content);
+  const stylesheet = buildStylesheet(isRtl);
+  // Don't force another wrapper dir when content already has per-section dirs (tree export).
+  const hasSectionDirs = /dir=["'](rtl|ltr)["']/i.test(content);
+  const wrapped = hasSectionDirs
+    ? content
+    : `<div dir="${isRtl ? "rtl" : "ltr"}" style="direction:${isRtl ? "rtl" : "ltr"};text-align:${isRtl ? "right" : "left"}">${content}</div>`;
 
   return (
     <Document>
@@ -251,8 +252,8 @@ export function PDFDocument(props: Props) {
         style={{
           backgroundColor: "#ffffff",
           padding: 48,
-          direction: rtl ? "rtl" : "ltr",
-          fontFamily,
+          direction: isRtl ? "rtl" : "ltr",
+          fontFamily: "Vazirmatn",
         }}
       >
         <Html stylesheet={stylesheet}>{wrapped}</Html>
