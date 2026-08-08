@@ -16,7 +16,14 @@ import {
   AlignmentType,
 } from "docx";
 import type { TExportTree } from "@/services/page/page-export.service";
-import { flattenExportTree, rewritePageMentionsToBookmarks, stripHtmlToText } from "./tree-utils";
+import {
+  detectLocaleFromTree,
+  exportLabels,
+  flattenExportTree,
+  rewritePageMentionsToBookmarks,
+  stripHtmlToText,
+  type TExportLocale,
+} from "./tree-utils";
 
 function depthOf(pageId: string, tree: TExportTree): number {
   const byId = new Map(tree.pages.map((p) => [p.id, p]));
@@ -37,41 +44,47 @@ const HEADING_BY_DEPTH = [
   HeadingLevel.HEADING_5,
 ];
 
-function parseInline(html: string): (TextRun | InternalHyperlink | ExternalHyperlink)[] {
+function parseInline(
+  html: string,
+  locale: TExportLocale
+): (TextRun | InternalHyperlink | ExternalHyperlink)[] {
+  const rtl = locale === "fa";
+  const labels = exportLabels(locale);
   const runs: (TextRun | InternalHyperlink | ExternalHyperlink)[] = [];
   const parts = html.split(/(<a\s+[^>]*>.*?<\/a>)/gi);
   for (const part of parts) {
     const linkMatch = part.match(/<a\s+([^>]*)>(.*?)<\/a>/i);
     if (linkMatch) {
       const attrs = linkMatch[1];
-      const text = stripHtmlToText(linkMatch[2]) || "لینک";
+      const text = stripHtmlToText(linkMatch[2]) || labels.link;
       const href = attrs.match(/href=["']([^"']+)["']/i)?.[1] || "";
       if (href.startsWith("#")) {
         runs.push(
           new InternalHyperlink({
             anchor: href.slice(1),
-            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {} })],
+            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {}, rightToLeft: rtl })],
           })
         );
       } else if (href) {
         runs.push(
           new ExternalHyperlink({
             link: href,
-            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {} })],
+            children: [new TextRun({ text, style: "Hyperlink", color: "0563C1", underline: {}, rightToLeft: rtl })],
           })
         );
       } else {
-        runs.push(new TextRun({ text, rightToLeft: true }));
+        runs.push(new TextRun({ text, rightToLeft: rtl }));
       }
       continue;
     }
     const text = stripHtmlToText(part);
-    if (text) runs.push(new TextRun({ text, rightToLeft: true }));
+    if (text) runs.push(new TextRun({ text, rightToLeft: rtl }));
   }
   return runs.length ? runs : [new TextRun({ text: "" })];
 }
 
-function htmlToParagraphs(html: string): Paragraph[] {
+function htmlToParagraphs(html: string, locale: TExportLocale): Paragraph[] {
+  const rtl = locale === "fa";
   const cleaned = html
     .replace(/<\/?(section|div)[^>]*>/gi, "")
     .replace(/<br\s*\/?>/gi, "</p><p>");
@@ -82,10 +95,10 @@ function htmlToParagraphs(html: string): Paragraph[] {
     if (!trimmed || !stripHtmlToText(trimmed)) continue;
     paragraphs.push(
       new Paragraph({
-        bidirectional: true,
-        alignment: AlignmentType.RIGHT,
+        bidirectional: rtl,
+        alignment: rtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
         spacing: { after: 120 },
-        children: parseInline(trimmed),
+        children: parseInline(trimmed, locale),
       })
     );
   }
@@ -94,14 +107,18 @@ function htmlToParagraphs(html: string): Paragraph[] {
 
 export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
   const ordered = flattenExportTree(tree);
+  const locale = detectLocaleFromTree(tree);
+  const labels = exportLabels(locale);
+  const rtl = locale === "fa";
+  const align = rtl ? AlignmentType.RIGHT : AlignmentType.LEFT;
   const children: Paragraph[] = [];
 
   children.push(
     new Paragraph({
       heading: HeadingLevel.TITLE,
-      bidirectional: true,
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun({ text: "فهرست مطالب", bold: true, size: 32, rightToLeft: true })],
+      bidirectional: rtl,
+      alignment: align,
+      children: [new TextRun({ text: labels.toc, bold: true, size: 32, rightToLeft: rtl })],
     })
   );
 
@@ -109,19 +126,19 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
     const indent = depthOf(p.id, tree);
     children.push(
       new Paragraph({
-        bidirectional: true,
-        alignment: AlignmentType.RIGHT,
-        indent: { right: indent * 200 },
+        bidirectional: rtl,
+        alignment: align,
+        indent: rtl ? { right: indent * 200 } : { left: indent * 200 },
         children: [
           new InternalHyperlink({
             anchor: p.bookmark_id,
             children: [
               new TextRun({
-                text: `${idx + 1}. ${p.name}`,
+                text: `${idx + 1}. ${p.name || labels.untitled}`,
                 style: "Hyperlink",
                 color: "0563C1",
                 underline: {},
-                rightToLeft: true,
+                rightToLeft: rtl,
               }),
             ],
           }),
@@ -137,18 +154,24 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
     children.push(
       new Paragraph({
         heading: HEADING_BY_DEPTH[depth],
-        bidirectional: true,
-        alignment: AlignmentType.RIGHT,
+        bidirectional: rtl,
+        alignment: align,
         children: [
           new Bookmark({
             id: page.bookmark_id,
-            children: [new TextRun({ text: page.name || "بدون عنوان", bold: true, rightToLeft: true })],
+            children: [
+              new TextRun({
+                text: page.name || labels.untitled,
+                bold: true,
+                rightToLeft: rtl,
+              }),
+            ],
           }),
         ],
       })
     );
-    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages);
-    children.push(...htmlToParagraphs(body));
+    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, locale);
+    children.push(...htmlToParagraphs(body, locale));
     children.push(new Paragraph({ children: [] }));
   }
 

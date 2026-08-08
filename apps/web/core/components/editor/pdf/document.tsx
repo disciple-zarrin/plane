@@ -7,7 +7,6 @@
 import type { PageProps, Styles } from "@react-pdf/renderer";
 import { Document, Font, Page, StyleSheet } from "@react-pdf/renderer";
 import { Html } from "react-pdf-html";
-// assets — Vazirmatn for Persian/RTL; Inter kept for latin-heavy legacy pages
 import interBold from "@/app/assets/fonts/inter/bold.ttf?url";
 import interHeavy from "@/app/assets/fonts/inter/heavy.ttf?url";
 import interLight from "@/app/assets/fonts/inter/light.ttf?url";
@@ -19,24 +18,16 @@ import interUltraBold from "@/app/assets/fonts/inter/ultrabold.ttf?url";
 import interUltraLight from "@/app/assets/fonts/inter/ultralight.ttf?url";
 import vazirBold from "@/app/assets/fonts/vazirmatn/Vazirmatn-Bold.ttf?url";
 import vazirRegular from "@/app/assets/fonts/vazirmatn/Vazirmatn-Regular.ttf?url";
-// plane imports
 import { convertRemToPixel } from "@plane/utils";
-
-const EDITOR_PDF_FONT_FAMILY_STYLES: Styles = {
-  "*:not(.courier, .courier-bold)": { fontFamily: "Vazirmatn" },
-  ".courier": { fontFamily: "Courier" },
-  ".courier-bold": { fontFamily: "Courier-Bold" },
-};
+import { detectExportLocale, type TExportLocale } from "@/components/pages/export/tree-utils";
 
 const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
-  // page title
   "h1.page-title": {
     fontSize: convertRemToPixel(1.6),
     fontWeight: "bold",
     marginTop: 0,
     marginBottom: convertRemToPixel(2),
   },
-  // headings
   "h1:not(.page-title)": {
     fontSize: convertRemToPixel(1.4),
     fontWeight: "semibold",
@@ -73,7 +64,6 @@ const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
     marginTop: convertRemToPixel(1),
     marginBottom: convertRemToPixel(0.0625),
   },
-  // paragraph
   "p:not(table p)": {
     fontSize: convertRemToPixel(0.8),
   },
@@ -83,7 +73,7 @@ const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
   },
 };
 
-const EDITOR_PDF_LIST_STYLES: Styles = {
+const EDITOR_PDF_LIST_BASE: Styles = {
   "ul, ol": {
     fontSize: convertRemToPixel(0.8),
     marginHorizontal: -20,
@@ -100,16 +90,6 @@ const EDITOR_PDF_LIST_STYLES: Styles = {
   "ul[data-type='taskList']": {
     position: "relative",
   },
-  "div.input-checkbox": {
-    position: "absolute",
-    top: convertRemToPixel(0.15),
-    right: -convertRemToPixel(1.2),
-    height: convertRemToPixel(0.75),
-    width: convertRemToPixel(0.75),
-    borderWidth: "1.5px",
-    borderStyle: "solid",
-    borderRadius: convertRemToPixel(0.125),
-  },
   "div.input-checkbox:not(.checked)": {
     backgroundColor: "#ffffff",
     borderColor: "#171717",
@@ -124,7 +104,6 @@ const EDITOR_PDF_LIST_STYLES: Styles = {
 };
 
 const EDITOR_PDF_CODE_STYLES: Styles = {
-  // code block
   "[data-node-type='code-block']": {
     marginVertical: convertRemToPixel(0.5),
     padding: convertRemToPixel(1),
@@ -132,7 +111,6 @@ const EDITOR_PDF_CODE_STYLES: Styles = {
     backgroundColor: "#f7f7f7",
     fontSize: convertRemToPixel(0.7),
   },
-  // inline code block
   "[data-node-type='inline-code-block']": {
     margin: 0,
     paddingVertical: convertRemToPixel(0.25 / 4 + 0.25 / 8),
@@ -145,12 +123,10 @@ const EDITOR_PDF_CODE_STYLES: Styles = {
   },
 };
 
-const EDITOR_PDF_DOCUMENT_STYLESHEET = StyleSheet.create({
-  ...EDITOR_PDF_FONT_FAMILY_STYLES,
+const EDITOR_PDF_SHARED: Styles = {
   ...EDITOR_PDF_TYPOGRAPHY_STYLES,
-  ...EDITOR_PDF_LIST_STYLES,
+  ...EDITOR_PDF_LIST_BASE,
   ...EDITOR_PDF_CODE_STYLES,
-  // quote block
   blockquote: {
     borderLeft: "3px solid gray",
     paddingLeft: convertRemToPixel(1),
@@ -162,28 +138,25 @@ const EDITOR_PDF_DOCUMENT_STYLESHEET = StyleSheet.create({
     marginVertical: 0,
     borderRadius: convertRemToPixel(0.375),
   },
-  // divider
   "div[data-type='horizontalRule']": {
     marginVertical: convertRemToPixel(1),
     height: 1,
     width: "100%",
     backgroundColor: "gray",
   },
-  // mention block
   "[data-node-type='mention-block']": {
     margin: 0,
     color: "#3f76ff",
     backgroundColor: "#3f76ff33",
     paddingHorizontal: convertRemToPixel(0.375),
   },
-  // table
   table: {
     marginTop: convertRemToPixel(0.5),
     marginBottom: convertRemToPixel(1),
     marginHorizontal: 0,
   },
   "table td": {
-    padding: convertRemToPixel(0.625),
+    padding: convertRemToPixel(0.5),
     border: "1px solid #e5e5e5",
   },
   "table p": {
@@ -193,7 +166,28 @@ const EDITOR_PDF_DOCUMENT_STYLESHEET = StyleSheet.create({
     color: "#0563C1",
     textDecoration: "underline",
   },
-});
+};
+
+function buildStylesheet(locale: TExportLocale) {
+  const fontFamily = locale === "fa" ? "Vazirmatn" : "Inter";
+
+  return StyleSheet.create({
+    "*:not(.courier, .courier-bold)": { fontFamily },
+    ".courier": { fontFamily: "Courier" },
+    ".courier-bold": { fontFamily: "Courier-Bold" },
+    ...EDITOR_PDF_SHARED,
+    "div.input-checkbox": {
+      position: "absolute",
+      top: convertRemToPixel(0.15),
+      ...(locale === "fa" ? { right: -convertRemToPixel(1.2) } : { left: -convertRemToPixel(1.2) }),
+      height: convertRemToPixel(0.75),
+      width: convertRemToPixel(0.75),
+      borderWidth: "1.5px",
+      borderStyle: "solid",
+      borderRadius: convertRemToPixel(0.125),
+    },
+  });
+}
 
 Font.register({
   family: "Vazirmatn",
@@ -237,16 +231,18 @@ Font.register({
 type Props = {
   content: string;
   pageFormat: PageProps["size"];
+  locale?: TExportLocale;
 };
-
-function hasPersian(text: string): boolean {
-  return /[\u0600-\u06FF]/.test(text);
-}
 
 export function PDFDocument(props: Props) {
   const { content, pageFormat } = props;
-  const rtl = hasPersian(content);
-  const wrapped = `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"}; text-align:${rtl ? "right" : "left"}">${content}</div>`;
+  const locale = props.locale ?? detectExportLocale(content);
+  const rtl = locale === "fa";
+  // Vazirmatn covers Latin too — use it whenever FA is present so mixed FA+EN glyphs render.
+  // Pure English keeps Inter for cleaner Latin typography.
+  const fontFamily = rtl ? "Vazirmatn" : "Inter";
+  const stylesheet = buildStylesheet(locale);
+  const wrapped = `<div dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${content}</div>`;
 
   return (
     <Document>
@@ -256,10 +252,10 @@ export function PDFDocument(props: Props) {
           backgroundColor: "#ffffff",
           padding: 48,
           direction: rtl ? "rtl" : "ltr",
-          fontFamily: "Vazirmatn",
+          fontFamily,
         }}
       >
-        <Html stylesheet={EDITOR_PDF_DOCUMENT_STYLESHEET}>{wrapped}</Html>
+        <Html stylesheet={stylesheet}>{wrapped}</Html>
       </Page>
     </Document>
   );

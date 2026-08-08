@@ -18,8 +18,11 @@ import { buildDocxFromTree } from "@/components/pages/export/docx-builder";
 import { buildMarkdownZipFromTree } from "@/components/pages/export/markdown-zip";
 import {
   buildCombinedHtml,
+  detectExportLocale,
+  detectLocaleFromTree,
   escapeHtml,
   flattenExportTree,
+  injectLiveRootHtml,
   rewritePageMentionsToBookmarks,
   sanitizeHtmlForPdf,
 } from "@/components/pages/export/tree-utils";
@@ -135,87 +138,69 @@ export function ExportPageModal(props: Props) {
     };
   };
 
-  /** Prefer live editor HTML; fall back to export-tree API (needed for list ⋯ menu where editorRef is null). */
-  const resolveSinglePageHtml = async (): Promise<{ title: string; html: string }> => {
+  const prepareTree = async (): Promise<TExportTree> => {
+    if (!pageId) throw new Error("missing page");
     const liveHtml = editorRef?.getDocument()?.html;
-    if (liveHtml) {
-      return { title: pageTitle, html: liveHtml };
-    }
-    if (!pageId) {
-      return { title: pageTitle, html: "<p></p>" };
-    }
-    const tree = await fetchTree();
-    const root = flattenExportTree(tree)[0];
-    return {
-      title: root?.name || pageTitle,
-      html: rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages),
-    };
+    return injectLiveRootHtml(scopeTree(await fetchTree()), liveHtml, pageTitle);
   };
 
   const handleExportAsPDF = async () => {
-    if (pageId && (selectedScope === "page_and_subpages" || !editorRef?.getDocument()?.html)) {
-      const tree = scopeTree(await fetchTree());
+    if (pageId) {
+      const tree = await prepareTree();
+      const locale = detectLocaleFromTree(tree);
       const combined =
         selectedScope === "page_and_subpages"
-          ? buildCombinedHtml(tree, { includeToc: true })
+          ? buildCombinedHtml(tree, { includeToc: true, locale })
           : (() => {
               const root = flattenExportTree(tree)[0];
               const title = root?.name || pageTitle;
-              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages);
+              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, locale);
               return sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(title)}</h1>${body}`);
             })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
         htmlContent: combined,
         noAssets: selectedContentVariety === "no-assets",
       });
-      const blob = await pdf(<PDFDocument content={sanitizeHtmlForPdf(parsed)} pageFormat={selectedPageFormat} />).toBlob();
+      const blob = await pdf(
+        <PDFDocument content={sanitizeHtmlForPdf(parsed)} pageFormat={selectedPageFormat} locale={locale} />
+      ).toBlob();
       initiateDownload(blob, selectedScope === "page_and_subpages" ? `${fileName}-tree.pdf` : `${fileName}.pdf`);
       return;
     }
-    const { title, html } = await resolveSinglePageHtml();
-    const pageContent = sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(title)}</h1>${html}`);
+
+    const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
+    const pageContent = sanitizeHtmlForPdf(`<h1 class="page-title">${escapeHtml(pageTitle)}</h1>${liveHtml}`);
+    const locale = detectExportLocale(pageTitle, liveHtml);
     const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
       htmlContent: pageContent,
       noAssets: selectedContentVariety === "no-assets",
     });
     const blob = await pdf(
-      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} />
+      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} locale={locale} />
     ).toBlob();
     initiateDownload(blob, `${fileName}.pdf`);
   };
 
   const handleExportAsMarkdown = async () => {
-    if (selectedScope === "page_and_subpages" && pageId) {
-      const tree = await fetchTree();
-      const blob = await buildMarkdownZipFromTree(tree);
-      initiateDownload(blob, `${fileName}-export.zip`);
-      return;
-    }
-    const liveMd = editorRef?.getMarkDown();
-    if (liveMd) {
-      const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
-        markdownContent: liveMd,
-        noAssets: selectedContentVariety === "no-assets",
-      });
-      const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
-      initiateDownload(blob, `${fileName}.md`);
-      return;
-    }
     if (pageId) {
-      const tree = scopeTree(await fetchTree());
+      const tree = await prepareTree();
       const blob = await buildMarkdownZipFromTree(tree);
       initiateDownload(blob, `${fileName}-export.zip`);
       return;
     }
-    const blob = new Blob([""], { type: "text/markdown" });
+    const liveMd = editorRef?.getMarkDown() ?? "";
+    const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
+      markdownContent: liveMd,
+      noAssets: selectedContentVariety === "no-assets",
+    });
+    const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
     initiateDownload(blob, `${fileName}.md`);
   };
 
   const handleExportAsDocx = async () => {
     if (!pageId) {
-      // single page synthetic tree
-      const html = editorRef?.getDocument().html ?? "<p></p>";
-      const tree = {
+      const html = editorRef?.getDocument()?.html ?? "<p></p>";
+      const tree: TExportTree = {
         root: "current",
         pages: [
           {
@@ -233,17 +218,8 @@ export function ExportPageModal(props: Props) {
       initiateDownload(blob, `${fileName}.docx`);
       return;
     }
-    const tree = await fetchTree();
-    const scoped =
-      selectedScope === "this_page"
-        ? {
-            root: tree.root,
-            pages: tree.pages
-              .filter((p) => p.id === tree.root)
-              .map((p) => Object.assign({}, p, { children_ids: [] as string[] })),
-          }
-        : tree;
-    const blob = await buildDocxFromTree(scoped);
+    const tree = await prepareTree();
+    const blob = await buildDocxFromTree(tree);
     initiateDownload(blob, `${fileName}.docx`);
   };
 

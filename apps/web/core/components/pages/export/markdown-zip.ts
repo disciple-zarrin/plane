@@ -8,13 +8,13 @@ import JSZip from "jszip";
 import { marked } from "marked";
 import { convertHTMLToMarkdown } from "@plane/utils";
 import type { TExportTree, TExportTreePage } from "@/services/page/page-export.service";
-import { flattenExportTree } from "./tree-utils";
+import { detectLocaleFromTree, exportLabels, flattenExportTree } from "./tree-utils";
 
 function pageMdPath(id: string) {
   return `pages/${id}.md`;
 }
 
-function rewriteMentionsToRelativeLinks(html: string, pages: TExportTreePage[]): string {
+function rewriteMentionsToRelativeLinks(html: string, pages: TExportTreePage[], fallbackTitle: string): string {
   const byId = new Map(pages.map((p) => [p.id, p]));
   return html.replace(/<mention-component([^>]*?)>/gi, (_full, attrs: string) => {
     const idMatch = attrs.match(/entity_identifier=["']([^"']+)["']/i) || attrs.match(/\bid=["']([^"']+)["']/i);
@@ -23,7 +23,7 @@ function rewriteMentionsToRelativeLinks(html: string, pages: TExportTreePage[]):
     const id = idMatch?.[1];
     if (!id || (entity && entity !== "page" && entity !== "page_mention")) return "";
     const page = byId.get(id);
-    const title = page?.name || "page";
+    const title = page?.name || fallbackTitle;
     return `<a href="./${id}.md">${title}</a>`;
   });
 }
@@ -59,21 +59,25 @@ async function extractAndRewriteImages(html: string, zip: JSZip): Promise<string
 export async function buildMarkdownZipFromTree(tree: TExportTree): Promise<Blob> {
   const zip = new JSZip();
   const ordered = flattenExportTree(tree);
-  const indexLines = ["# Wiki export", "", "## Pages", ""];
+  const locale = detectLocaleFromTree(tree);
+  const labels = exportLabels(locale);
+  const indexTitle = locale === "fa" ? "خروجی ویکی" : "Wiki export";
+  const indexPages = locale === "fa" ? "صفحات" : "Pages";
+  const indexLines = [`# ${indexTitle}`, "", `## ${indexPages}`, ""];
 
   const pageFiles = await Promise.all(
     ordered.map(async (page) => {
-      let html = rewriteMentionsToRelativeLinks(page.description_html || "<p></p>", tree.pages);
+      let html = rewriteMentionsToRelativeLinks(page.description_html || "<p></p>", tree.pages, labels.page);
       html = await extractAndRewriteImages(html, zip);
       const mdBody = convertHTMLToMarkdown({ description_html: html });
       const frontmatter = [
         "---",
         `id: ${page.id}`,
         `parent: ${page.parent ?? "null"}`,
-        `title: ${JSON.stringify(page.name || "Untitled")}`,
+        `title: ${JSON.stringify(page.name || labels.untitled)}`,
         "---",
         "",
-        `# ${page.name || "Untitled"}`,
+        `# ${page.name || labels.untitled}`,
         "",
         mdBody,
         "",
