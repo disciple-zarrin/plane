@@ -50,9 +50,7 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
         aria-label={paneToggleLabel}
         aria-pressed={isNavigationPaneOpen}
       >
-        <ArrowRightCircle
-          className={cn("size-3.5 transition-transform", isNavigationPaneOpen ? "" : "rotate-180")}
-        />
+        <ArrowRightCircle className={cn("size-3.5 transition-transform", isNavigationPaneOpen ? "" : "rotate-180")} />
       </button>
     </Tooltip>
   );
@@ -100,7 +98,7 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
         </div>
       )}
       {shouldHideToolbar && (
-        <div className="absolute top-0 right-0 z-10 flex h-[52px] items-center px-page-x">{paneToggleButton}</div>
+        <div className="absolute end-0 top-0 z-10 flex h-[52px] items-center px-page-x">{paneToggleButton}</div>
       )}
     </>
   );

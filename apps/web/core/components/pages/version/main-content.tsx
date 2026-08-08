@@ -82,9 +82,9 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
   );
 
   const handleRestoreVersion = async () => {
-    if (!restoreEnabled) return;
+    if (!restoreEnabled || !activeVersion || !versionDetails) return;
     setIsRestoring(true);
-    await handleRestore(versionDetails?.description_html ?? "<p></p>", activeVersion ?? undefined)
+    await handleRestore(versionDetails.description_html ?? "<p></p>", activeVersion)
       .then(() => {
         setToast({ type: TOAST_TYPE.SUCCESS, title: "نسخه بازگردانی شد." });
         handleClose();
@@ -111,6 +111,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
 
   // Default: selected checkpoint vs live page (shows ++ for text added since then).
   const effectiveMode: TDiffMode = diffMode === "introduced" && !previousVersionMeta ? "vs_current" : diffMode;
+  const showIntroducedSpinner = effectiveMode === "introduced" && !!previousVersionMeta && !previousVersionDetails;
 
   const beforeHtml = effectiveMode === "introduced" ? previousHtml : selectedHtml;
   const afterHtml = effectiveMode === "introduced" ? selectedHtml : currentHtml;
@@ -185,19 +186,29 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
               )}
             </div>
             {restoreEnabled && (
-              <Button variant="primary" className="flex-shrink-0" onClick={handleRestoreVersion} loading={isRestoring}>
+              <Button
+                variant="primary"
+                className="flex-shrink-0"
+                onClick={handleRestoreVersion}
+                loading={isRestoring}
+                disabled={!versionDetails || !activeVersion}
+              >
                 {isRestoring ? "…" : "بازگردانی به این نسخه"}
               </Button>
             )}
           </div>
           <div className="vertical-scrollbar scrollbar-sm h-full overflow-y-scroll px-5 pt-6">
             {showDiff && versionDetails ? (
-              <DocumentHtmlDiff
-                beforeHtml={beforeHtml}
-                afterHtml={afterHtml}
-                caption={caption}
-                fileName={`${currentPage?.name || "document"}.md`}
-              />
+              showIntroducedSpinner ? (
+                <p className="text-13 text-tertiary">در حال بارگذاری دیف…</p>
+              ) : (
+                <DocumentHtmlDiff
+                  beforeHtml={beforeHtml}
+                  afterHtml={afterHtml}
+                  caption={caption}
+                  fileName={`${currentPage?.name || "document"}.md`}
+                />
+              )
             ) : (
               <VersionEditor activeVersion={activeVersion} storeType={storeType} versionDetails={versionDetails} />
             )}

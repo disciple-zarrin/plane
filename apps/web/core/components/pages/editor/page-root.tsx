@@ -204,13 +204,10 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
 
   const handleRestoreVersion = useCallback(
     async (descriptionHTML: string, versionId?: string) => {
-      if (versionId && page.id) {
-        try {
-          await handlers.restoreVersion(page.id, versionId);
-        } catch {
-          /* still apply local HTML */
-        }
+      if (!versionId || !page.id) {
+        throw new Error("Missing version id");
       }
+      await handlers.restoreVersion(page.id, versionId);
       editorRef.current?.clearEditor();
       editorRef.current?.setEditorValue(descriptionHTML);
     },
@@ -228,7 +225,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
   return (
     <div className="relative flex size-full overflow-hidden transition-all duration-300 ease-in-out">
       <div className="flex size-full flex-col overflow-hidden">
-      <PageVersionsOverlay
+        <PageVersionsOverlay
           editorComponent={PagesVersionEditor}
           fetchVersionDetails={handlers.fetchVersionDetails}
           fetchAllVersions={handlers.fetchAllVersions}
