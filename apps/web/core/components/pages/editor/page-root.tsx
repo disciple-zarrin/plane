@@ -229,6 +229,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
           editorComponent={PagesVersionEditor}
           fetchVersionDetails={handlers.fetchVersionDetails}
           fetchAllVersions={handlers.fetchAllVersions}
+          getLiveHtml={() => editorRef.current?.getDocument()?.html}
           handleRestore={handleRestoreVersion}
           pageId={page.id ?? ""}
           restoreEnabled={isContentEditable}

@@ -23,6 +23,7 @@ type Props = {
   editorComponent: React.FC<TVersionEditorProps>;
   fetchVersionDetails: (pageId: string, versionId: string) => Promise<TPageVersion | undefined>;
   fetchAllVersions?: (pageId: string) => Promise<TPageVersion[] | undefined>;
+  getLiveHtml?: () => string | undefined;
   handleRestore: (descriptionHTML: string, versionId?: string) => Promise<void>;
   pageId: string;
   restoreEnabled: boolean;
@@ -30,8 +31,16 @@ type Props = {
 };
 
 export const PageVersionsOverlay = observer(function PageVersionsOverlay(props: Props) {
-  const { editorComponent, fetchVersionDetails, fetchAllVersions, handleRestore, pageId, restoreEnabled, storeType } =
-    props;
+  const {
+    editorComponent,
+    fetchVersionDetails,
+    fetchAllVersions,
+    getLiveHtml,
+    handleRestore,
+    pageId,
+    restoreEnabled,
+    storeType,
+  } = props;
   // navigation
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -65,6 +74,7 @@ export const PageVersionsOverlay = observer(function PageVersionsOverlay(props: 
         editorComponent={editorComponent}
         fetchVersionDetails={fetchVersionDetails}
         fetchAllVersions={fetchAllVersions}
+        getLiveHtml={getLiveHtml}
         handleClose={handleClose}
         handleRestore={handleRestore}
         pageId={pageId}

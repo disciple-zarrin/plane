@@ -58,6 +58,19 @@ export function textLooksRtl(text: string | undefined | null): boolean {
   return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text || "");
 }
 
+/**
+ * Page title direction: follow title script when present.
+ * Empty / untitled titles inherit body RTL so FA pages are not forced LTR.
+ */
+export function pageTitleLooksRtl(title: string | undefined | null, bodyHtml?: string | undefined | null): boolean {
+  const t = (title || "").trim();
+  if (textLooksRtl(t)) return true;
+  if (!t || !/[A-Za-z\u00C0-\u024F\u0600-\u06FF]/.test(t)) {
+    return htmlHasRtl(bodyHtml);
+  }
+  return false;
+}
+
 /** Labels follow document direction (RTL toggle), not UI/language locale. */
 export function exportLabels(isRtl: boolean): TExportLabels {
   return isRtl
@@ -233,7 +246,7 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
     ordered.forEach((p, idx) => {
       const depth = getDepth(p, tree);
       const title = p.name || labels.untitled;
-      const lineRtl = textLooksRtl(title);
+      const lineRtl = pageTitleLooksRtl(title, p.description_html);
       const dir = lineRtl ? "rtl" : "ltr";
       const align = lineRtl ? "right" : "left";
       const indent = depth * 12;
@@ -245,8 +258,8 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
   }
   ordered.forEach((p) => {
     const title = p.name || labels.untitled;
-    // Page name direction follows the title script only (FA → RTL, EN → LTR).
-    const titleRtl = textLooksRtl(title);
+    // Title script when present; empty/untitled inherits body direction.
+    const titleRtl = pageTitleLooksRtl(title, p.description_html);
     const body = applyInlineDirectionStyles(
       rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, titleRtl, {
         webBaseUrl: options?.webBaseUrl,

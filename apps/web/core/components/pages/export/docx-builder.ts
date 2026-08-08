@@ -24,7 +24,7 @@ import {
   htmlHasRtl,
   rewritePageMentionsToBookmarks,
   stripHtmlToText,
-  textLooksRtl,
+  pageTitleLooksRtl,
   treeIsRtl,
 } from "./tree-utils";
 
@@ -137,7 +137,7 @@ export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUr
   ordered.forEach((p, idx) => {
     const indent = depthOf(p.id, tree);
     const title = p.name || labels.untitled;
-    const lineRtl = textLooksRtl(title);
+    const lineRtl = pageTitleLooksRtl(title, p.description_html);
     children.push(
       new Paragraph({
         bidirectional: lineRtl,
@@ -165,8 +165,8 @@ export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUr
 
   for (const page of ordered) {
     const title = page.name || labels.untitled;
-    // Heading alignment follows title script only — not body language.
-    const titleRtl = textLooksRtl(title);
+    // Title script when present; empty/untitled inherits body direction.
+    const titleRtl = pageTitleLooksRtl(title, page.description_html);
     const depth = Math.min(depthOf(page.id, tree), HEADING_BY_DEPTH.length - 1);
     children.push(
       new Paragraph({

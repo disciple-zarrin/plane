@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { EyeIcon, TriangleAlert } from "lucide-react";
@@ -22,6 +22,7 @@ type Props = {
   editorComponent: React.FC<TVersionEditorProps>;
   fetchVersionDetails: (pageId: string, versionId: string) => Promise<TPageVersion | undefined>;
   fetchAllVersions?: (pageId: string) => Promise<TPageVersion[] | undefined>;
+  getLiveHtml?: () => string | undefined;
   handleClose: () => void;
   handleRestore: (descriptionHTML: string, versionId?: string) => Promise<void>;
   pageId: string;
@@ -41,6 +42,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
     editorComponent,
     fetchVersionDetails,
     fetchAllVersions,
+    getLiveHtml,
     handleClose,
     handleRestore,
     pageId,
@@ -51,8 +53,17 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
   const [isRetrying, setIsRetrying] = useState(false);
   const [showDiff, setShowDiff] = useState(true);
   const [diffMode, setDiffMode] = useState<TDiffMode>("vs_current");
+  const [liveHtml, setLiveHtml] = useState<string | null>(null);
   const pageStore = usePageStore(storeType);
   const currentPage = pageStore.getPageById(pageId);
+
+  useEffect(() => {
+    if (!activeVersion) {
+      setLiveHtml(null);
+      return;
+    }
+    setLiveHtml(getLiveHtml?.() ?? null);
+  }, [activeVersion, diffMode, getLiveHtml, showDiff]);
 
   const {
     data: versionDetails,
@@ -105,7 +116,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
 
   const VersionEditor = editorComponent;
 
-  const currentHtml = currentPage?.description_html || "<p></p>";
+  const currentHtml = liveHtml || currentPage?.description_html || "<p></p>";
   const selectedHtml = versionDetails?.description_html || "<p></p>";
   const previousHtml = previousVersionDetails?.description_html || "<p></p>";
 

@@ -301,11 +301,13 @@ export default observer(function WikiDetailPage() {
         hideTrigger
         open={versionsOpen}
         onOpenChange={setVersionsOpen}
-        currentHtml={editorRef.current?.getDocument()?.html || initialHtml}
+        currentHtml={initialHtml}
+        getLiveHtml={() => editorRef.current?.getDocument()?.html}
         onRestore={async (html) => {
+          // Server already restored binary/json/html via restoreVersion.
+          // Only sync the local editor — do not PATCH empty json.
           editorRef.current?.setEditorValue(html);
           setInitialHtml(html);
-          await pageService.updateDescription(slug, id, { description_html: html, description_json: {} });
         }}
       />
       <ExportPageModal

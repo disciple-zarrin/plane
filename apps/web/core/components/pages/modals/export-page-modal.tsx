@@ -24,7 +24,7 @@ import {
   retainMentionedPages,
   rewritePageMentionsToBookmarks,
   sanitizeHtmlForPdf,
-  textLooksRtl,
+  pageTitleLooksRtl,
   treeIsRtl,
 } from "@/components/pages/export/tree-utils";
 import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
@@ -164,7 +164,7 @@ export function ExportPageModal(props: Props) {
           : (() => {
               const root = flattenExportTree(tree)[0];
               const title = root?.name || pageTitle;
-              const titleRtl = textLooksRtl(title);
+              const titleRtl = pageTitleLooksRtl(title, root?.description_html);
               const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, titleRtl, {
                 webBaseUrl,
               });
@@ -173,7 +173,7 @@ export function ExportPageModal(props: Props) {
                 .slice(1)
                 .map((p) => {
                   const pTitle = p.name || title;
-                  const pTitleRtl = textLooksRtl(pTitle);
+                  const pTitleRtl = pageTitleLooksRtl(pTitle, p.description_html);
                   const pBody = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, pTitleRtl, {
                     webBaseUrl,
                   });
@@ -197,7 +197,7 @@ export function ExportPageModal(props: Props) {
     }
 
     const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
-    const titleRtl = textLooksRtl(pageTitle);
+    const titleRtl = pageTitleLooksRtl(pageTitle, liveHtml);
     const contentRtl = Boolean(isRtl) || /dir=["']rtl["']/i.test(liveHtml);
     const pageContent = sanitizeHtmlForPdf(
       `<div><h1 class="page-title" dir="${titleRtl ? "rtl" : "ltr"}" style="direction:${titleRtl ? "rtl" : "ltr"};text-align:${titleRtl ? "right" : "left"}">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
@@ -207,11 +207,7 @@ export function ExportPageModal(props: Props) {
       noAssets: selectedContentVariety === "no-assets",
     });
     const blob = await pdf(
-      <PDFDocument
-        content={sanitizeHtmlForPdf(parsedPageContent)}
-        pageFormat={selectedPageFormat}
-        isRtl={contentRtl}
-      />
+      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} isRtl={contentRtl} />
     ).toBlob();
     initiateDownload(blob, `${fileName}.pdf`);
   };

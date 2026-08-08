@@ -19,7 +19,10 @@ const versionService = new WorkspacePageVersionService();
 type Props = {
   workspaceSlug: string;
   pageId: string;
+  /** Fallback HTML when getLiveHtml is unavailable. */
   currentHtml: string;
+  /** Prefer live editor HTML for vs-current diffs. */
+  getLiveHtml?: () => string | undefined;
   onRestore: (html: string) => void | Promise<void>;
   /** When provided, panel open state is controlled by parent (e.g. ⋯ menu). */
   open?: boolean;
@@ -29,18 +32,32 @@ type Props = {
 };
 
 export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props) {
-  const { workspaceSlug, pageId, currentHtml, onRestore, open: openProp, onOpenChange, hideTrigger } = props;
+  const {
+    workspaceSlug,
+    pageId,
+    currentHtml,
+    getLiveHtml,
+    onRestore,
+    open: openProp,
+    onOpenChange,
+    hideTrigger,
+  } = props;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = openProp ?? uncontrolledOpen;
-  const setOpen = (next: boolean | ((prev: boolean) => boolean)) => {
-    const value = typeof next === "function" ? next(open) : next;
-    onOpenChange?.(value);
-    if (openProp === undefined) setUncontrolledOpen(value);
-  };
+  const setOpen = useCallback(
+    (next: boolean | ((prev: boolean) => boolean)) => {
+      const value = typeof next === "function" ? next(open) : next;
+      onOpenChange?.(value);
+      if (openProp === undefined) setUncontrolledOpen(value);
+    },
+    [open, onOpenChange, openProp]
+  );
   const [versions, setVersions] = useState<TPageVersion[]>([]);
   const [active, setActive] = useState<TPageVersion | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [liveHtml, setLiveHtml] = useState(currentHtml);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,8 +70,11 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
   }, [workspaceSlug, pageId]);
 
   useEffect(() => {
-    if (open) void load();
-  }, [open, load]);
+    if (open) {
+      setLiveHtml(getLiveHtml?.() || currentHtml);
+      void load();
+    }
+  }, [open, load, getLiveHtml, currentHtml]);
 
   useEffect(() => {
     if (!open) return;
@@ -63,19 +83,34 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, setOpen]);
 
   const selectVersion = async (v: TPageVersion) => {
-    const detail = await versionService.fetchVersionById(workspaceSlug, pageId, v.id);
-    setActive(detail);
+    setLoadingDetail(true);
+    setActive(null);
+    try {
+      const detail = await versionService.fetchVersionById(workspaceSlug, pageId, v.id);
+      setActive(detail ?? v);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const restore = async () => {
-    if (!active?.id) return;
+    if (!active?.id || loadingDetail) return;
     setRestoring(true);
     try {
       const res = await versionService.restoreVersion(workspaceSlug, pageId, active.id);
-      await onRestore(res?.description_html || active.description_html || "<p></p>");
+      const html = res?.description_html || active.description_html || "<p></p>";
+      try {
+        await onRestore(html);
+      } catch {
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "نسخه در سرور بازگردانی شد ولی ادیتور به‌روز نشد",
+        });
+        return;
+      }
       setToast({ type: TOAST_TYPE.SUCCESS, title: "بازگردانی شد" });
       setOpen(false);
     } catch {
@@ -84,6 +119,8 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
       setRestoring(false);
     }
   };
+
+  const afterHtml = liveHtml || currentHtml;
 
   return (
     <div>
@@ -105,7 +142,7 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
         >
           <div
             role="document"
-            className="flex h-full w-full max-w-lg flex-col border-l border-subtle bg-surface-1 shadow-xl"
+            className="shadow-xl flex h-full w-full max-w-lg flex-col border-s border-subtle bg-surface-1"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
@@ -137,10 +174,22 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
                 )}
               </ul>
               <div className="min-w-0 flex-1 overflow-y-auto p-3">
-                {active ? (
+                {loadingDetail ? (
+                  <p className="text-11 text-tertiary">در حال بارگذاری…</p>
+                ) : active ? (
                   <div className="space-y-3">
-                    <DocumentHtmlDiff beforeHtml={active.description_html || ""} afterHtml={currentHtml} />
-                    <Button variant="primary" size="sm" loading={restoring} onClick={() => void restore()}>
+                    <DocumentHtmlDiff
+                      beforeHtml={active.description_html || ""}
+                      afterHtml={afterHtml}
+                      caption="تفاوت این نسخه با سند فعلی"
+                    />
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      loading={restoring}
+                      disabled={!active.id}
+                      onClick={() => void restore()}
+                    >
                       بازگردانی به این نسخه
                     </Button>
                   </div>
