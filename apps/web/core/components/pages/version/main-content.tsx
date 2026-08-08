@@ -31,6 +31,10 @@ type Props = {
 
 type TDiffMode = "introduced" | "vs_current";
 
+function stripSimple(html: string) {
+  return (html || "").replace(/\s+/g, " ").trim();
+}
+
 export const PageVersionsMainContent = observer(function PageVersionsMainContent(props: Props) {
   const {
     activeVersion,
@@ -46,7 +50,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
   const [isRestoring, setIsRestoring] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [showDiff, setShowDiff] = useState(true);
-  const [diffMode, setDiffMode] = useState<TDiffMode>("introduced");
+  const [diffMode, setDiffMode] = useState<TDiffMode>("vs_current");
   const pageStore = usePageStore(storeType);
   const currentPage = pageStore.getPageById(pageId);
 
@@ -105,17 +109,18 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
   const selectedHtml = versionDetails?.description_html || "<p></p>";
   const previousHtml = previousVersionDetails?.description_html || "<p></p>";
 
-  // GitLab-like: default = what this version introduced (prev → this).
-  // Fallback to vs-current when there is no older version.
-  const effectiveMode: TDiffMode =
-    diffMode === "introduced" && !previousVersionMeta ? "vs_current" : diffMode;
+  // Default: selected checkpoint vs live page (shows ++ for text added since then).
+  const effectiveMode: TDiffMode = diffMode === "introduced" && !previousVersionMeta ? "vs_current" : diffMode;
 
   const beforeHtml = effectiveMode === "introduced" ? previousHtml : selectedHtml;
   const afterHtml = effectiveMode === "introduced" ? selectedHtml : currentHtml;
+  const sameAsCurrent = effectiveMode === "vs_current" && stripSimple(selectedHtml) === stripSimple(currentHtml);
   const caption =
     effectiveMode === "introduced"
       ? "تغییرات این نسخه نسبت به نسخهٔ قبلی (مثل GitLab)"
-      : "تفاوت این نسخه با نسخهٔ فعلی سند";
+      : sameAsCurrent
+        ? "این نسخه با سند فعلی یکی است — یک ویرایش دیگر ذخیره کنید تا تفاوت دیده شود."
+        : "تفاوت این نسخه (قبل) با سند فعلی — سبز (++): اضافه‌شده";
 
   return (
     <div className="flex flex-grow flex-col overflow-hidden">
