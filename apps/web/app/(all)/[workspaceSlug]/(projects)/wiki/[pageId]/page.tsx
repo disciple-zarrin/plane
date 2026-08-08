@@ -6,13 +6,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { ArrowRight, Download, FilePlus2, FileText, Plus, Upload } from "lucide-react";
+import { ArrowRight, ArrowUpToLine, FilePlus2, FileText, History, Plus, Upload } from "lucide-react";
 import { Link, useParams } from "react-router";
 import type { EditorRefApi, IEditorPropsExtended } from "@plane/editor";
-import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TPage, TSearchEntityRequestPayload } from "@plane/types";
 import { EFileAssetType } from "@plane/types";
+import { CustomMenu } from "@plane/ui";
 import { cn } from "@plane/utils";
 import { HesarBackButton } from "@/components/common/hesar-back-button";
 import { LogoSpinner } from "@/components/common/logo-spinner";
@@ -57,6 +57,8 @@ export default observer(function WikiDetailPage() {
   const [saving, setSaving] = useState(false);
   const [initialHtml, setInitialHtml] = useState("<p></p>");
   const [exportOpen, setExportOpen] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     if (!slug || !id) return;
@@ -240,56 +242,79 @@ export default observer(function WikiDetailPage() {
           {saving && <span className="text-tertiary">در حال ذخیره…</span>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <WikiVersionPanel
-            workspaceSlug={slug}
-            pageId={id}
-            currentHtml={editorRef.current?.getDocument()?.html || initialHtml}
-            onRestore={async (html) => {
-              editorRef.current?.setEditorValue(html);
-              setInitialHtml(html);
-              await pageService.updateDescription(slug, id, { description_html: html, description_json: {} });
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".zip,application/zip"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file || !slug) return;
+              try {
+                const parsed = await parseMarkdownZip(file);
+                await parsed.reduce<Promise<void>>(async (chain, p) => {
+                  await chain;
+                  const parentId = p.parent && p.parent !== id ? p.parent : id;
+                  await pageService.create(slug, {
+                    name: p.title,
+                    parent: parentId === id ? id : parentId,
+                    description_html: p.html,
+                  } as Partial<TPage> & { description_html?: string });
+                }, Promise.resolve());
+                setToast({ type: TOAST_TYPE.SUCCESS, title: "ایمپورت شد", message: `${parsed.length} صفحه` });
+                await load();
+              } catch {
+                setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق" });
+              }
             }}
           />
-          <Button variant="secondary" size="sm" onClick={() => setExportOpen(true)}>
-            <Download className="size-3.5" />
-            خروجی
-          </Button>
-          <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-subtle px-2 py-1.5 text-11 text-secondary hover:bg-layer-transparent-hover">
-            <Upload className="size-3.5" />
-            ایمپورت MD
-            <input
-              type="file"
-              accept=".zip,application/zip"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (!file || !slug) return;
-                try {
-                  const parsed = await parseMarkdownZip(file);
-                  await parsed.reduce<Promise<void>>(async (chain, p) => {
-                    await chain;
-                    const parentId = p.parent && p.parent !== id ? p.parent : id;
-                    await pageService.create(slug, {
-                      name: p.title,
-                      parent: parentId === id ? id : parentId,
-                      description_html: p.html,
-                    } as Partial<TPage> & { description_html?: string });
-                  }, Promise.resolve());
-                  setToast({ type: TOAST_TYPE.SUCCESS, title: "ایمپورت شد", message: `${parsed.length} صفحه` });
-                  await load();
-                } catch {
-                  setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق" });
-                }
-              }}
-            />
-          </label>
-          <Button variant="secondary" size="sm" onClick={() => void createChild()} disabled={creating}>
-            <Plus className="size-3.5" />
-            {creating ? "…" : "صفحه فرعی"}
-          </Button>
+          <CustomMenu placement="bottom-end" ellipsis closeOnSelect>
+            <CustomMenu.MenuItem
+              onClick={() => setExportOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <ArrowUpToLine className="size-3" />
+              خروجی (PDF / Word / Markdown)
+            </CustomMenu.MenuItem>
+            <CustomMenu.MenuItem
+              onClick={() => setVersionsOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <History className="size-3" />
+              تاریخچه نسخه‌ها
+            </CustomMenu.MenuItem>
+            <CustomMenu.MenuItem
+              onClick={() => importInputRef.current?.click()}
+              className="flex items-center gap-2"
+            >
+              <Upload className="size-3" />
+              ایمپورت Markdown
+            </CustomMenu.MenuItem>
+            <CustomMenu.MenuItem
+              onClick={() => void createChild()}
+              className="flex items-center gap-2"
+              disabled={creating}
+            >
+              <Plus className="size-3" />
+              صفحه فرعی
+            </CustomMenu.MenuItem>
+          </CustomMenu>
         </div>
       </div>
+      <WikiVersionPanel
+        workspaceSlug={slug}
+        pageId={id}
+        hideTrigger
+        open={versionsOpen}
+        onOpenChange={setVersionsOpen}
+        currentHtml={editorRef.current?.getDocument()?.html || initialHtml}
+        onRestore={async (html) => {
+          editorRef.current?.setEditorValue(html);
+          setInitialHtml(html);
+          await pageService.updateDescription(slug, id, { description_html: html, description_json: {} });
+        }}
+      />
       <ExportPageModal
         editorRef={editorRef.current}
         isOpen={exportOpen}

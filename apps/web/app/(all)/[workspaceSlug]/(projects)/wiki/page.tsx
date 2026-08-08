@@ -6,14 +6,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
-import { ChevronDown, ChevronRight, FilePlus2, FileText, Plus } from "lucide-react";
+import { ArrowUpToLine, ChevronDown, ChevronRight, FilePlus2, FileText, Plus } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { Button } from "@plane/propel/button";
 import { WikiIcon } from "@plane/propel/icons";
 import type { TPage } from "@plane/types";
+import { CustomMenu } from "@plane/ui";
 import { cn } from "@plane/utils";
 import { PageHead } from "@/components/core/page-title";
 import { HesarBackButton } from "@/components/common/hesar-back-button";
+import { ExportPageModal } from "@/components/pages/modals/export-page-modal";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { WorkspacePageService } from "@/services/page/workspace-page.service";
@@ -44,10 +46,12 @@ const PageTreeItem = observer(function PageTreeItem({
   node,
   depth,
   workspaceSlug,
+  onExport,
 }: {
   node: TreeNode;
   depth: number;
   workspaceSlug: string;
+  onExport: (page: TPage) => void;
 }) {
   const [open, setOpen] = useState(true);
   const hasChildren = node.children.length > 0;
@@ -71,10 +75,28 @@ const PageTreeItem = observer(function PageTreeItem({
           <FileText className="size-4 shrink-0 text-tertiary" />
           <span className="truncate">{node.name || "بدون عنوان"}</span>
         </Link>
+        <div
+          className="opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <CustomMenu placement="bottom-end" ellipsis closeOnSelect>
+            <CustomMenu.MenuItem onClick={() => onExport(node)} className="flex items-center gap-2">
+              <ArrowUpToLine className="size-3" />
+              خروجی (PDF / Word / Markdown)
+            </CustomMenu.MenuItem>
+          </CustomMenu>
+        </div>
       </div>
       {open &&
         node.children.map((child) => (
-          <PageTreeItem key={child.id} node={child} depth={depth + 1} workspaceSlug={workspaceSlug} />
+          <PageTreeItem
+            key={child.id}
+            node={child}
+            depth={depth + 1}
+            workspaceSlug={workspaceSlug}
+            onExport={onExport}
+          />
         ))}
     </div>
   );
@@ -88,6 +110,7 @@ export default observer(function WikiListPage() {
   const [pages, setPages] = useState<TPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [exportTarget, setExportTarget] = useState<TPage | null>(null);
 
   const load = useCallback(async () => {
     if (!slug) return;
@@ -123,6 +146,14 @@ export default observer(function WikiListPage() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <PageHead title={pageTitle} />
+      <ExportPageModal
+        editorRef={null}
+        isOpen={!!exportTarget}
+        onClose={() => setExportTarget(null)}
+        pageTitle={exportTarget?.name || "wiki"}
+        pageId={exportTarget?.id}
+        exportContext="wiki"
+      />
       <div className="flex items-center justify-between gap-3 border-b border-subtle px-6 py-4">
         <div className="flex items-center gap-3">
           <HesarBackButton fallbackHref={`/${slug}`} />
@@ -157,7 +188,7 @@ export default observer(function WikiListPage() {
         )}
         <div className="mx-auto max-w-3xl space-y-0.5">
           {tree.map((node) => (
-            <PageTreeItem key={node.id} node={node} depth={0} workspaceSlug={slug} />
+            <PageTreeItem key={node.id} node={node} depth={0} workspaceSlug={slug} onExport={setExportTarget} />
           ))}
         </div>
       </div>

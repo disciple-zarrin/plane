@@ -21,11 +21,22 @@ type Props = {
   pageId: string;
   currentHtml: string;
   onRestore: (html: string) => void | Promise<void>;
+  /** When provided, panel open state is controlled by parent (e.g. ⋯ menu). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the built-in trigger button (use when opening from a menu). */
+  hideTrigger?: boolean;
 };
 
 export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props) {
-  const { workspaceSlug, pageId, currentHtml, onRestore } = props;
-  const [open, setOpen] = useState(false);
+  const { workspaceSlug, pageId, currentHtml, onRestore, open: openProp, onOpenChange, hideTrigger } = props;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = openProp ?? uncontrolledOpen;
+  const setOpen = (next: boolean | ((prev: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(open) : next;
+    onOpenChange?.(value);
+    if (openProp === undefined) setUncontrolledOpen(value);
+  };
   const [versions, setVersions] = useState<TPageVersion[]>([]);
   const [active, setActive] = useState<TPageVersion | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,10 +87,12 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
 
   return (
     <div>
-      <Button variant="secondary" size="sm" onClick={() => setOpen((v) => !v)}>
-        <History className="size-3.5" />
-        نسخه‌ها
-      </Button>
+      {!hideTrigger && (
+        <Button variant="secondary" size="sm" onClick={() => setOpen((v) => !v)}>
+          <History className="size-3.5" />
+          نسخه‌ها
+        </Button>
+      )}
       {open && (
         <div
           role="dialog"

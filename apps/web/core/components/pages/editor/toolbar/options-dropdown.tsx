@@ -98,14 +98,14 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
             });
             router.push(updatedRoute);
           },
-          title: "Version history",
+          title: "تاریخچه نسخه‌ها",
           icon: History,
           shouldRender: true,
         },
         {
           key: "export",
           action: () => setIsExportModalOpen(true),
-          title: "Export",
+          title: "خروجی (PDF / Word / Markdown)",
           icon: ArrowUpToLine,
           shouldRender: true,
         },
@@ -141,11 +141,11 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
           "sticky-toolbar",
           "copy-markdown",
           "version-history",
+          "export",
           "make-a-copy",
           "archive-restore",
           "delete",
           "toggle-access",
-          "export",
         ]}
         page={page}
         storeType={storeType}
