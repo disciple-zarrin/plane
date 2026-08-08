@@ -15,8 +15,9 @@ from django.utils import timezone
 # Module imports
 from plane.db.models import Page, PageVersion
 from plane.utils.exception_logger import log_exception
+from plane.utils.page_version_retention import enforce_page_version_limit
 
-PAGE_VERSION_TASK_TIMEOUT = 600
+PAGE_VERSION_TASK_TIMEOUT = 600  # retained for callers / docs; versions always append now
 
 @shared_task
 def track_page_version(page_id, existing_instance, user_id):
@@ -44,10 +45,7 @@ def track_page_version(page_id, existing_instance, user_id):
                 last_saved_at=timezone.now(),
                 sub_pages_data=sub_pages,
             )
-            # If page versions are greater than 20 delete the oldest one
-            if PageVersion.objects.filter(page_id=page_id).count() > 20:
-                # Delete the old page version
-                PageVersion.objects.filter(page_id=page_id).order_by("last_saved_at").first().delete()
+            enforce_page_version_limit(page_id)
 
         return
     except Page.DoesNotExist:

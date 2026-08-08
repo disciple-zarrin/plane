@@ -69,6 +69,16 @@ class WorkSpaceSerializer(DynamicBaseSerializer):
             )
         return value
 
+    def validate_page_version_limit(self, value):
+        # 0 = keep all; otherwise 1..500
+        if value is None:
+            return 20
+        if value < 0:
+            raise serializers.ValidationError("page_version_limit must be 0 (keep all) or a positive integer")
+        if value > 500:
+            raise serializers.ValidationError("page_version_limit cannot exceed 500")
+        return value
+
     class Meta:
         model = Workspace
         fields = "__all__"

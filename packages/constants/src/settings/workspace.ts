@@ -63,6 +63,14 @@ export const WORKSPACE_SETTINGS: Record<TWorkspaceSettingsTabs, TWorkspaceSettin
     highlight: (pathname: string, baseUrl: string) =>
       pathname === `${baseUrl}/worklogs` || pathname === `${baseUrl}/worklogs/`,
   },
+  versions: {
+    key: "versions",
+    i18n_label: "workspace_settings.settings.versions.title",
+    href: `/settings/versions`,
+    access: [EUserWorkspaceRoles.ADMIN],
+    highlight: (pathname: string, baseUrl: string) =>
+      pathname === `${baseUrl}/settings/versions` || pathname === `${baseUrl}/settings/versions/`,
+  },
   webhooks: {
     key: "webhooks",
     i18n_label: "workspace_settings.settings.webhooks.title",
@@ -84,6 +92,6 @@ export const GROUPED_WORKSPACE_SETTINGS: Record<WORKSPACE_SETTINGS_CATEGORY, TWo
     WORKSPACE_SETTINGS["export"],
     WORKSPACE_SETTINGS["worklogs"],
   ],
-  [WORKSPACE_SETTINGS_CATEGORY.FEATURES]: [],
+  [WORKSPACE_SETTINGS_CATEGORY.FEATURES]: [WORKSPACE_SETTINGS["versions"]],
   [WORKSPACE_SETTINGS_CATEGORY.DEVELOPER]: [WORKSPACE_SETTINGS["webhooks"]],
 };

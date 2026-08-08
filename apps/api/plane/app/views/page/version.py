@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 # Module imports
 from plane.db.models import Page, PageVersion
+from plane.utils.page_version_retention import enforce_page_version_limit
 from ..base import BaseAPIView
 from plane.app.serializers import PageVersionSerializer, PageVersionDetailSerializer
 from plane.app.permissions import ProjectPagePermission, WorkspaceEntityPermission
@@ -29,9 +30,7 @@ def _snapshot_before_restore(page: Page, user_id) -> None:
         last_saved_at=timezone.now(),
         sub_pages_data={},
     )
-    if PageVersion.objects.filter(page_id=page.id).count() > 20:
-        PageVersion.objects.filter(page_id=page.id).order_by("last_saved_at").first().delete()
-
+    enforce_page_version_limit(page.id)
 
 def _restore_page_from_version(page: Page, page_version: PageVersion, user_id=None) -> None:
     if user_id is not None:
