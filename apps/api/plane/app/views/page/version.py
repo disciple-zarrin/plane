@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Django imports
+from django.utils import timezone
+
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,7 +16,27 @@ from plane.app.serializers import PageVersionSerializer, PageVersionDetailSerial
 from plane.app.permissions import ProjectPagePermission, WorkspaceEntityPermission
 
 
-def _restore_page_from_version(page: Page, page_version: PageVersion) -> None:
+def _snapshot_before_restore(page: Page, user_id) -> None:
+    """Persist current page body so restore does not lose pre-revert state."""
+    PageVersion.objects.create(
+        page_id=page.id,
+        workspace_id=page.workspace_id,
+        description_json=page.description_json or {},
+        description_html=page.description_html,
+        description_binary=page.description_binary,
+        description_stripped=getattr(page, "description_stripped", None),
+        owned_by_id=user_id,
+        last_saved_at=timezone.now(),
+        sub_pages_data={},
+    )
+    if PageVersion.objects.filter(page_id=page.id).count() > 20:
+        PageVersion.objects.filter(page_id=page.id).order_by("last_saved_at").first().delete()
+
+
+def _restore_page_from_version(page: Page, page_version: PageVersion, user_id=None) -> None:
+    if user_id is not None:
+        _snapshot_before_restore(page, user_id)
+
     page.description_html = page_version.description_html or "<p></p>"
     page.description_binary = page_version.description_binary
     page.description_json = page_version.description_json or {}
@@ -80,7 +103,7 @@ class PageVersionEndpoint(BaseAPIView):
             )
         except PageVersion.DoesNotExist:
             return Response({"error": "Version not found"}, status=status.HTTP_404_NOT_FOUND)
-        _restore_page_from_version(page, page_version)
+        _restore_page_from_version(page, page_version, user_id=request.user.id)
         return Response(
             {
                 "description_html": page.description_html,
@@ -122,7 +145,7 @@ class WorkspacePageVersionEndpoint(BaseAPIView):
         page_version = PageVersion.objects.filter(workspace__slug=slug, page_id=page_id, pk=pk).first()
         if not page_version:
             return Response({"error": "Version not found"}, status=status.HTTP_404_NOT_FOUND)
-        _restore_page_from_version(page, page_version)
+        _restore_page_from_version(page, page_version, user_id=request.user.id)
         return Response(
             {
                 "description_html": page.description_html,

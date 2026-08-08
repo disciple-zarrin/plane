@@ -109,7 +109,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
                 فقط مشاهده
               </span>
               <button type="button" className="text-11 text-accent-primary" onClick={() => setShowDiff((v) => !v)}>
-                {showDiff ? "پیش‌نمایش" : "دیف سبز/قرمز"}
+                {showDiff ? "پیش‌نمایش" : "دیف +/−"}
               </button>
             </div>
             {restoreEnabled && (
@@ -121,7 +121,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
           <div className="vertical-scrollbar scrollbar-sm h-full overflow-y-scroll px-5 pt-6">
             {showDiff && versionDetails ? (
               <div className="space-y-2">
-                <p className="text-11 text-tertiary">مقایسه با نسخهٔ فعلی — سبز: اضافه‌شده، قرمز: حذف‌شده</p>
+                <p className="text-11 text-tertiary">مقایسه این نسخه با نسخهٔ فعلی (مثل Git)</p>
                 <DocumentHtmlDiff
                   beforeHtml={versionDetails.description_html || ""}
                   afterHtml={currentPage?.description_html || ""}

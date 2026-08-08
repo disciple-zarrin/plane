@@ -23,7 +23,10 @@
         "version_history": {
           "label": "Version history",
           "current_version": "Current version",
-          "highlight_changes": "Highlight changes"
+          "highlight_changes": "Highlight changes",
+          "empty": "No versions saved yet — edit and save the page to see history here.",
+          "hint": "Select a version to view the +/− diff and restore. Nearby edits may be merged into one version.",
+          "view_changes": "View changes"
         }
       },
       "assets": {
