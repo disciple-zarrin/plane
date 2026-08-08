@@ -109,7 +109,8 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
           containerClassName="-ml-3"
         />
 
-        <div className="flex items-center justify-end">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="text-11 text-tertiary">جهت متن توضیحات</span>
           <EditorRtlToggle
             isRtl={Boolean(issue.description_rtl)}
             disabled={isArchived || !isEditable}
