@@ -175,6 +175,15 @@ function buildStylesheet(isRtl: boolean) {
     ".courier": { fontFamily: "Courier" },
     ".courier-bold": { fontFamily: "Courier-Bold" },
     ...EDITOR_PDF_SHARED,
+    // Per-paragraph direction (Word-style) — must win over any page wrapper.
+    "[dir='rtl'], [dir=\"rtl\"]": {
+      direction: "rtl",
+      textAlign: "right",
+    },
+    "[dir='ltr'], [dir=\"ltr\"]": {
+      direction: "ltr",
+      textAlign: "left",
+    },
     "div.input-checkbox": {
       position: "absolute",
       top: convertRemToPixel(0.15),
@@ -230,20 +239,21 @@ Font.register({
 type Props = {
   content: string;
   pageFormat: PageProps["size"];
-  /** Document direction from the editor RTL toggle — not inferred from language. */
+  /** Soft default for chrome/checkboxes only — block `dir` attrs override body text. */
   isRtl?: boolean;
 };
 
 export function PDFDocument(props: Props) {
   const { content, pageFormat } = props;
-  // Prefer explicit prop; fall back to dir attrs already embedded in HTML sections.
-  const isRtl = props.isRtl ?? /dir=["']rtl["']/i.test(content);
+  // Prefer explicit block dirs in HTML; prop is only a soft default for chrome.
+  const contentHasRtl = /dir=["']rtl["']/i.test(content);
+  const contentHasLtr = /dir=["']ltr["']/i.test(content);
+  const mixed = contentHasRtl && contentHasLtr;
+  const isRtl = props.isRtl ?? contentHasRtl;
   const stylesheet = buildStylesheet(isRtl);
-  // Don't force another wrapper dir when content already has per-section dirs (tree export).
-  const hasSectionDirs = /dir=["'](rtl|ltr)["']/i.test(content);
-  const wrapped = hasSectionDirs
-    ? content
-    : `<div dir="${isRtl ? "rtl" : "ltr"}" style="direction:${isRtl ? "rtl" : "ltr"};text-align:${isRtl ? "right" : "left"}">${content}</div>`;
+  // Never force a whole-document text-align wrapper — it flattens mixed paragraphs.
+  // Inline direction styles are applied in sanitizeHtmlForPdf / applyInlineDirectionStyles.
+  const wrapped = content;
 
   return (
     <Document>
@@ -252,7 +262,8 @@ export function PDFDocument(props: Props) {
         style={{
           backgroundColor: "#ffffff",
           padding: 48,
-          direction: isRtl ? "rtl" : "ltr",
+          // Mixed docs stay LTR at page level so LTR blocks aren't mirrored; RTL blocks set their own direction.
+          direction: mixed ? "ltr" : isRtl ? "rtl" : "ltr",
           fontFamily: "Vazirmatn",
         }}
       >

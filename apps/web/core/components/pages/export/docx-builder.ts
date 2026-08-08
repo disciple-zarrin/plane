@@ -17,8 +17,10 @@ import {
 } from "docx";
 import type { TExportTree } from "@/services/page/page-export.service";
 import {
+  directionFromAttrs,
   exportLabels,
   flattenExportTree,
+  htmlHasRtl,
   pageIsRtl,
   rewritePageMentionsToBookmarks,
   stripHtmlToText,
@@ -79,19 +81,30 @@ function parseInline(html: string, isRtl: boolean): (TextRun | InternalHyperlink
   return runs.length ? runs : [new TextRun({ text: "" })];
 }
 
-function htmlToParagraphs(html: string, isRtl: boolean): Paragraph[] {
-  const cleaned = html
-    .replace(/<\/?(section|div)[^>]*>/gi, "")
-    .replace(/<br\s*\/?>/gi, "</p><p>");
+function alignmentFromAttrs(attrs: string | undefined, isRtl: boolean) {
+  const align = (attrs || "").match(/text-align:\s*(left|right|center|justify)/i)?.[1]?.toLowerCase();
+  if (align === "center") return AlignmentType.CENTER;
+  if (align === "right") return AlignmentType.RIGHT;
+  if (align === "left") return AlignmentType.LEFT;
+  if (align === "justify") return AlignmentType.BOTH;
+  return isRtl ? AlignmentType.RIGHT : AlignmentType.LEFT;
+}
+
+/** Convert editor HTML to DOCX paragraphs, honoring per-block `dir` like Word. */
+function htmlToParagraphs(html: string, fallbackRtl: boolean): Paragraph[] {
+  const cleaned = html.replace(/<\/?(section|div)[^>]*>/gi, "").replace(/<br\s*\/?>/gi, "</p><p>");
   const blocks = cleaned.split(/<\/p>|<\/h[1-6]>|<\/li>/i);
   const paragraphs: Paragraph[] = [];
   for (const block of blocks) {
-    const trimmed = block.replace(/<p[^>]*>/gi, "").trim();
+    const openMatch = block.match(/<(?:p|h[1-6]|li)([^>]*)>/i);
+    const attrs = openMatch?.[1] || "";
+    const isRtl = directionFromAttrs(attrs, fallbackRtl);
+    const trimmed = block.replace(/<(?:p|h[1-6]|li)[^>]*>/gi, "").trim();
     if (!trimmed || !stripHtmlToText(trimmed)) continue;
     paragraphs.push(
       new Paragraph({
         bidirectional: isRtl,
-        alignment: isRtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        alignment: alignmentFromAttrs(attrs, isRtl),
         spacing: { after: 120 },
         children: parseInline(trimmed, isRtl),
       })
@@ -144,13 +157,13 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
   children.push(new Paragraph({ children: [] }));
 
   for (const page of ordered) {
-    const rtl = pageIsRtl(page);
+    const titleRtl = pageIsRtl(page);
     const depth = Math.min(depthOf(page.id, tree), HEADING_BY_DEPTH.length - 1);
     children.push(
       new Paragraph({
         heading: HEADING_BY_DEPTH[depth],
-        bidirectional: rtl,
-        alignment: rtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        bidirectional: titleRtl,
+        alignment: titleRtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
         children: [
           new Bookmark({
             id: page.bookmark_id,
@@ -158,15 +171,17 @@ export async function buildDocxFromTree(tree: TExportTree): Promise<Blob> {
               new TextRun({
                 text: page.name || labels.untitled,
                 bold: true,
-                rightToLeft: rtl,
+                rightToLeft: titleRtl,
               }),
             ],
           }),
         ],
       })
     );
-    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, rtl);
-    children.push(...htmlToParagraphs(body, rtl));
+    const body = rewritePageMentionsToBookmarks(page.description_html || "<p></p>", tree.pages, titleRtl);
+    // Unset paragraphs default to LTR so mixed docs match the editor (not whole-page RTL).
+    const fallbackRtl = htmlHasRtl(body) ? false : titleRtl;
+    children.push(...htmlToParagraphs(body, fallbackRtl));
     children.push(new Paragraph({ children: [] }));
   }
 

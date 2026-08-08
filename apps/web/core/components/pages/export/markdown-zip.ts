@@ -8,10 +8,73 @@ import JSZip from "jszip";
 import { marked } from "marked";
 import { convertHTMLToMarkdown } from "@plane/utils";
 import type { TExportTree, TExportTreePage } from "@/services/page/page-export.service";
-import { exportLabels, flattenExportTree, treeIsRtl } from "./tree-utils";
+import { exportLabels, flattenExportTree, stripHtmlToText, treeIsRtl } from "./tree-utils";
 
 function pageMdPath(id: string) {
   return `pages/${id}.md`;
+}
+
+/**
+ * Keep per-block dir in markdown as raw HTML paragraphs (GFM allows HTML).
+ * Plain convertHTMLToMarkdown drops direction attributes.
+ */
+function htmlToMarkdownPreservingDirection(html: string): string {
+  const blocks: string[] = [];
+  const cleaned = (html || "<p></p>").replace(/<\/?(section|div)[^>]*>/gi, "\n").replace(/<br\s*\/?>/gi, "\n");
+
+  const re = /<(p|h[1-6]|li)(\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
+  let match: RegExpExecArray | null;
+  const matchedRanges: { start: number; end: number; out: string }[] = [];
+
+  while ((match = re.exec(cleaned)) !== null) {
+    const [full, tag, attrs = "", inner] = match;
+    const dir = (attrs.match(/\bdir=["'](rtl|ltr)["']/i) || [])[1]?.toLowerCase();
+    const text = stripHtmlToText(inner);
+    if (!text) continue;
+    if (dir) {
+      matchedRanges.push({
+        start: match.index,
+        end: match.index + full.length,
+        out: `\n\n<${tag} dir="${dir}">${text}</${tag}>\n\n`,
+      });
+    } else {
+      const mdTag = tag.toLowerCase();
+      let out = text;
+      if (mdTag === "h1") out = `# ${text}`;
+      else if (mdTag === "h2") out = `## ${text}`;
+      else if (mdTag === "h3") out = `### ${text}`;
+      else if (mdTag === "h4") out = `#### ${text}`;
+      else if (mdTag === "li") out = `- ${text}`;
+      matchedRanges.push({
+        start: match.index,
+        end: match.index + full.length,
+        out: `\n\n${out}\n\n`,
+      });
+    }
+  }
+
+  if (!matchedRanges.length) {
+    return convertHTMLToMarkdown({ description_html: html });
+  }
+
+  let cursor = 0;
+  for (const range of matchedRanges) {
+    if (range.start > cursor) {
+      const gap = cleaned.slice(cursor, range.start);
+      if (stripHtmlToText(gap)) {
+        blocks.push(convertHTMLToMarkdown({ description_html: gap }));
+      }
+    }
+    blocks.push(range.out.trim());
+    cursor = range.end;
+  }
+  if (cursor < cleaned.length) {
+    const gap = cleaned.slice(cursor);
+    if (stripHtmlToText(gap)) {
+      blocks.push(convertHTMLToMarkdown({ description_html: gap }));
+    }
+  }
+  return blocks.filter(Boolean).join("\n\n");
 }
 
 function rewriteMentionsToRelativeLinks(html: string, pages: TExportTreePage[], fallbackTitle: string): string {
@@ -69,7 +132,7 @@ export async function buildMarkdownZipFromTree(tree: TExportTree): Promise<Blob>
     ordered.map(async (page) => {
       let html = rewriteMentionsToRelativeLinks(page.description_html || "<p></p>", tree.pages, labels.page);
       html = await extractAndRewriteImages(html, zip);
-      const mdBody = convertHTMLToMarkdown({ description_html: html });
+      const mdBody = htmlToMarkdownPreservingDirection(html);
       const frontmatter = [
         "---",
         `id: ${page.id}`,

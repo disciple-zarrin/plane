@@ -13,6 +13,45 @@ export type TExportLabels = {
   link: string;
 };
 
+/** True if HTML contains any explicit RTL block. */
+export function htmlHasRtl(html: string | undefined | null): boolean {
+  return /dir=["']rtl["']/i.test(html || "");
+}
+
+/**
+ * Ensure block-level `dir` also has inline direction/text-align styles.
+ * react-pdf-html often ignores the HTML `dir` attribute unless direction is in style.
+ */
+export function applyInlineDirectionStyles(html: string): string {
+  return (html || "").replace(
+    /<(p|h[1-6]|li|blockquote|div|td|th)(\s[^>]*)?>/gi,
+    (full, tag: string, rawAttrs?: string) => {
+      const attrs = rawAttrs || "";
+      const dirMatch = attrs.match(/\bdir=["'](rtl|ltr)["']/i);
+      if (!dirMatch) return full;
+      const dir = dirMatch[1].toLowerCase();
+      const align = dir === "rtl" ? "right" : "left";
+      if (/\bstyle=["'][^"']*["']/i.test(attrs)) {
+        const nextAttrs = attrs.replace(/\bstyle=["']([^"']*)["']/i, (_s, style: string) => {
+          let next = style.trim().replace(/;?\s*$/, "");
+          if (!/direction\s*:/i.test(next)) next = `${next};direction:${dir}`;
+          if (!/text-align\s*:/i.test(next)) next = `${next};text-align:${align}`;
+          return `style="${next}"`;
+        });
+        return `<${tag}${nextAttrs}>`;
+      }
+      return `<${tag}${attrs} style="direction:${dir};text-align:${align}">`;
+    }
+  );
+}
+
+/** Read dir from an opening tag's attribute string. Falls back when unset. */
+export function directionFromAttrs(attrs: string | undefined | null, fallbackRtl = false): boolean {
+  const match = (attrs || "").match(/\bdir=["'](rtl|ltr)["']/i);
+  if (!match) return fallbackRtl;
+  return match[1].toLowerCase() === "rtl";
+}
+
 /** Labels follow document direction (RTL toggle), not UI/language locale. */
 export function exportLabels(isRtl: boolean): TExportLabels {
   return isRtl
@@ -20,15 +59,18 @@ export function exportLabels(isRtl: boolean): TExportLabels {
     : { toc: "Table of Contents", page: "Page", untitled: "Untitled", link: "Link" };
 }
 
-export function pageIsRtl(page: Pick<TExportTreePage, "is_rtl"> | undefined | null): boolean {
-  return Boolean(page?.is_rtl);
+export function pageIsRtl(page: Pick<TExportTreePage, "is_rtl" | "description_html"> | undefined | null): boolean {
+  if (!page) return false;
+  // Prefer explicit paragraph dirs in content over the legacy page-level flag.
+  if (htmlHasRtl(page.description_html)) return true;
+  return Boolean(page.is_rtl);
 }
 
 /** Majority RTL among tree pages (for TOC / shared chrome). */
 export function treeIsRtl(tree: TExportTree): boolean {
   const pages = tree.pages || [];
   if (!pages.length) return false;
-  const rtlCount = pages.filter((p) => p.is_rtl).length;
+  const rtlCount = pages.filter((p) => pageIsRtl(p)).length;
   return rtlCount * 2 >= pages.length;
 }
 
@@ -88,10 +130,12 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
   }
   ordered.forEach((p) => {
     const rtl = pageIsRtl(p);
-    const body = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl);
-    // Each page keeps its own direction — matches what the editor shows.
+    const body = applyInlineDirectionStyles(
+      rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl)
+    );
+    // Title uses page-level default; body paragraphs keep their own dir attrs/styles.
     parts.push(
-      `<div id="${p.bookmark_id}" dir="${rtl ? "rtl" : "ltr"}"><h1 class="page-title">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
+      `<div id="${p.bookmark_id}"><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
     );
   });
   return sanitizeHtmlForPdf(parts.join("\n"));
@@ -99,7 +143,7 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
 
 /** Normalize editor HTML so react-pdf-html can render content reliably. */
 export function sanitizeHtmlForPdf(html: string): string {
-  let out = html || "<p></p>";
+  let out = applyInlineDirectionStyles(html || "<p></p>");
   out = out
     .replace(/<\/?section\b[^>]*>/gi, (tag) => (tag.startsWith("</") ? "</div>" : tag.replace(/^<section/i, "<div")))
     .replace(/<hr\s*\/?>/gi, '<div data-type="horizontalRule"></div>')

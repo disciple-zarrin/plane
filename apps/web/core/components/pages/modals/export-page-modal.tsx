@@ -158,7 +158,7 @@ export function ExportPageModal(props: Props) {
               const rtl = pageIsRtl(root);
               const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, rtl);
               return sanitizeHtmlForPdf(
-                `<div dir="${rtl ? "rtl" : "ltr"}"><h1 class="page-title">${escapeHtml(title)}</h1>${body}</div>`
+                `<div><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>`
               );
             })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
@@ -173,9 +173,9 @@ export function ExportPageModal(props: Props) {
     }
 
     const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
-    const rtl = Boolean(isRtl);
+    const rtl = Boolean(isRtl) || /dir=["']rtl["']/i.test(liveHtml);
     const pageContent = sanitizeHtmlForPdf(
-      `<div dir="${rtl ? "rtl" : "ltr"}"><h1 class="page-title">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
+      `<div><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
     );
     const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
       htmlContent: pageContent,
