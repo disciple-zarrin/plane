@@ -101,7 +101,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     editorExtensionHandlers,
     navigationPaneExtensions,
     handleOpenNavigationPane,
-    handleCloseNavigationPane,
+    handleToggleNavigationPane,
     isNavigationPaneOpen,
   } = usePagesPaneExtensions({
     page,
@@ -237,7 +237,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
           storeType={storeType}
         />
         <PageEditorToolbarRoot
-          handleOpenNavigationPane={handleOpenNavigationPane}
+          handleToggleNavigationPane={handleToggleNavigationPane}
           isNavigationPaneOpen={isNavigationPaneOpen}
           page={page}
         />
@@ -263,7 +263,6 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
       </div>
       <PageNavigationPaneRoot
         storeType={storeType}
-        handleClose={handleCloseNavigationPane}
         isNavigationPaneOpen={isNavigationPaneOpen}
         page={page}
         versionHistory={{
