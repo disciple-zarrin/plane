@@ -123,19 +123,30 @@ export default observer(function WikiDetailPage() {
         cachePageMentionName(child.id, child.name || "صفحه فرعی");
         const mentionHtml = `<p><mention-component id="${child.id}" entity_identifier="${child.id}" entity_name="page"></mention-component></p>`;
         try {
-          editorRef.current?.insertText(mentionHtml);
+          editorRef.current?.insertText(mentionHtml, true);
         } catch {
           /* optional */
+        }
+        // Persist mention into parent description so the link survives refresh
+        try {
+          const doc = editorRef.current?.getDocument();
+          if (doc?.html) {
+            await pageService.updateDescription(slug, id, {
+              description_html: doc.html,
+              description_json: doc.json ?? {},
+            });
+          }
+        } catch {
+          /* best-effort; onChange may still save */
         }
         setToast({
           type: TOAST_TYPE.SUCCESS,
           title: "ساخته شد",
-          message: "صفحه فرعی اضافه شد.",
+          message: "صفحه فرعی به این صفحه اضافه شد.",
         });
-        if (opts?.open !== false) {
+        await load();
+        if (opts?.open === true) {
           router.push(`/${slug}/wiki/${child.id}`);
-        } else {
-          await load();
         }
       } catch (error: unknown) {
         const message =
@@ -161,7 +172,7 @@ export default observer(function WikiDetailPage() {
   // Register slash-command bridge (window + module + events)
   useEffect(() => {
     const run = () => {
-      void createChildRef.current({ open: true });
+      void createChildRef.current({ open: false });
     };
     window.__planeCreateSubpage = run;
     const unregister = registerSubpageCreateHandler(run);
@@ -176,7 +187,7 @@ export default observer(function WikiDetailPage() {
   }, []);
 
   const onCreateSubpage = useCallback(() => {
-    void createChildRef.current({ open: true });
+    void createChildRef.current({ open: false });
   }, []);
 
   const extendedEditorProps = useMemo<Partial<IEditorPropsExtended>>(

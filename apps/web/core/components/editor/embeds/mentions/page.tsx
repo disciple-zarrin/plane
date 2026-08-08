@@ -17,9 +17,10 @@ type Props = {
 
 export const EditorPageMention = observer(function EditorPageMention(props: Props) {
   const { id } = props;
-  const { workspaceSlug } = useParams();
+  const { workspaceSlug, projectId } = useParams();
   const slug = workspaceSlug?.toString() || "";
-  const href = `/${slug}/wiki/${id}`;
+  const project = projectId?.toString();
+  const href = project ? `/${slug}/projects/${project}/pages/${id}` : `/${slug}/wiki/${id}`;
   const name = getCachedPageMentionName(id) || "صفحه";
 
   return (

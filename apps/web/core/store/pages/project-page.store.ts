@@ -141,8 +141,9 @@ export class ProjectPageStore implements IProjectPageStore {
     const { projectId } = this.store.router;
     if (!projectId) return undefined;
     // helps to filter pages based on the pageType
+    // Nested/sub pages stay under their parent — not in the top-level Pages list
     let pagesByType = filterPagesByPageType(pageType, Object.values(this?.data || {}));
-    pagesByType = pagesByType.filter((p) => p.project_ids?.includes(projectId));
+    pagesByType = pagesByType.filter((p) => p.project_ids?.includes(projectId) && !p.parent);
 
     const pages = (pagesByType.map((page) => page.id) as string[]) || undefined;
 
@@ -172,6 +173,7 @@ export class ProjectPageStore implements IProjectPageStore {
     let filteredPages = pagesByType.filter(
       (p) =>
         p.project_ids?.includes(projectId) &&
+        !p.parent &&
         getPageName(p.name).toLowerCase().includes(this.filters.searchQuery.toLowerCase()) &&
         shouldFilterPage(p, this.filters.filters)
     );

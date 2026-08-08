@@ -15,10 +15,10 @@ import { usePageFallback } from "@/hooks/use-page-fallback";
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { usePagesPaneExtensions, useExtendedEditorProps } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
-import { useAppRouter } from "@/hooks/use-app-router";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
+import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 import { registerSubpageCreateHandler } from "../subpage-create-bridge";
 import { PageNavigationPaneRoot } from "../navigation-pane";
 import { PageVersionsOverlay } from "../version";
@@ -126,7 +126,6 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     error: errorHandler,
   };
 
-  const router = useAppRouter();
   const creatingSubpageRef = useRef(false);
 
   const createSubpage = useCallback(() => {
@@ -141,12 +140,18 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
         if (!created?.id) {
           throw new Error("empty");
         }
+        cachePageMentionName(created.id, created.name || "صفحه فرعی");
+        const mentionHtml = `<p><mention-component id="${created.id}" entity_identifier="${created.id}" entity_name="page"></mention-component></p>`;
+        try {
+          editorRef.current?.insertText(mentionHtml, true);
+        } catch {
+          /* optional — children still listed after refresh if we add UI */
+        }
         setToast({
           type: TOAST_TYPE.SUCCESS,
           title: "ساخته شد",
-          message: "صفحه فرعی اضافه شد.",
+          message: "صفحه فرعی به این صفحه اضافه شد — روی لینک کلیک کنید.",
         });
-        router.push(handlers.getRedirectionLink(created.id));
       } catch {
         setToast({
           type: TOAST_TYPE.ERROR,
@@ -157,7 +162,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
         creatingSubpageRef.current = false;
       }
     })();
-  }, [handlers, page.id, router]);
+  }, [handlers, page.id]);
 
   const createSubpageRef = useRef(createSubpage);
   createSubpageRef.current = createSubpage;
