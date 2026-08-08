@@ -22,7 +22,6 @@ import {
   exportLabels,
   flattenExportTree,
   htmlHasRtl,
-  pageIsRtl,
   rewritePageMentionsToBookmarks,
   stripHtmlToText,
   textLooksRtl,
@@ -166,7 +165,8 @@ export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUr
 
   for (const page of ordered) {
     const title = page.name || labels.untitled;
-    const titleRtl = textLooksRtl(title) || pageIsRtl(page);
+    // Heading alignment follows title script only — not body language.
+    const titleRtl = textLooksRtl(title);
     const depth = Math.min(depthOf(page.id, tree), HEADING_BY_DEPTH.length - 1);
     children.push(
       new Paragraph({

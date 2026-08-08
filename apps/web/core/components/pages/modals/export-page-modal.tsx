@@ -21,10 +21,10 @@ import {
   escapeHtml,
   flattenExportTree,
   injectLiveRootHtml,
-  pageIsRtl,
   retainMentionedPages,
   rewritePageMentionsToBookmarks,
   sanitizeHtmlForPdf,
+  textLooksRtl,
   treeIsRtl,
 } from "@/components/pages/export/tree-utils";
 import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
@@ -164,24 +164,25 @@ export function ExportPageModal(props: Props) {
           : (() => {
               const root = flattenExportTree(tree)[0];
               const title = root?.name || pageTitle;
-              const rtl = pageIsRtl(root);
-              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, rtl, {
+              const titleRtl = textLooksRtl(title);
+              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, titleRtl, {
                 webBaseUrl,
               });
               // Include sibling/mentioned page sections so #bookmarks resolve in PDF.
               const extras = flattenExportTree(tree)
                 .slice(1)
                 .map((p) => {
-                  const pRtl = pageIsRtl(p);
-                  const pBody = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, pRtl, {
+                  const pTitle = p.name || title;
+                  const pTitleRtl = textLooksRtl(pTitle);
+                  const pBody = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, pTitleRtl, {
                     webBaseUrl,
                   });
-                  return `<div id="${p.bookmark_id}"><h1 class="page-title">${escapeHtml(p.name || title)}</h1>${pBody}</div>`;
+                  return `<div id="${p.bookmark_id}"><h1 class="page-title" dir="${pTitleRtl ? "rtl" : "ltr"}" style="direction:${pTitleRtl ? "rtl" : "ltr"};text-align:${pTitleRtl ? "right" : "left"}">${escapeHtml(pTitle)}</h1>${pBody}</div>`;
                 })
                 .join("\n");
               const rootId = root?.bookmark_id ? ` id="${root.bookmark_id}"` : "";
               return sanitizeHtmlForPdf(
-                `<div${rootId}><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>${extras}`
+                `<div${rootId}><h1 class="page-title" dir="${titleRtl ? "rtl" : "ltr"}" style="direction:${titleRtl ? "rtl" : "ltr"};text-align:${titleRtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>${extras}`
               );
             })();
       const parsed = await replaceCustomComponentsFromHTMLContent({
@@ -196,16 +197,21 @@ export function ExportPageModal(props: Props) {
     }
 
     const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
-    const rtl = Boolean(isRtl) || /dir=["']rtl["']/i.test(liveHtml);
+    const titleRtl = textLooksRtl(pageTitle);
+    const contentRtl = Boolean(isRtl) || /dir=["']rtl["']/i.test(liveHtml);
     const pageContent = sanitizeHtmlForPdf(
-      `<div><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
+      `<div><h1 class="page-title" dir="${titleRtl ? "rtl" : "ltr"}" style="direction:${titleRtl ? "rtl" : "ltr"};text-align:${titleRtl ? "right" : "left"}">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
     );
     const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
       htmlContent: pageContent,
       noAssets: selectedContentVariety === "no-assets",
     });
     const blob = await pdf(
-      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} isRtl={rtl} />
+      <PDFDocument
+        content={sanitizeHtmlForPdf(parsedPageContent)}
+        pageFormat={selectedPageFormat}
+        isRtl={contentRtl}
+      />
     ).toBlob();
     initiateDownload(blob, `${fileName}.pdf`);
   };

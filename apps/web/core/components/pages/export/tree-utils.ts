@@ -245,7 +245,8 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
   }
   ordered.forEach((p) => {
     const title = p.name || labels.untitled;
-    const titleRtl = textLooksRtl(title) || pageIsRtl(p);
+    // Page name direction follows the title script only (FA → RTL, EN → LTR).
+    const titleRtl = textLooksRtl(title);
     const body = applyInlineDirectionStyles(
       rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, titleRtl, {
         webBaseUrl: options?.webBaseUrl,

@@ -28,6 +28,14 @@ const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
     marginTop: 0,
     marginBottom: convertRemToPixel(2),
   },
+  "h1.page-title[dir='rtl'], h1.page-title[dir=\"rtl\"]": {
+    direction: "rtl",
+    textAlign: "right",
+  },
+  "h1.page-title[dir='ltr'], h1.page-title[dir=\"ltr\"]": {
+    direction: "ltr",
+    textAlign: "left",
+  },
   "h1:not(.page-title)": {
     fontSize: convertRemToPixel(1.4),
     fontWeight: "semibold",
