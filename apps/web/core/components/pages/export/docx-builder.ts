@@ -25,6 +25,7 @@ import {
   pageIsRtl,
   rewritePageMentionsToBookmarks,
   stripHtmlToText,
+  textLooksRtl,
   treeIsRtl,
 } from "./tree-utils";
 
@@ -136,21 +137,23 @@ export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUr
 
   ordered.forEach((p, idx) => {
     const indent = depthOf(p.id, tree);
+    const title = p.name || labels.untitled;
+    const lineRtl = textLooksRtl(title);
     children.push(
       new Paragraph({
-        bidirectional: docRtl,
-        alignment: align,
-        indent: docRtl ? { right: indent * 200 } : { left: indent * 200 },
+        bidirectional: lineRtl,
+        alignment: lineRtl ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        indent: lineRtl ? { right: indent * 200 } : { left: indent * 200 },
         children: [
           new InternalHyperlink({
             anchor: p.bookmark_id,
             children: [
               new TextRun({
-                text: `${idx + 1}. ${p.name || labels.untitled}`,
+                text: `${idx + 1}. ${title}`,
                 style: "Hyperlink",
                 color: "0563C1",
                 underline: {},
-                rightToLeft: docRtl,
+                rightToLeft: lineRtl,
               }),
             ],
           }),
@@ -162,7 +165,8 @@ export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUr
   children.push(new Paragraph({ children: [] }));
 
   for (const page of ordered) {
-    const titleRtl = pageIsRtl(page);
+    const title = page.name || labels.untitled;
+    const titleRtl = textLooksRtl(title) || pageIsRtl(page);
     const depth = Math.min(depthOf(page.id, tree), HEADING_BY_DEPTH.length - 1);
     children.push(
       new Paragraph({
@@ -174,7 +178,7 @@ export async function buildDocxFromTree(tree: TExportTree, options?: { webBaseUr
             id: page.bookmark_id,
             children: [
               new TextRun({
-                text: page.name || labels.untitled,
+                text: title,
                 bold: true,
                 rightToLeft: titleRtl,
               }),

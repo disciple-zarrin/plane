@@ -185,6 +185,21 @@ function buildStylesheet(isRtl: boolean) {
       direction: "ltr",
       textAlign: "left",
     },
+    "ul.toc": {
+      marginHorizontal: 0,
+      paddingHorizontal: 0,
+    },
+    "ul.toc li": {
+      marginTop: convertRemToPixel(0.2),
+    },
+    "ul.toc li[dir='rtl'], ul.toc li[dir=\"rtl\"]": {
+      direction: "rtl",
+      textAlign: "right",
+    },
+    "ul.toc li[dir='ltr'], ul.toc li[dir=\"ltr\"]": {
+      direction: "ltr",
+      textAlign: "left",
+    },
     "div.input-checkbox": {
       position: "absolute",
       top: convertRemToPixel(0.15),

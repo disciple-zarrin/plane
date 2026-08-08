@@ -53,6 +53,11 @@ export function directionFromAttrs(attrs: string | undefined | null, fallbackRtl
   return match[1].toLowerCase() === "rtl";
 }
 
+/** True if text contains Arabic/Persian script (for per-line direction). */
+export function textLooksRtl(text: string | undefined | null): boolean {
+  return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text || "");
+}
+
 /** Labels follow document direction (RTL toggle), not UI/language locale. */
 export function exportLabels(isRtl: boolean): TExportLabels {
   return isRtl
@@ -60,9 +65,12 @@ export function exportLabels(isRtl: boolean): TExportLabels {
     : { toc: "Table of Contents", page: "Page", untitled: "Untitled", link: "Link" };
 }
 
-export function pageIsRtl(page: Pick<TExportTreePage, "is_rtl" | "description_html"> | undefined | null): boolean {
+export function pageIsRtl(
+  page: Pick<TExportTreePage, "is_rtl" | "description_html" | "name"> | undefined | null
+): boolean {
   if (!page) return false;
-  // Prefer explicit paragraph dirs in content over the legacy page-level flag.
+  // Title script, then body dirs, then legacy page flag.
+  if (textLooksRtl(page.name)) return true;
   if (htmlHasRtl(page.description_html)) return true;
   return Boolean(page.is_rtl);
 }
@@ -218,27 +226,34 @@ export function buildCombinedHtml(tree: TExportTree, options?: { includeToc?: bo
   const labels = exportLabels(rtlDoc);
   const parts: string[] = [];
   if (options?.includeToc !== false) {
+    // TOC heading follows majority; each entry is aligned by its own title script.
     parts.push(
-      `<div dir="${rtlDoc ? "rtl" : "ltr"}" style="direction:${rtlDoc ? "rtl" : "ltr"};text-align:${rtlDoc ? "right" : "left"}"><h1 class="page-title">${labels.toc}</h1><ul class="toc">`
+      `<div><h1 class="page-title" dir="${rtlDoc ? "rtl" : "ltr"}" style="direction:${rtlDoc ? "rtl" : "ltr"};text-align:${rtlDoc ? "right" : "left"}">${labels.toc}</h1><ul class="toc" style="list-style-type:none;padding:0;margin:0">`
     );
     ordered.forEach((p, idx) => {
       const depth = getDepth(p, tree);
+      const title = p.name || labels.untitled;
+      const lineRtl = textLooksRtl(title);
+      const dir = lineRtl ? "rtl" : "ltr";
+      const align = lineRtl ? "right" : "left";
+      const indent = depth * 12;
       parts.push(
-        `<li style="margin-inline-start:${depth * 12}px"><a href="#${p.bookmark_id}">${idx + 1}. ${escapeHtml(p.name || labels.untitled)}</a></li>`
+        `<li dir="${dir}" style="direction:${dir};text-align:${align};margin-${lineRtl ? "right" : "left"}:${indent}px;margin-bottom:4px"><a href="#${p.bookmark_id}">${idx + 1}. ${escapeHtml(title)}</a></li>`
       );
     });
     parts.push(`</ul><div data-type="horizontalRule"></div></div>`);
   }
   ordered.forEach((p) => {
-    const rtl = pageIsRtl(p);
+    const title = p.name || labels.untitled;
+    const titleRtl = textLooksRtl(title) || pageIsRtl(p);
     const body = applyInlineDirectionStyles(
-      rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, rtl, {
+      rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, titleRtl, {
         webBaseUrl: options?.webBaseUrl,
       })
     );
     // Destination id on the wrapper so PDF Link src="#id" can jump here.
     parts.push(
-      `<div id="${p.bookmark_id}"><h1 class="page-title" dir="${rtl ? "rtl" : "ltr"}" style="direction:${rtl ? "rtl" : "ltr"};text-align:${rtl ? "right" : "left"}">${escapeHtml(p.name || labels.untitled)}</h1>${body}</div>`
+      `<div id="${p.bookmark_id}"><h1 class="page-title" dir="${titleRtl ? "rtl" : "ltr"}" style="direction:${titleRtl ? "rtl" : "ltr"};text-align:${titleRtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>`
     );
   });
   return sanitizeHtmlForPdf(parts.join("\n"));
