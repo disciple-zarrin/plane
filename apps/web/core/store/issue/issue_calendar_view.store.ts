@@ -10,7 +10,7 @@ import { observable, action, makeObservable, runInAction, computed, reaction } f
 import { computedFn } from "mobx-utils";
 import type { ICalendarPayload, ICalendarWeek } from "@plane/types";
 import { EStartOfTheWeek } from "@plane/types";
-import { generateCalendarData, getWeekNumberOfDate } from "@plane/utils";
+import { generateCalendarData, getWeekNumberOfDate, renderFormattedPayloadDate, startOfCalendarMonth } from "@plane/utils";
 // types
 import type { IIssueRootStore } from "./root.store";
 
@@ -121,31 +121,34 @@ export class CalendarStore implements ICalendarStore {
   get allDaysOfActiveWeek() {
     if (!this.calendarPayload) return undefined;
 
-    const { activeWeekDate } = this.calendarFilters;
-    const year = activeWeekDate.getFullYear();
-    const month = activeWeekDate.getMonth();
-    const dayOfMonth = activeWeekDate.getDate();
+    const { activeWeekDate, activeMonthDate } = this.calendarFilters;
+    const payloadDate = renderFormattedPayloadDate(activeWeekDate);
 
-    // Check if calendar data exists for this year and month
+    // Prefer the active month payload (supports Jalali month grids keyed by Gregorian y/m of month start)
+    const monthStart = startOfCalendarMonth(activeMonthDate);
+    const year = monthStart.getFullYear();
+    const month = monthStart.getMonth();
     const yearData = this.calendarPayload[`y-${year}`];
-    if (!yearData) return undefined;
+    const monthData = yearData?.[`m-${month}`];
 
-    const monthData = yearData[`m-${month}`];
-    if (!monthData) return undefined;
-
-    // Calculate firstDayOfMonth offset (same logic as calendar generation)
-    const startOfWeek = this.rootStore?.rootStore?.user?.userProfile?.data?.start_of_the_week ?? EStartOfTheWeek.SUNDAY;
-    const firstDayOfMonthRaw = new Date(year, month, 1).getDay();
-    const firstDayOfMonth = (firstDayOfMonthRaw - startOfWeek + 7) % 7;
-
-    // Calculate which sequential week this date falls into
-    const weekIndex = Math.floor((dayOfMonth - 1 + firstDayOfMonth) / 7);
-
-    const weekKey = `w-${weekIndex}`;
-    if (!(weekKey in monthData)) {
-      return undefined;
+    if (monthData && payloadDate) {
+      for (const week of Object.values(monthData)) {
+        if (week && payloadDate in week) return week;
+      }
     }
-    return monthData[weekKey];
+
+    // Fallback: scan entire payload for the date
+    if (payloadDate) {
+      for (const y of Object.values(this.calendarPayload)) {
+        for (const m of Object.values(y || {})) {
+          for (const week of Object.values(m || {})) {
+            if (week && payloadDate in week) return week;
+          }
+        }
+      }
+    }
+
+    return undefined;
   }
 
   getStartAndEndDate = computedFn((layout: "week" | "month") => {
@@ -190,9 +193,14 @@ export class CalendarStore implements ICalendarStore {
 
   initCalendar = () => {
     const startOfWeek = this.rootStore.rootStore.user.userProfile.data?.start_of_the_week ?? EStartOfTheWeek.SUNDAY;
-    const newCalendarPayload = generateCalendarData(null, new Date(), startOfWeek);
+    const monthStart = startOfCalendarMonth(new Date());
+    const newCalendarPayload = generateCalendarData(null, monthStart, startOfWeek);
 
     runInAction(() => {
+      this.calendarFilters = {
+        ...this.calendarFilters,
+        activeMonthDate: monthStart,
+      };
       this.calendarPayload = newCalendarPayload;
     });
   };

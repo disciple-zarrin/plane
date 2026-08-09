@@ -7,8 +7,15 @@
 // plane imports
 import type { ICalendarDate, ICalendarPayload } from "@plane/types";
 import { EStartOfTheWeek } from "@plane/types";
+import {
+  startOfMonth as startOfJalaliMonth,
+  endOfMonth as endOfJalaliMonth,
+  getDay as getJalaliDay,
+  eachDayOfInterval,
+} from "date-fns-jalali";
 // local imports
 import { getWeekNumberOfDate, renderFormattedPayloadDate } from "./datetime";
+import { isPersianLocale } from "./persian-locale";
 
 /**
  * @returns {ICalendarPayload} calendar payload to render the calendar
@@ -18,6 +25,17 @@ import { getWeekNumberOfDate, renderFormattedPayloadDate } from "./datetime";
  * @description Returns calendar payload to render the calendar, if currentStructure is null, it will generate the payload for the month of startDate, else it will construct the payload for the month of startDate and append it to the currentStructure
  */
 export const generateCalendarData = (
+  currentStructure: ICalendarPayload | null,
+  startDate: Date,
+  startOfWeek: EStartOfTheWeek = EStartOfTheWeek.SUNDAY
+): ICalendarPayload => {
+  if (isPersianLocale()) {
+    return generateJalaliCalendarData(currentStructure, startDate, startOfWeek);
+  }
+  return generateGregorianCalendarData(currentStructure, startDate, startOfWeek);
+};
+
+const generateGregorianCalendarData = (
   currentStructure: ICalendarPayload | null,
   startDate: Date,
   startOfWeek: EStartOfTheWeek = EStartOfTheWeek.SUNDAY
@@ -69,6 +87,64 @@ export const generateCalendarData = (
 
     // Use sequential week index instead of calculated week number for the key
     // This ensures weeks are grouped correctly regardless of startOfWeek preference
+    calendarData[`y-${year}`][`m-${month}`][`w-${week}`] = currentWeekObject;
+  }
+
+  return calendarData;
+};
+
+const generateJalaliCalendarData = (
+  currentStructure: ICalendarPayload | null,
+  startDate: Date,
+  startOfWeek: EStartOfTheWeek = EStartOfTheWeek.SUNDAY
+): ICalendarPayload => {
+  const calendarData: ICalendarPayload = currentStructure ?? {};
+
+  const monthStart = startOfJalaliMonth(startDate);
+  const monthEnd = endOfJalaliMonth(startDate);
+
+  // Payload keys stay keyed by the Gregorian y/m of the month-start Date so the store lookup stays consistent.
+  const year = monthStart.getFullYear();
+  const month = monthStart.getMonth();
+
+  const firstDayOfMonthRaw = getJalaliDay(monthStart); // 0=Sun .. 6=Sat (same as Date.getDay)
+  const firstDayOfMonth = (firstDayOfMonthRaw - startOfWeek + 7) % 7;
+
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const totalDaysInMonth = daysInMonth.length;
+  const numWeeks = Math.ceil((totalDaysInMonth + firstDayOfMonth) / 7);
+
+  calendarData[`y-${year}`] ||= {};
+  calendarData[`y-${year}`][`m-${month}`] = {};
+
+  const today = new Date();
+  const todayWeek = getWeekNumberOfDate(today);
+
+  for (let week = 0; week < numWeeks; week++) {
+    const currentWeekObject: { [date: string]: ICalendarDate } = {};
+    const weekAnchor = new Date(monthStart);
+    weekAnchor.setDate(monthStart.getDate() - firstDayOfMonth + week * 7);
+    const weekNumber = getWeekNumberOfDate(weekAnchor);
+
+    for (let i = 0; i < 7; i++) {
+      const dayOffset = week * 7 + i - firstDayOfMonth;
+      const date = new Date(monthStart);
+      date.setDate(monthStart.getDate() + dayOffset);
+
+      const formattedDatePayload = renderFormattedPayloadDate(date);
+      if (formattedDatePayload)
+        currentWeekObject[formattedDatePayload] = {
+          date,
+          year: date.getFullYear(),
+          month: date.getMonth(),
+          day: date.getDate(),
+          week: weekNumber,
+          is_current_month: date >= monthStart && date <= monthEnd,
+          is_current_week: getWeekNumberOfDate(date) === todayWeek,
+          is_today: date.toDateString() === today.toDateString(),
+        };
+    }
+
     calendarData[`y-${year}`][`m-${month}`][`w-${week}`] = currentWeekObject;
   }
 

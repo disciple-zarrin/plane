@@ -5,7 +5,13 @@
  */
 
 import { differenceInDays, format, formatDistanceToNow, isAfter, isEqual, isValid, parseISO } from "date-fns";
+import {
+  format as formatJalali,
+  addMonths as addJalaliMonths,
+  startOfMonth as startOfJalaliMonth,
+} from "date-fns-jalali";
 import { isNumber } from "lodash-es";
+import { isPersianLocale } from "./persian-locale";
 
 // Format Date Helpers
 /**
@@ -28,13 +34,23 @@ export const renderFormattedDate = (
   if (!isValid(parsedDate)) return; // Return null for invalid dates
   let formattedDate;
   try {
-    // Format the date in the format provided or default format (MMM dd, yyyy)
-    formattedDate = format(parsedDate, formatToken);
+    if (isPersianLocale()) {
+      formattedDate = formatJalali(parsedDate, mapFormatTokenForJalali(formatToken));
+    } else {
+      formattedDate = format(parsedDate, formatToken);
+    }
   } catch (_e) {
-    // Format the date in format (MMM dd, yyyy) in case of any error
-    formattedDate = format(parsedDate, "MMM dd, yyyy");
+    formattedDate = isPersianLocale() ? formatJalali(parsedDate, "yyyy/MM/dd") : format(parsedDate, "MMM dd, yyyy");
   }
   return formattedDate;
+};
+
+/** Map common Gregorian format tokens to Jalali-friendly equivalents for FA UI. */
+const mapFormatTokenForJalali = (token: string): string => {
+  if (token === "MMM dd, yyyy" || token === "MMMM dd, yyyy") return "yyyy/MM/dd";
+  if (token === "MMM dd") return "MM/dd";
+  if (token === "MMM") return "MMMM";
+  return token;
 };
 
 /**
@@ -50,8 +66,8 @@ export const renderFormattedDateWithoutYear = (date: string | Date): string => {
   if (!parsedDate) return "";
   // Check if the parsed date is valid before formatting
   if (!isValid(parsedDate)) return ""; // Return empty string for invalid dates
-  // Format the date in short format (MMM dd)
-  const formattedDate = format(parsedDate, "MMM dd");
+  // Format the date in short format (MMM dd) / Jalali MM/dd for FA
+  const formattedDate = isPersianLocale() ? formatJalali(parsedDate, "MM/dd") : format(parsedDate, "MMM dd");
   return formattedDate;
 };
 
@@ -498,18 +514,34 @@ export const formatDateRange = (
     return "";
   }
 
+  const fmt = (d: Date, token: string) =>
+    isPersianLocale() ? formatJalali(d, mapFormatTokenForJalali(token)) : format(d, token);
+
   // If only start date is provided
   if (parsedStartDate && !parsedEndDate) {
-    return format(parsedStartDate, "MMM dd, yyyy");
+    return fmt(parsedStartDate, "MMM dd, yyyy");
   }
 
   // If only end date is provided
   if (!parsedStartDate && parsedEndDate) {
-    return format(parsedEndDate, "MMM dd, yyyy");
+    return fmt(parsedEndDate, "MMM dd, yyyy");
   }
 
   // If both dates are provided
   if (parsedStartDate && parsedEndDate) {
+    if (isPersianLocale()) {
+      const start = formatJalali(parsedStartDate, "yyyy/MM/dd");
+      const end = formatJalali(parsedEndDate, "yyyy/MM/dd");
+      if (start === end) return start;
+      // Same Jalali year+month
+      const startYm = formatJalali(parsedStartDate, "yyyy/MM");
+      const endYm = formatJalali(parsedEndDate, "yyyy/MM");
+      if (startYm === endYm) {
+        return `${formatJalali(parsedStartDate, "yyyy/MM")}/${formatJalali(parsedStartDate, "dd")} - ${formatJalali(parsedEndDate, "dd")}`;
+      }
+      return `${start} - ${end}`;
+    }
+
     const startYear = parsedStartDate.getFullYear();
     const startMonth = parsedStartDate.getMonth();
     const endYear = parsedEndDate.getFullYear();
@@ -537,6 +569,37 @@ export const formatDateRange = (
 
   return "";
 };
+
+/**
+ * Start of calendar month in the active UI calendar (Jalali when FA, else Gregorian).
+ */
+export const startOfCalendarMonth = (date: Date): Date =>
+  isPersianLocale() ? startOfJalaliMonth(date) : new Date(date.getFullYear(), date.getMonth(), 1);
+
+/**
+ * Add months in the active UI calendar.
+ */
+export const addCalendarMonths = (date: Date, amount: number): Date =>
+  isPersianLocale() ? addJalaliMonths(date, amount) : new Date(date.getFullYear(), date.getMonth() + amount, 1);
+
+/**
+ * Calendar month/year label for headers (Jalali when FA).
+ */
+export const formatCalendarMonthYear = (date: Date): string =>
+  isPersianLocale() ? formatJalali(date, "MMMM yyyy") : format(date, "MMMM yyyy");
+
+/**
+ * Short month label for month pickers (index 0-11).
+ */
+export const formatCalendarMonthShort = (date: Date): string =>
+  isPersianLocale() ? formatJalali(date, "MMM") : format(date, "MMM");
+
+/**
+ * Year label for month pickers.
+ */
+export const formatCalendarYear = (date: Date): number | string =>
+  isPersianLocale() ? formatJalali(date, "yyyy") : date.getFullYear();
+
 
 // Duration Helpers
 /**

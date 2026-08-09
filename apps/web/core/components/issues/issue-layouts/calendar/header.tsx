@@ -12,6 +12,7 @@ import { useTranslation } from "@plane/i18n";
 import { ChevronLeftIcon, ChevronRightIcon } from "@plane/propel/icons";
 import type { TSupportedFilterForUpdate } from "@plane/types";
 import { Row } from "@plane/ui";
+import { addCalendarMonths, startOfCalendarMonth } from "@plane/utils";
 // icons
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
@@ -43,11 +44,7 @@ export const CalendarHeader = observer(function CalendarHeader(props: ICalendarH
 
   const handlePrevious = () => {
     if (calendarLayout === "month") {
-      const previousMonthYear =
-        activeMonthDate.getMonth() === 0 ? activeMonthDate.getFullYear() - 1 : activeMonthDate.getFullYear();
-      const previousMonthMonth = activeMonthDate.getMonth() === 0 ? 11 : activeMonthDate.getMonth() - 1;
-
-      const previousMonthFirstDate = new Date(previousMonthYear, previousMonthMonth, 1);
+      const previousMonthFirstDate = startOfCalendarMonth(addCalendarMonths(activeMonthDate, -1));
 
       issueCalendarView.updateCalendarFilters({
         activeMonthDate: previousMonthFirstDate,
@@ -67,11 +64,7 @@ export const CalendarHeader = observer(function CalendarHeader(props: ICalendarH
 
   const handleNext = () => {
     if (calendarLayout === "month") {
-      const nextMonthYear =
-        activeMonthDate.getMonth() === 11 ? activeMonthDate.getFullYear() + 1 : activeMonthDate.getFullYear();
-      const nextMonthMonth = (activeMonthDate.getMonth() + 1) % 12;
-
-      const nextMonthFirstDate = new Date(nextMonthYear, nextMonthMonth, 1);
+      const nextMonthFirstDate = startOfCalendarMonth(addCalendarMonths(activeMonthDate, 1));
 
       issueCalendarView.updateCalendarFilters({
         activeMonthDate: nextMonthFirstDate,
@@ -91,7 +84,7 @@ export const CalendarHeader = observer(function CalendarHeader(props: ICalendarH
 
   const handleToday = () => {
     const today = new Date();
-    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const firstDayOfCurrentMonth = startOfCalendarMonth(today);
 
     issueCalendarView.updateCalendarFilters({
       activeMonthDate: firstDayOfCurrentMonth,

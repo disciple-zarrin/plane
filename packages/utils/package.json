@@ -41,7 +41,8 @@
     "sanitize-html": "catalog:",
     "tailwind-merge": "catalog:",
     "unified": "catalog:",
-    "uuid": "catalog:"
+    "uuid": "catalog:",
+    "date-fns-jalali": "4.1.0-0"
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",

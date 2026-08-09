@@ -12,6 +12,7 @@ export * from "./color";
 export * from "./common";
 export * from "./cycle";
 export * from "./datetime";
+export * from "./persian-locale";
 export * from "./distribution-update";
 export * from "./editor";
 export * from "./emoji";

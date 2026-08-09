@@ -12,8 +12,16 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@plane/propel/icons";
 //hooks
 // icons
 // constants
-import { getDate } from "@plane/utils";
+import {
+  getDate,
+  isPersianLocale,
+  formatCalendarMonthYear,
+  formatCalendarYear,
+  addCalendarMonths,
+  startOfCalendarMonth,
+} from "@plane/utils";
 import { MONTHS_LIST } from "@plane/constants";
+import { format as formatJalali } from "date-fns-jalali";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssuesFilter } from "@/store/issue/module";
@@ -60,6 +68,10 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
 
     if (!firstDay || !lastDay) return "Week view";
 
+    if (isPersianLocale()) {
+      return `${formatJalali(firstDay, "dd MMM")} - ${formatJalali(lastDay, "dd MMM yyyy")}`;
+    }
+
     if (firstDay.getMonth() === lastDay.getMonth() && firstDay.getFullYear() === lastDay.getFullYear())
       return `${MONTHS_LIST[firstDay.getMonth() + 1].title} ${firstDay.getFullYear()}`;
 
@@ -89,7 +101,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
           disabled={calendarLayout === "week"}
         >
           {calendarLayout === "month"
-            ? `${MONTHS_LIST[activeMonthDate.getMonth() + 1].title} ${activeMonthDate.getFullYear()}`
+            ? formatCalendarMonthYear(activeMonthDate)
             : getWeekLayoutHeader()}
         </button>
       </Popover.Button>
@@ -114,18 +126,18 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
                 type="button"
                 className="grid place-items-center"
                 onClick={() => {
-                  const previousYear = new Date(activeMonthDate.getFullYear() - 1, activeMonthDate.getMonth(), 1);
+                  const previousYear = startOfCalendarMonth(addCalendarMonths(activeMonthDate, -12));
                   handleDateChange(previousYear);
                 }}
               >
                 <ChevronLeftIcon height={14} width={14} />
               </button>
-              <span className="text-11">{activeMonthDate.getFullYear()}</span>
+              <span className="text-11">{formatCalendarYear(activeMonthDate)}</span>
               <button
                 type="button"
                 className="grid place-items-center"
                 onClick={() => {
-                  const nextYear = new Date(activeMonthDate.getFullYear() + 1, activeMonthDate.getMonth(), 1);
+                  const nextYear = startOfCalendarMonth(addCalendarMonths(activeMonthDate, 12));
                   handleDateChange(nextYear);
                 }}
               >
@@ -133,17 +145,32 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
               </button>
             </div>
             <div className="grid grid-cols-4 items-stretch justify-items-stretch gap-4 pt-3">
-              {Object.values(MONTHS_LIST).map((month, index) => (
+              {(isPersianLocale()
+                ? Array.from({ length: 12 }, (_, index) => {
+                    const jalaliMonth = Number(formatJalali(activeMonthDate, "M"));
+                    const yearStart = startOfCalendarMonth(addCalendarMonths(activeMonthDate, -(jalaliMonth - 1)));
+                    const monthDate = startOfCalendarMonth(addCalendarMonths(yearStart, index));
+                    return {
+                      key: `j-${index}`,
+                      label: formatJalali(monthDate, "MMM"),
+                      date: monthDate,
+                    };
+                  })
+                : Object.values(MONTHS_LIST).map((month, index) => ({
+                    key: month.shortTitle,
+                    label: month.shortTitle,
+                    date: new Date(activeMonthDate.getFullYear(), index, 1),
+                  }))
+              ).map((month) => (
                 <button
-                  key={month.shortTitle}
+                  key={month.key}
                   type="button"
                   className="rounded-sm py-0.5 text-11 hover:bg-layer-1"
                   onClick={() => {
-                    const newDate = new Date(activeMonthDate.getFullYear(), index, 1);
-                    handleDateChange(newDate);
+                    handleDateChange(month.date);
                   }}
                 >
-                  {month.shortTitle}
+                  {month.label}
                 </button>
               ))}
             </div>
