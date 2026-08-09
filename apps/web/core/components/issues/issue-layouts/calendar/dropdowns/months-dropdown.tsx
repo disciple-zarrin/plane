@@ -70,7 +70,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
     if (!firstDay || !lastDay) return "Week view";
 
     if (isPersianLocale()) {
-      return `${formatJalali(firstDay, "dd MMM")} - ${formatJalali(lastDay, "dd MMM yyyy")}`;
+      return `${formatCalendarDate(firstDay, "dd MMM", "dd MMM")} - ${formatCalendarDate(lastDay, "dd MMM yyyy", "dd MMM yyyy")}`;
     }
 
     if (firstDay.getMonth() === lastDay.getMonth() && firstDay.getFullYear() === lastDay.getFullYear())
@@ -148,12 +148,12 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
             <div className="grid grid-cols-4 items-stretch justify-items-stretch gap-4 pt-3">
               {(isPersianLocale()
                 ? Array.from({ length: 12 }, (_, index) => {
-                    const jalaliMonth = Number(formatJalali(activeMonthDate, "M"));
+                    const jalaliMonth = getJalaliMonthIndex(activeMonthDate);
                     const yearStart = startOfCalendarMonth(addCalendarMonths(activeMonthDate, -(jalaliMonth - 1)));
                     const monthDate = startOfCalendarMonth(addCalendarMonths(yearStart, index));
                     return {
                       key: `j-${index}`,
-                      label: formatJalali(monthDate, "MMM"),
+                      label: formatCalendarDate(monthDate, "MMM", "MMM"),
                       date: monthDate,
                     };
                   })
