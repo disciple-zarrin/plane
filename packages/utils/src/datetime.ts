@@ -601,6 +601,19 @@ export const formatCalendarYear = (date: Date): number | string =>
   isPersianLocale() ? formatJalali(date, "yyyy") : date.getFullYear();
 
 
+/**
+ * 1-based Jalali month index for the given date (FA calendar helpers).
+ */
+export const getJalaliMonthIndex = (date: Date): number => Number(formatJalali(date, "M"));
+
+/**
+ * Format a date with Jalali tokens when FA; otherwise Gregorian date-fns tokens.
+ */
+export const formatCalendarDate = (date: Date, jalaliToken: string, gregorianToken: string): string =>
+  isPersianLocale() ? formatJalali(date, jalaliToken) : format(date, gregorianToken);
+
+
+
 // Duration Helpers
 /**
  * @returns {string} formatted duration in human readable format

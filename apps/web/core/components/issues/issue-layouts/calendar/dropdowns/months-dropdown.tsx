@@ -17,11 +17,12 @@ import {
   isPersianLocale,
   formatCalendarMonthYear,
   formatCalendarYear,
+  formatCalendarDate,
+  getJalaliMonthIndex,
   addCalendarMonths,
   startOfCalendarMonth,
 } from "@plane/utils";
 import { MONTHS_LIST } from "@plane/constants";
-import { format as formatJalali } from "date-fns-jalali";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssuesFilter } from "@/store/issue/module";
