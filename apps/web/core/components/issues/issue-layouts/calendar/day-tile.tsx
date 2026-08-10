@@ -14,9 +14,15 @@ import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate 
 // types
 // ui
 // components
-import { cn, renderFormattedPayloadDate } from "@plane/utils";
+import {
+  cn,
+  renderFormattedPayloadDate,
+  getCalendarDayNumber,
+  getCalendarMonthShortForDate,
+  isCalendarMonthStart,
+  isPersianLocale,
+} from "@plane/utils";
 import { highlightIssueOnDrop } from "@/components/issues/issue-layouts/utils";
-// helpers
 import { MONTHS_LIST } from "@plane/constants";
 // helpers
 // types
@@ -156,13 +162,16 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
               : "font-medium" // if week layout, highlight all days
           } ${isWeekend ? "bg-layer-1" : "bg-layer-transparent"} `}
         >
-          {date.date.getDate() === 1 && MONTHS_LIST[date.date.getMonth() + 1].shortTitle + " "}
+          {isCalendarMonthStart(date.date) &&
+            (isPersianLocale()
+              ? getCalendarMonthShortForDate(date.date) + " "
+              : MONTHS_LIST[date.date.getMonth() + 1].shortTitle + " ")}
           {isToday ? (
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-primary text-on-color">
-              {date.date.getDate()}
+              {getCalendarDayNumber(date.date)}
             </span>
           ) : (
-            <>{date.date.getDate()}</>
+            <>{getCalendarDayNumber(date.date)}</>
           )}
         </div>
 
@@ -211,7 +220,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
               "bg-accent-primary/10 text-accent-primary": isToday && !isSelectedDate,
             })}
           >
-            {date.date.getDate()}
+            {getCalendarDayNumber(date.date)}
           </div>
         </div>
       </div>

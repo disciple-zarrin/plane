@@ -23,10 +23,12 @@ export function Calendar({ className, showOutsideDays = true, ...props }: Calend
 
   return (
     <Picker
+      {...props}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
-      weekStartsOn={props.weekStartsOn}
       dir={usePersian ? "rtl" : props.dir}
+      // Keep Latin digits to match formatted labels (yyyy/MM/dd) and avoid mixed numeral systems.
+      {...(usePersian ? { numerals: "latn" as const } : {})}
       components={{
         Chevron: ({ className, ...chevronProps }) => (
           <ChevronLeftIcon
@@ -41,10 +43,10 @@ export function Calendar({ className, showOutsideDays = true, ...props }: Calend
             {...chevronProps}
           />
         ),
+        ...props.components,
       }}
-      startMonth={thirtyYearsAgoFirstDay}
-      endMonth={thirtyYearsFromNowFirstDay}
-      {...props}
+      startMonth={props.startMonth ?? thirtyYearsAgoFirstDay}
+      endMonth={props.endMonth ?? thirtyYearsFromNowFirstDay}
     />
   );
 }

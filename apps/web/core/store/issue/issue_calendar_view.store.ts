@@ -82,6 +82,21 @@ export class CalendarStore implements ICalendarStore {
         this.regenerateCalendar();
       }
     );
+
+    // Rebuild month grid when UI language switches (Gregorian <-> Jalali)
+    if (typeof window !== "undefined") {
+      window.addEventListener("plane:language-changed", () => {
+        const monthStart = startOfCalendarMonth(new Date());
+        runInAction(() => {
+          this.calendarFilters = {
+            ...this.calendarFilters,
+            activeMonthDate: monthStart,
+            activeWeekDate: new Date(),
+          };
+        });
+        this.regenerateCalendar();
+      });
+    }
   }
 
   get allWeeksOfActiveMonth() {
@@ -89,11 +104,13 @@ export class CalendarStore implements ICalendarStore {
 
     const { activeMonthDate } = this.calendarFilters;
 
-    const year = activeMonthDate.getFullYear();
-    const month = activeMonthDate.getMonth();
+    // Normalize to calendar-month start so Jalali months keyed by Gregorian y/m of month-start resolve correctly
+    const monthStart = startOfCalendarMonth(activeMonthDate);
+    const year = monthStart.getFullYear();
+    const month = monthStart.getMonth();
 
     // Get the weeks for the current month
-    const weeks = this.calendarPayload[`y-${year}`][`m-${month}`];
+    const weeks = this.calendarPayload[`y-${year}`]?.[`m-${month}`];
 
     // If no weeks exist, return undefined
     if (!weeks) return undefined;

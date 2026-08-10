@@ -17,5 +17,6 @@ export async function setLanguage(lng: TLanguage): Promise<void> {
     // Mirror the whole UI for RTL locales (e.g. Persian) by setting the
     // document direction, not just translating the text.
     document.documentElement.dir = getLanguageDirection(lng);
+    window.dispatchEvent(new CustomEvent("plane:language-changed", { detail: { lng } }));
   }
 }

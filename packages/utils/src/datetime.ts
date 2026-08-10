@@ -612,6 +612,30 @@ export const getJalaliMonthIndex = (date: Date): number => Number(formatJalali(d
 export const formatCalendarDate = (date: Date, jalaliToken: string, gregorianToken: string): string =>
   isPersianLocale() ? formatJalali(date, jalaliToken) : format(date, gregorianToken);
 
+/**
+ * Day-of-month number for calendar tiles (Jalali day when FA).
+ */
+export const getCalendarDayNumber = (date: Date): number =>
+  isPersianLocale() ? Number(formatJalali(date, "d")) : date.getDate();
+
+/**
+ * Month short label shown before day 1 in calendar tiles.
+ */
+export const getCalendarMonthShortForDate = (date: Date): string =>
+  isPersianLocale() ? formatJalali(date, "MMM") : format(date, "MMM");
+
+/**
+ * True when `date` is the first day of the active UI calendar month.
+ */
+export const isCalendarMonthStart = (date: Date): boolean => {
+  const start = startOfCalendarMonth(date);
+  return (
+    date.getFullYear() === start.getFullYear() &&
+    date.getMonth() === start.getMonth() &&
+    date.getDate() === start.getDate()
+  );
+};
+
 
 
 // Duration Helpers

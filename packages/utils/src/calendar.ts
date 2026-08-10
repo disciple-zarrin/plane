@@ -139,7 +139,12 @@ const generateJalaliCalendarData = (
           month: date.getMonth(),
           day: date.getDate(),
           week: weekNumber,
-          is_current_month: date >= monthStart && date <= monthEnd,
+          is_current_month: (() => {
+            const day = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+            const start = new Date(monthStart.getFullYear(), monthStart.getMonth(), monthStart.getDate()).getTime();
+            const end = new Date(monthEnd.getFullYear(), monthEnd.getMonth(), monthEnd.getDate()).getTime();
+            return day >= start && day <= end;
+          })(),
           is_current_week: getWeekNumberOfDate(date) === todayWeek,
           is_today: date.toDateString() === today.toDateString(),
         };
