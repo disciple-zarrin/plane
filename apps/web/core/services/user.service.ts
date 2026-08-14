@@ -75,9 +75,18 @@ export class UserService extends APIService {
       });
   }
 
-  async assignedIssuesAcrossWorkspaces(params?: { include_done?: boolean }): Promise<{
+  async assignedIssuesAcrossWorkspaces(params?: {
+    include_done?: boolean;
+    page?: number;
+    page_size?: number;
+  }): Promise<{
     results: TUserAssignedIssue[];
     count: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+    has_next: boolean;
+    has_previous: boolean;
   }> {
     return this.get(`/api/users/me/assigned-issues/`, { params })
       .then((response) => response?.data)
