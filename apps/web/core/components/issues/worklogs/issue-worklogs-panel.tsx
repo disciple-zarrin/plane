@@ -11,7 +11,17 @@ import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
+import { WorkTimerClock } from "@/components/issues/worklogs/work-timer-clock";
 import { WorkLogService, type TIssueWorkLog } from "@/services/worklog.service";
+import {
+  WORK_TIMER_EVENT,
+  elapsedMs,
+  formatClock,
+  msToMinutes,
+  readWorkTimer,
+  writeWorkTimer,
+  type TWorkTimerState,
+} from "@/helpers/work-timer";
 
 type Props = {
   workspaceSlug: string;
@@ -44,13 +54,35 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
   const { workspaceSlug, projectId, issueId, disabled } = props;
   const [logs, setLogs] = useState<TIssueWorkLog[]>([]);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [hours, setHours] = useState("1");
   const [minutes, setMinutes] = useState("0");
   const [description, setDescription] = useState("");
   const [loggedAt, setLoggedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
+  const [addingTimer, setAddingTimer] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timer, setTimer] = useState<TWorkTimerState | null>(() => readWorkTimer());
+  const [now, setNow] = useState(() => Date.now());
+
+  const belongsToThisIssue = timer?.issueId === issueId;
+  const runningHere = Boolean(belongsToThisIssue && timer?.running);
+
+  useEffect(() => {
+    const sync = () => setTimer(readWorkTimer());
+    window.addEventListener(WORK_TIMER_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(WORK_TIMER_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!runningHere) return;
+    const id = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(id);
+  }, [runningHere]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -84,23 +116,66 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
     setOpen(true);
   };
 
-  const onSave = async (overrideMinutes?: number) => {
+  const onStart = () => {
+    const current = readWorkTimer();
+    if (current && current.issueId !== issueId && current.running) {
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: "تایمر دیگر فعال است",
+        message: "اول تایمر تسک قبلی را متوقف کن.",
+      });
+      return;
+    }
+    if (current && current.issueId === issueId && !current.running) {
+      writeWorkTimer({ ...current, running: true, startedAt: Date.now() });
+      setOpen(true);
+      return;
+    }
+    writeWorkTimer({
+      workspaceSlug,
+      projectId,
+      issueId,
+      running: true,
+      startedAt: Date.now(),
+      accumulatedMs: 0,
+    });
+    setOpen(true);
+  };
+
+  const onStop = () => {
+    const current = readWorkTimer();
+    if (!current || current.issueId !== issueId) return;
+    writeWorkTimer({
+      ...current,
+      running: false,
+      accumulatedMs: elapsedMs(current),
+      startedAt: null,
+    });
+  };
+
+  const onSave = async (overrideMinutes?: number, fromTimer = false) => {
     const duration = overrideMinutes ?? addMinutes;
     if (duration < 1) {
       setError("حداقل ۱ دقیقه وارد کنید.");
       return;
     }
-    setSaving(true);
+    if (duration > 24 * 60) {
+      setError("حداکثر ۲۴ ساعت در هر ثبت.");
+      return;
+    }
+    if (fromTimer) setAddingTimer(true);
+    else setSaving(true);
     setError(null);
     try {
       await service.createIssueWorkLog(workspaceSlug, projectId, issueId, {
         duration_minutes: duration,
-        description,
+        description: fromTimer ? description || "تایمر" : description,
         logged_at: loggedAt,
       });
       setDescription("");
       setHours("1");
       setMinutes("0");
+      if (fromTimer) writeWorkTimer(null);
       await refresh();
       setToast({
         type: TOAST_TYPE.SUCCESS,
@@ -116,7 +191,19 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       });
     } finally {
       setSaving(false);
+      setAddingTimer(false);
     }
+  };
+
+  const onAddTimer = () => {
+    const current = readWorkTimer();
+    if (!current || current.issueId !== issueId) return;
+    if (current.running) {
+      setToast({ type: TOAST_TYPE.ERROR, title: "اول توقف بزن", message: "بعد از توقف می‌توانی به ساعت کاری اضافه کنی." });
+      return;
+    }
+    const mins = msToMinutes(elapsedMs(current));
+    void onSave(mins, true);
   };
 
   const onDelete = async (log: TIssueWorkLog) => {
@@ -137,6 +224,8 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
     }
   };
 
+  const liveMs = belongsToThisIssue ? elapsedMs(timer, now) : 0;
+
   return (
     <div className="w-full space-y-2">
       <SidebarPropertyListItem icon={Timer} label="زمان صرف‌شده">
@@ -152,18 +241,28 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
             disabled={disabled}
           >
             <span className="tabular-nums text-primary">{loading ? "…" : formatHours(totalMinutes)}</span>
+            {belongsToThisIssue && (
+              <span className={cn("tabular-nums text-11", runningHere ? "text-accent-primary" : "text-tertiary")}>
+                {formatClock(liveMs)}
+              </span>
+            )}
             {!disabled && (open ? <ChevronUp className="size-3.5 text-tertiary" /> : <ChevronDown className="size-3.5 text-tertiary" />)}
           </button>
-          {!disabled && (
-            <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
-              ثبت ساعت
-            </Button>
-          )}
         </div>
       </SidebarPropertyListItem>
 
       {open && !disabled && (
         <div className="ms-0 space-y-3 rounded-lg border border-subtle bg-surface-1 p-3 sm:ms-[7.5rem]">
+          <WorkTimerClock
+            timer={timer}
+            belongsToThisIssue={belongsToThisIssue}
+            disabled={disabled}
+            onStart={onStart}
+            onStop={onStop}
+            onAdd={onAddTimer}
+            adding={addingTimer}
+          />
+
           <div className="flex items-center justify-between gap-2 rounded-md border border-subtle bg-surface-2/60 px-3 py-2">
             <div className="text-body-xs-regular text-tertiary">جمع فعلی</div>
             <div className="flex items-center gap-2 text-body-xs-medium">
@@ -245,10 +344,10 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           {error && <p className="text-11 text-danger-primary">{error}</p>}
 
           <div className="flex items-center gap-2">
-            <Button variant="primary" size="sm" onClick={() => onSave()} disabled={saving || addMinutes < 1}>
-              {saving ? "…" : `افزودن ${addMinutes > 0 ? formatHours(addMinutes) : ""}`}
+            <Button variant="secondary" size="sm" onClick={() => onSave()} disabled={saving || addMinutes < 1}>
+              {saving ? "…" : `ثبت دستی ${addMinutes > 0 ? formatHours(addMinutes) : ""}`}
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setOpen(false)} disabled={saving}>
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={saving}>
               بستن
             </Button>
           </div>

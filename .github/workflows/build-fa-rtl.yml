@@ -2,7 +2,7 @@ name: Build Plane FA/RTL images
 
 on:
   push:
-    branches: [hesar-v1.4.0-fa-rtl, hesar-v1.4.0-fa-rtl-time]
+    branches: [hesar-v1.4.0-fa-rtl, hesar-v1.4.0-fa-rtl-time, hesar-v1.4.0-fa-rtl-jalali]
   workflow_dispatch:
 
 permissions:
