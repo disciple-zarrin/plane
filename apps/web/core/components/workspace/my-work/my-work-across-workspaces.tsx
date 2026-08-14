@@ -16,10 +16,32 @@ import {
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
 import { IssueService } from "@/services/issue/issue.service";
+import { ProjectStateService } from "@/services/project/project-state.service";
 import { UserService, type TUserAssignedIssue } from "@/services/user.service";
 
 const service = new UserService();
 const issueService = new IssueService();
+const stateService = new ProjectStateService();
+
+const statesCache = new Map<string, Awaited<ReturnType<ProjectStateService["getStates"]>>>();
+
+async function statesForProject(workspaceSlug: string, projectId: string) {
+  const key = `${workspaceSlug}:${projectId}`;
+  if (!statesCache.has(key)) {
+    statesCache.set(key, await stateService.getStates(workspaceSlug, projectId));
+  }
+  return statesCache.get(key) || [];
+}
+
+function pickStateInGroup(
+  states: Awaited<ReturnType<ProjectStateService["getStates"]>>,
+  group: string
+) {
+  const inGroup = states
+    .filter((s) => s.group === group)
+    .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+  return inGroup.find((s) => s.default) || inGroup[0] || null;
+}
 
 type TLayout = "list" | "board" | "calendar" | "timeline";
 
@@ -311,34 +333,63 @@ export function MyWorkAcrossWorkspaces() {
         clearDragging();
         return;
       }
-      if (stateGroupOf(dragged) !== columnKey) {
-        clearDragging();
-        return;
-      }
 
-      if (targetId) {
-        const target = column.issues.find((i) => i.id === targetId);
-        if (target && target.project.id !== dragged.project.id) {
-          clearDragging();
-          setToast({
-            type: TOAST_TYPE.INFO,
-            title: "ترتیب داخل پروژه",
-            message: "جابه‌جایی فقط نسبت به تسک‌های همان پروژه ذخیره می‌شود.",
+      const fromGroup = stateGroupOf(dragged);
+      const previous = items;
+      savingOrderRef.current = true;
+
+      try {
+        // Cross-column: move to a state in the destination group for this project.
+        if (fromGroup !== columnKey) {
+          const states = await statesForProject(dragged.workspace.slug, dragged.project.id);
+          const nextState = pickStateInGroup(states, columnKey);
+          if (!nextState) {
+            setToast({
+              type: TOAST_TYPE.WARNING,
+              title: "وضعیت نیست",
+              message: `در این پروژه ستونی برای گروه «${STATE_GROUP_LABEL[columnKey] || columnKey}» تعریف نشده.`,
+            });
+            return;
+          }
+
+          setItems((prev) =>
+            prev.map((i) =>
+              i.id === draggedId
+                ? {
+                    ...i,
+                    state: {
+                      id: nextState.id,
+                      name: nextState.name,
+                      group: nextState.group,
+                      color: nextState.color,
+                    },
+                  }
+                : i
+            )
+          );
+
+          await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
+            state_id: nextState.id,
           });
           return;
         }
-      }
 
-      const newSort = computeSortOrder(column.issues, dragged, targetId);
-      if (newSort === null) {
-        clearDragging();
-        return;
-      }
+        if (targetId) {
+          const target = column.issues.find((i) => i.id === targetId);
+          if (target && target.project.id !== dragged.project.id) {
+            setToast({
+              type: TOAST_TYPE.INFO,
+              title: "ترتیب داخل پروژه",
+              message: "جابه‌جایی فقط نسبت به تسک‌های همان پروژه ذخیره می‌شود.",
+            });
+            return;
+          }
+        }
 
-      const previous = items;
-      setItems((prev) => prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i)));
-      savingOrderRef.current = true;
-      try {
+        const newSort = computeSortOrder(column.issues, dragged, targetId);
+        if (newSort === null) return;
+
+        setItems((prev) => prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i)));
         await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
           sort_order: newSort,
         });
@@ -347,7 +398,7 @@ export function MyWorkAcrossWorkspaces() {
         setToast({
           type: TOAST_TYPE.ERROR,
           title: "خطا",
-          message: "ذخیرهٔ ترتیب تسک انجام نشد.",
+          message: "ذخیرهٔ جابه‌جایی تسک انجام نشد.",
         });
       } finally {
         savingOrderRef.current = false;
@@ -554,7 +605,9 @@ export function MyWorkAcrossWorkspaces() {
                     </div>
                   )}
                 </div>
-                <p className="mt-2 px-1 text-11 text-tertiary">کشیدن داخل همان پروژه؛ ترتیب ذخیره می‌شود</p>
+                <p className="mt-2 px-1 text-11 text-tertiary">
+                  بکش بین ستون‌ها = عوض شدن وضعیت؛ داخل ستون همان پروژه = ترتیب
+                </p>
               </div>
             ))}
           </div>

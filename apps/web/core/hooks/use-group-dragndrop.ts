@@ -4,7 +4,9 @@
  * See the LICENSE file for details.
  */
 
+import { createElement } from "react";
 import { useParams } from "next/navigation";
+import { EIssueFilterType } from "@plane/constants";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { EIssuesStoreType, TIssue, TIssueGroupByOptions, TIssueOrderByOptions } from "@plane/types";
 import type { GroupDropLocation } from "@/components/issues/issue-layouts/utils";
@@ -33,12 +35,12 @@ export const useGroupIssuesDragNDrop = (
   groupBy: TIssueGroupByOptions | undefined,
   subGroupBy?: TIssueGroupByOptions
 ) => {
-  const { workspaceSlug } = useParams();
+  const { workspaceSlug, projectId } = useParams();
 
   const {
     issue: { getIssueById },
   } = useIssueDetail();
-  const { updateIssue } = useIssuesActions(storeType);
+  const { updateIssue, updateFilters } = useIssuesActions(storeType);
   const {
     issues: { getIssueIds, addCycleToIssue, removeCycleFromIssue, changeModulesInIssue },
   } = useIssues(storeType);
@@ -110,13 +112,34 @@ export const useGroupIssuesDragNDrop = (
       source.columnId && destination.columnId && source.columnId === destination.columnId
     );
 
-    // Same-column position only persists with Manual (sort_order). Do not auto-switch
-    // filters mid-drop — that races with neighbor lists and misplaces cards.
+    // Same-column position only persists with Manual (sort_order). Offer one-click switch;
+    // do not reorder in the same gesture (avoids neighbor-list race).
     if (isSameColumn && orderBy !== "sort_order") {
+      const sourceIssue = source.id ? getIssueById(source.id) : undefined;
+      const filterProjectId = projectId?.toString() || sourceIssue?.project_id;
       setToast({
         type: TOAST_TYPE.INFO,
         title: "مرتب‌سازی دستی",
-        message: "برای جابه‌جایی ترتیب داخل ستون، Order by را روی Manual بگذار.",
+        message: "برای جابه‌جایی ترتیب داخل ستون، Manual را فعال کن؛ بعد دوباره بکش.",
+        actionItems: filterProjectId ? (
+          <button
+            type="button"
+            className="rounded bg-accent-primary px-2 py-1 text-11 text-on-color"
+            onClick={() => {
+              void updateFilters(filterProjectId, EIssueFilterType.DISPLAY_FILTERS, {
+                order_by: "sort_order",
+              }).then(() => {
+                setToast({
+                  type: TOAST_TYPE.SUCCESS,
+                  title: "فعال شد",
+                  message: "Order by روی Manual است؛ الان کارت‌ها را جابه‌جا کن.",
+                });
+              });
+            }}
+          >
+            فعال کردن Manual
+          </button>
+        ) : undefined,
       });
       return;
     }
