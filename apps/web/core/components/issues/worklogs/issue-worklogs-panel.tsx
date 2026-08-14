@@ -126,6 +126,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
   };
 
   const onStart = () => {
+    if (addingRef.current || addingTimer) return;
     const current = readWorkTimer();
     if (current && current.issueId !== issueId) {
       if (current.running || msToMinutes(elapsedMs(current)) >= 1) {

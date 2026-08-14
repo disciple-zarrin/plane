@@ -82,7 +82,7 @@ export function WorkTimerClock(props: Props) {
         {!disabled && (
           <div className="flex w-full flex-wrap items-center justify-center gap-2">
             {!running ? (
-              <Button variant="primary" size="sm" onClick={onStart}>
+              <Button variant="primary" size="sm" onClick={onStart} disabled={adding}>
                 <Play className="size-3.5" />
                 شروع
               </Button>
