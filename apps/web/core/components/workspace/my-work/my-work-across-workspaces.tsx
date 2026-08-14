@@ -13,6 +13,7 @@ import {
   ListLayoutIcon,
   TimelineLayoutIcon,
 } from "@plane/propel/icons";
+import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
 import { IssueService } from "@/services/issue/issue.service";
 import { UserService, type TUserAssignedIssue } from "@/services/user.service";
@@ -53,26 +54,54 @@ function issueHref(issue: TUserAssignedIssue) {
   return `/${issue.workspace.slug}/projects/${issue.project.id}/issues/${issue.id}`;
 }
 
-function sortIssues(issues: TUserAssignedIssue[]) {
-  return [...issues].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+function stateGroupOf(issue: TUserAssignedIssue) {
+  return issue.state.group || "unstarted";
 }
 
-/** Insert dragged card before targetId (or at end if targetId is null). */
-function computeSortOrder(columnIssues: TUserAssignedIssue[], draggedId: string, targetId: string | null) {
-  const others = columnIssues.filter((i) => i.id !== draggedId);
-  if (others.length === 0) return SORT_GAP;
+function localDateKey(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function sortIssues(issues: TUserAssignedIssue[]) {
+  return [...issues].sort((a, b) => {
+    const projectCmp = a.project.id.localeCompare(b.project.id);
+    if (projectCmp !== 0) return projectCmp;
+    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+}
+
+/**
+ * Insert dragged card before targetId (or at end if targetId is null).
+ * Only peers from the same project are used — sort_order is per-project.
+ */
+function computeSortOrder(
+  columnIssues: TUserAssignedIssue[],
+  dragged: TUserAssignedIssue,
+  targetId: string | null
+): number | null {
+  const sameProject = columnIssues.filter((i) => i.project.id === dragged.project.id && i.id !== dragged.id);
+
+  if (targetId) {
+    const target = columnIssues.find((i) => i.id === targetId);
+    if (!target) return null;
+    if (target.project.id !== dragged.project.id) return null;
+  }
+
+  if (sameProject.length === 0) return SORT_GAP;
   if (!targetId) {
-    return (others[others.length - 1]?.sort_order ?? 0) + SORT_GAP;
+    return (sameProject[sameProject.length - 1]?.sort_order ?? 0) + SORT_GAP;
   }
-  const idx = others.findIndex((i) => i.id === targetId);
-  if (idx <= 0) {
-    return (others[0]?.sort_order ?? SORT_GAP) - SORT_GAP;
+
+  const idx = sameProject.findIndex((i) => i.id === targetId);
+  if (idx === -1) return null;
+  if (idx === 0) {
+    return (sameProject[0]?.sort_order ?? SORT_GAP) - SORT_GAP;
   }
-  if (idx >= others.length) {
-    return (others[others.length - 1]?.sort_order ?? 0) + SORT_GAP;
-  }
-  const top = others[idx - 1]?.sort_order ?? 0;
-  const bottom = others[idx]?.sort_order ?? top + SORT_GAP;
+  const top = sameProject[idx - 1]?.sort_order ?? 0;
+  const bottom = sameProject[idx]?.sort_order ?? top + SORT_GAP;
   return (top + bottom) / 2;
 }
 
@@ -89,6 +118,11 @@ function formatDate(value: string | null) {
 
 function parseDay(value: string | null): Date | null {
   if (!value) return null;
+  // Date-only strings are treated as local midnight to avoid UTC shifts.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -136,8 +170,8 @@ function IssueCard({
   issue: TUserAssignedIssue;
   draggable?: boolean;
   onDragStart?: (issueId: string) => void;
-  onDragOver?: (e: React.DragEvent, issueId: string) => void;
-  onDrop?: (e: React.DragEvent, issueId: string) => void;
+  onDragOver?: (e: DragEvent, issueId: string) => void;
+  onDrop?: (e: DragEvent, issueId: string) => void;
 }) {
   return (
     <div
@@ -193,10 +227,12 @@ export function MyWorkAcrossWorkspaces() {
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const savingOrderRef = useRef(false);
+  const requestIdRef = useRef(0);
 
   const pageSize = layout === "list" ? 25 : 200;
 
   const refresh = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -205,16 +241,18 @@ export function MyWorkAcrossWorkspaces() {
         page,
         page_size: pageSize,
       });
+      if (requestId !== requestIdRef.current) return;
       setItems(Array.isArray(data?.results) ? data.results : []);
       setTotal(data?.count || 0);
       setTotalPages(data?.total_pages || 1);
     } catch {
+      if (requestId !== requestIdRef.current) return;
       setItems([]);
       setTotal(0);
       setTotalPages(1);
       setError("بارگذاری کارهای من انجام نشد.");
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   }, [includeDone, page, pageSize]);
 
@@ -222,9 +260,15 @@ export function MyWorkAcrossWorkspaces() {
     void refresh();
   }, [refresh]);
 
-  useEffect(() => {
+  const changeLayout = (next: TLayout) => {
     setPage(1);
-  }, [includeDone, layout]);
+    setLayout(next);
+  };
+
+  const changeIncludeDone = (checked: boolean) => {
+    setPage(1);
+    setIncludeDone(checked);
+  };
 
   const groupedByWorkspace = useMemo(() => {
     const map = new Map<string, { name: string; slug: string; issues: TUserAssignedIssue[] }>();
@@ -240,7 +284,7 @@ export function MyWorkAcrossWorkspaces() {
     const map = new Map<string, TUserAssignedIssue[]>();
     for (const g of STATE_GROUP_ORDER) map.set(g, []);
     for (const issue of items) {
-      const g = issue.state.group || "unstarted";
+      const g = stateGroupOf(issue);
       if (!map.has(g)) map.set(g, []);
       map.get(g)!.push(issue);
     }
@@ -253,22 +297,46 @@ export function MyWorkAcrossWorkspaces() {
     }));
   }, [items]);
 
+  const clearDragging = () => setDraggingId(null);
+
   const persistBoardOrder = useCallback(
     async (draggedId: string, columnKey: string, targetId: string | null) => {
-      if (savingOrderRef.current || draggedId === targetId) return;
+      if (savingOrderRef.current || draggedId === targetId) {
+        clearDragging();
+        return;
+      }
       const column = boardColumns.find((c) => c.key === columnKey);
       const dragged = items.find((i) => i.id === draggedId);
-      if (!column || !dragged) return;
-      if (dragged.state.group !== columnKey && dragged.state.group) {
-        // Only reorder within the same status group for now.
+      if (!column || !dragged) {
+        clearDragging();
+        return;
+      }
+      if (stateGroupOf(dragged) !== columnKey) {
+        clearDragging();
         return;
       }
 
-      const newSort = computeSortOrder(column.issues, draggedId, targetId);
+      if (targetId) {
+        const target = column.issues.find((i) => i.id === targetId);
+        if (target && target.project.id !== dragged.project.id) {
+          clearDragging();
+          setToast({
+            type: TOAST_TYPE.INFO,
+            title: "ترتیب داخل پروژه",
+            message: "جابه‌جایی فقط نسبت به تسک‌های همان پروژه ذخیره می‌شود.",
+          });
+          return;
+        }
+      }
+
+      const newSort = computeSortOrder(column.issues, dragged, targetId);
+      if (newSort === null) {
+        clearDragging();
+        return;
+      }
+
       const previous = items;
-      setItems((prev) =>
-        prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i))
-      );
+      setItems((prev) => prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i)));
       savingOrderRef.current = true;
       try {
         await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
@@ -276,10 +344,14 @@ export function MyWorkAcrossWorkspaces() {
         });
       } catch {
         setItems(previous);
-        setError("ذخیرهٔ ترتیب تسک انجام نشد.");
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا",
+          message: "ذخیرهٔ ترتیب تسک انجام نشد.",
+        });
       } finally {
         savingOrderRef.current = false;
-        setDraggingId(null);
+        clearDragging();
       }
     },
     [boardColumns, items]
@@ -337,7 +409,7 @@ export function MyWorkAcrossWorkspaces() {
                 key={key}
                 type="button"
                 title={label}
-                onClick={() => setLayout(key)}
+                onClick={() => changeLayout(key)}
                 className={cn(
                   "flex items-center gap-1.5 rounded px-2 py-1 text-11 transition-colors",
                   layout === key ? "bg-surface-1 text-primary shadow-sm" : "text-tertiary hover:text-secondary"
@@ -353,7 +425,7 @@ export function MyWorkAcrossWorkspaces() {
               type="checkbox"
               className="size-4 rounded border-subtle"
               checked={includeDone}
-              onChange={(e) => setIncludeDone(e.target.checked)}
+              onChange={(e) => changeIncludeDone(e.target.checked)}
             />
             انجام‌شده / لغوشده
           </label>
@@ -455,6 +527,7 @@ export function MyWorkAcrossWorkspaces() {
                   e.preventDefault();
                   const id = e.dataTransfer.getData("text/plain") || draggingId;
                   if (id) void persistBoardOrder(id, col.key, null);
+                  else clearDragging();
                 }}
               >
                 <div className="mb-2 flex items-center justify-between px-1">
@@ -471,6 +544,7 @@ export function MyWorkAcrossWorkspaces() {
                       onDrop={(e, targetId) => {
                         const id = e.dataTransfer.getData("text/plain") || draggingId;
                         if (id) void persistBoardOrder(id, col.key, targetId);
+                        else clearDragging();
                       }}
                     />
                   ))}
@@ -480,7 +554,7 @@ export function MyWorkAcrossWorkspaces() {
                     </div>
                   )}
                 </div>
-                <p className="mt-2 px-1 text-11 text-tertiary">برای جابه‌جایی، کارت را بکش و رها کن</p>
+                <p className="mt-2 px-1 text-11 text-tertiary">کشیدن داخل همان پروژه؛ ترتیب ذخیره می‌شود</p>
               </div>
             ))}
           </div>
@@ -514,16 +588,13 @@ export function MyWorkAcrossWorkspaces() {
                 </div>
               ))}
               {calendarDays.map((day) => {
-                const key = day.toISOString().slice(0, 10);
+                const key = localDateKey(day);
                 const dayIssues = issuesByDay.get(key) || [];
                 const inMonth = day.getMonth() === calendarMonth.getMonth();
                 return (
                   <div
                     key={key}
-                    className={cn(
-                      "min-h-28 bg-surface-1 p-1.5",
-                      !inMonth && "bg-surface-2/50 text-placeholder"
-                    )}
+                    className={cn("min-h-28 bg-surface-1 p-1.5", !inMonth && "bg-surface-2/50 text-placeholder")}
                   >
                     <div
                       className={cn(
@@ -563,20 +634,19 @@ export function MyWorkAcrossWorkspaces() {
         {!loading && !error && items.length > 0 && layout === "timeline" && (
           <div className="overflow-x-auto rounded-lg border border-subtle">
             {timelineRange.rows.length === 0 ? (
-              <p className="p-8 text-center text-13 text-tertiary">برای تایم‌لاین، تسک‌ها باید تاریخ شروع یا ددلاین داشته باشند.</p>
+              <p className="p-8 text-center text-13 text-tertiary">
+                برای تایم‌لاین، تسک‌ها باید تاریخ شروع یا ددلاین داشته باشند.
+              </p>
             ) : (
               <div className="min-w-[720px] p-4">
                 <div className="mb-2 flex justify-between text-11 text-tertiary">
-                  <span>{formatDate(timelineRange.min.toISOString().slice(0, 10))}</span>
-                  <span>{formatDate(timelineRange.max.toISOString().slice(0, 10))}</span>
+                  <span>{formatDate(localDateKey(timelineRange.min))}</span>
+                  <span>{formatDate(localDateKey(timelineRange.max))}</span>
                 </div>
                 <div className="space-y-2">
                   {timelineRange.rows.map(({ issue, start, end }) => {
-                    const left = ((start.getTime() - timelineRange.min.getTime()) / timelineRange.spanMs) * 100;
-                    const width = Math.max(
-                      ((end.getTime() - start.getTime()) / timelineRange.spanMs) * 100,
-                      2
-                    );
+                    const offset = ((start.getTime() - timelineRange.min.getTime()) / timelineRange.spanMs) * 100;
+                    const width = Math.max(((end.getTime() - start.getTime()) / timelineRange.spanMs) * 100, 2);
                     return (
                       <div key={issue.id} className="grid grid-cols-[14rem_1fr] items-center gap-3">
                         <Link to={issueHref(issue)} className="truncate text-13 text-primary hover:text-accent-primary">
@@ -586,8 +656,8 @@ export function MyWorkAcrossWorkspaces() {
                           <Link
                             to={issueHref(issue)}
                             className="absolute top-1 h-6 truncate rounded-md bg-accent-primary/80 px-2 text-11 leading-6 text-on-color"
-                            style={{ left: `${left}%`, width: `${width}%` }}
-                            title={`${formatDate(start.toISOString().slice(0, 10))} → ${formatDate(end.toISOString().slice(0, 10))}`}
+                            style={{ insetInlineStart: `${offset}%`, width: `${width}%` }}
+                            title={`${formatDate(localDateKey(start))} → ${formatDate(localDateKey(end))}`}
                           >
                             {issue.workspace.name}
                           </Link>

@@ -271,8 +271,8 @@ export const KanbanGroup = observer(function KanbanGroup(props: IKanbanGroup) {
   );
 
   const shouldLoadMore = nextPageResults === undefined ? issueIds?.length < groupIssueCount : !!nextPageResults;
-  // Allow same-column reorder even when not on Manual; drop handler switches order_by.
-  const canOverlayBeVisible = isWorkflowDropDisabled || isDropDisabled;
+  // Same-column insert requires Manual (sort_order); otherwise overlay blocks card-level drops.
+  const canOverlayBeVisible = isWorkflowDropDisabled || orderBy !== "sort_order" || isDropDisabled;
   const shouldOverlayBeVisible = isDraggingOverColumn && canOverlayBeVisible;
   const canDragIssuesInCurrentGrouping =
     !!group_by &&

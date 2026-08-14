@@ -249,8 +249,8 @@ export const ListGroup = observer(function ListGroup(props: Props) {
   ]);
 
   const isDragAllowed = group_by ? DRAG_ALLOWED_GROUPS.includes(group_by) : true;
-  // Allow same-column reorder even when not on Manual; drop handler switches order_by.
-  const canOverlayBeVisible = isWorkflowDropDisabled || !!group.isDropDisabled;
+  // Same-column insert requires Manual (sort_order); otherwise overlay blocks card-level drops.
+  const canOverlayBeVisible = isWorkflowDropDisabled || orderBy !== "sort_order" || !!group.isDropDisabled;
   const isDropDisabled = isWorkflowDropDisabled || !!group.isDropDisabled;
 
   const isGroupByCreatedBy = group_by === "created_by";

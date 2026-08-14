@@ -76,7 +76,14 @@ class UserAssignedIssuesEndpoint(BaseAPIView):
                 state__group__in=[StateGroup.COMPLETED.value, StateGroup.CANCELLED.value]
             )
 
-        qs = qs.order_by("workspace__name", "project__identifier", "-priority", "target_date", "-created_at")
+        qs = qs.order_by(
+            "workspace__name",
+            "project__identifier",
+            "sort_order",
+            "-priority",
+            "target_date",
+            "-created_at",
+        )
 
         total = qs.count()
         start = (page - 1) * page_size
