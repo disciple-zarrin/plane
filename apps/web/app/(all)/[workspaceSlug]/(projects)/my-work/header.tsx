@@ -4,15 +4,32 @@
  * See the LICENSE file for details.
  */
 
+import { Breadcrumbs, Header } from "@plane/ui";
+import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
+import { MyWorkHeaderFilters } from "@/components/workspace/my-work/my-work-header-filters";
+import { useMyWork } from "@/components/workspace/my-work/my-work-provider";
+
 export function MyWorkHeader() {
+  const { total, loading } = useMyWork();
+
   return (
-    <div className="relative z-10 flex h-header w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 gap-y-4 bg-surface-1 p-4">
-      <div className="flex w-full flex-grow items-center gap-2 overflow-ellipsis whitespace-nowrap">
-        <div>
-          <div className="text-14 font-medium text-primary">کارهای من</div>
-          <div className="text-11 text-tertiary">همه ورک‌اسپیس‌ها</div>
+    <Header>
+      <Header.LeftItem>
+        <Breadcrumbs>
+          <Breadcrumbs.Item
+            component={<BreadcrumbLink label="کارهای من" disableTooltip isLast />}
+          />
+        </Breadcrumbs>
+        {!loading && <span className="rounded-full bg-layer-2 px-2 py-0.5 text-11 text-tertiary">{total}</span>}
+      </Header.LeftItem>
+      <Header.RightItem>
+        <div className="hidden items-center gap-2 md:flex">
+          <MyWorkHeaderFilters />
         </div>
-      </div>
-    </div>
+        <div className="flex md:hidden">
+          <MyWorkHeaderFilters />
+        </div>
+      </Header.RightItem>
+    </Header>
   );
 }

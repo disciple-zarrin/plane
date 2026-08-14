@@ -4,24 +4,14 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
 import { Link } from "react-router";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import {
-  BoardLayoutIcon,
-  CalendarLayoutIcon,
-  ListLayoutIcon,
-  TimelineLayoutIcon,
-} from "@plane/propel/icons";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
-import { IssueService } from "@/services/issue/issue.service";
-import { ProjectStateService } from "@/services/project/project-state.service";
-import { UserService, type TUserAssignedIssue } from "@/services/user.service";
-
-const service = new UserService();
-const issueService = new IssueService();
-const stateService = new ProjectStateService();
+import type { TUserAssignedIssue } from "@/services/user.service";
+import type { ProjectStateService } from "@/services/project/project-state.service";
+import { myWorkIssueService as issueService, myWorkStateService as stateService, useMyWork } from "./my-work-provider";
 
 const statesCache = new Map<string, Awaited<ReturnType<ProjectStateService["getStates"]>>>();
 
@@ -43,8 +33,6 @@ function pickStateInGroup(
   return inGroup.find((s) => s.default) || inGroup[0] || null;
 }
 
-type TLayout = "list" | "board" | "calendar" | "timeline";
-
 const SORT_GAP = 65535;
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -64,13 +52,6 @@ const STATE_GROUP_LABEL: Record<string, string> = {
   cancelled: "لغوشده",
   triage: "تریاژ",
 };
-
-const LAYOUTS: { key: TLayout; label: string; Icon: typeof ListLayoutIcon }[] = [
-  { key: "list", label: "لیست", Icon: ListLayoutIcon },
-  { key: "board", label: "برد", Icon: BoardLayoutIcon },
-  { key: "calendar", label: "تقویم", Icon: CalendarLayoutIcon },
-  { key: "timeline", label: "تایم‌لاین", Icon: TimelineLayoutIcon },
-];
 
 function issueHref(issue: TUserAssignedIssue) {
   return `/${issue.workspace.slug}/projects/${issue.project.id}/issues/${issue.id}`;
@@ -237,104 +218,22 @@ function IssueCard({
 }
 
 export function MyWorkAcrossWorkspaces() {
-  const [items, setItems] = useState<TUserAssignedIssue[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [includeDone, setIncludeDone] = useState(false);
-  const [layout, setLayout] = useState<TLayout>("list");
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
-  const [workspaceSlug, setWorkspaceSlug] = useState("");
-  const [projectId, setProjectId] = useState("");
-  const [priority, setPriority] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [workspaces, setWorkspaces] = useState<{ slug: string; name: string }[]>([]);
-  const [projects, setProjects] = useState<
-    { id: string; identifier: string; name: string; workspace_slug: string }[]
-  >([]);
+  const {
+    items,
+    setItems,
+    loading,
+    error,
+    total,
+    totalPages,
+    page,
+    setPage,
+    pageSize,
+    layout,
+  } = useMyWork();
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
   const savingOrderRef = useRef(false);
-  const requestIdRef = useRef(0);
-
-  const pageSize = layout === "list" ? 25 : 200;
-
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      setPage(1);
-      setSearch(searchInput.trim());
-    }, 300);
-    return () => window.clearTimeout(t);
-  }, [searchInput]);
-
-  const refresh = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await service.assignedIssuesAcrossWorkspaces({
-        include_done: includeDone,
-        page,
-        page_size: pageSize,
-        workspace_slug: workspaceSlug || undefined,
-        project_id: projectId || undefined,
-        priority: priority || undefined,
-        q: search || undefined,
-      });
-      if (requestId !== requestIdRef.current) return;
-      setItems(Array.isArray(data?.results) ? data.results : []);
-      setTotal(data?.count || 0);
-      setTotalPages(data?.total_pages || 1);
-      setWorkspaces(data?.facets?.workspaces || []);
-      setProjects(data?.facets?.projects || []);
-    } catch {
-      if (requestId !== requestIdRef.current) return;
-      setItems([]);
-      setTotal(0);
-      setTotalPages(1);
-      setError("بارگذاری کارهای من انجام نشد.");
-    } finally {
-      if (requestId === requestIdRef.current) setLoading(false);
-    }
-  }, [includeDone, page, pageSize, workspaceSlug, projectId, priority, search]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  const changeLayout = (next: TLayout) => {
-    setPage(1);
-    setLayout(next);
-  };
-
-  const changeIncludeDone = (checked: boolean) => {
-    setPage(1);
-    setIncludeDone(checked);
-  };
-
-  const changeWorkspace = (slug: string) => {
-    setPage(1);
-    setWorkspaceSlug(slug);
-    setProjectId("");
-  };
-
-  const changeProject = (id: string) => {
-    setPage(1);
-    setProjectId(id);
-  };
-
-  const changePriority = (value: string) => {
-    setPage(1);
-    setPriority(value);
-  };
-
-  const filteredProjects = useMemo(
-    () => (workspaceSlug ? projects.filter((p) => p.workspace_slug === workspaceSlug) : projects),
-    [projects, workspaceSlug]
-  );
 
   const groupedByWorkspace = useMemo(() => {
     const map = new Map<string, { name: string; slug: string; issues: TUserAssignedIssue[] }>();
@@ -489,88 +388,7 @@ export function MyWorkAcrossWorkspaces() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-subtle px-6 py-4">
-        <div>
-          <h1 className="text-lg font-semibold text-primary">کارهای من</h1>
-          <p className="text-13 text-tertiary">
-            همهٔ تسک‌های assign‌شده در همه ورک‌اسپیس‌ها
-            {!loading && <span className="ms-2 text-secondary">({total})</span>}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="search"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="جستجو عنوان / پروژه…"
-            className="h-8 w-44 rounded-md border border-subtle bg-surface-1 px-2.5 text-13 text-primary placeholder:text-placeholder"
-          />
-          <select
-            value={workspaceSlug}
-            onChange={(e) => changeWorkspace(e.target.value)}
-            className="h-8 max-w-[10rem] rounded-md border border-subtle bg-surface-1 px-2 text-13 text-primary"
-          >
-            <option value="">همه ورک‌اسپیس‌ها</option>
-            {workspaces.map((ws) => (
-              <option key={ws.slug} value={ws.slug}>
-                {ws.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={projectId}
-            onChange={(e) => changeProject(e.target.value)}
-            className="h-8 max-w-[10rem] rounded-md border border-subtle bg-surface-1 px-2 text-13 text-primary"
-          >
-            <option value="">همه پروژه‌ها</option>
-            {filteredProjects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.identifier} · {p.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={priority}
-            onChange={(e) => changePriority(e.target.value)}
-            className="h-8 rounded-md border border-subtle bg-surface-1 px-2 text-13 text-primary"
-          >
-            <option value="">همه اولویت‌ها</option>
-            <option value="urgent">فوری</option>
-            <option value="high">بالا</option>
-            <option value="medium">متوسط</option>
-            <option value="low">پایین</option>
-            <option value="none">بدون اولویت</option>
-          </select>
-          <div className="flex items-center gap-1 rounded-md border border-subtle bg-surface-2 p-1">
-            {LAYOUTS.map(({ key, label, Icon }) => (
-              <button
-                key={key}
-                type="button"
-                title={label}
-                onClick={() => changeLayout(key)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded px-2 py-1 text-11 transition-colors",
-                  layout === key ? "bg-surface-1 text-primary shadow-sm" : "text-tertiary hover:text-secondary"
-                )}
-              >
-                <Icon className="size-3.5" />
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            ))}
-          </div>
-          <label className="flex cursor-pointer items-center gap-2 text-13 text-secondary">
-            <input
-              type="checkbox"
-              className="size-4 rounded border-subtle"
-              checked={includeDone}
-              onChange={(e) => changeIncludeDone(e.target.checked)}
-            />
-            انجام‌شده / لغوشده
-          </label>
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
+      <div className="min-h-0 flex-1 overflow-auto px-page-x py-page-y">
         {loading && (
           <div className="flex items-center justify-center gap-2 py-16 text-tertiary">
             <Loader2 className="size-4 animate-spin" />
@@ -813,7 +631,7 @@ export function MyWorkAcrossWorkspaces() {
       </div>
 
       {!loading && !error && total > 0 && (
-        <div className="flex items-center justify-between gap-3 border-t border-subtle px-6 py-3 text-13">
+        <div className="flex items-center justify-between gap-3 border-t border-subtle px-page-x py-3 text-13">
           <div className="text-tertiary">
             صفحه {page} از {totalPages}
             {layout !== "list" && total > pageSize && (
