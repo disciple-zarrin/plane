@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { ChevronDown, ChevronUp, Timer, Trash2 } from "lucide-react";
 import { Button } from "@plane/propel/button";
@@ -12,6 +12,7 @@ import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
 import { WorkTimerClock } from "@/components/issues/worklogs/work-timer-clock";
+import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { WorkLogService, type TIssueWorkLog } from "@/services/worklog.service";
 import {
   WORK_TIMER_EVENT,
@@ -50,8 +51,16 @@ function formatHours(minutes: number) {
   return `${h}h ${m}m`;
 }
 
+const MAX_ENTRY_MINUTES = 24 * 60;
+
 export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Props) {
   const { workspaceSlug, projectId, issueId, disabled } = props;
+  const {
+    issue: { getIssueById },
+  } = useIssueDetail();
+  const issue = getIssueById(issueId);
+  const issueName = issue?.name || undefined;
+  const addingRef = useRef(false);
   const [logs, setLogs] = useState<TIssueWorkLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(true);
@@ -118,16 +127,25 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
 
   const onStart = () => {
     const current = readWorkTimer();
-    if (current && current.issueId !== issueId && current.running) {
-      setToast({
-        type: TOAST_TYPE.ERROR,
-        title: "تایمر دیگر فعال است",
-        message: "اول تایمر تسک قبلی را متوقف کن.",
-      });
-      return;
+    if (current && current.issueId !== issueId) {
+      if (current.running || msToMinutes(elapsedMs(current)) >= 1) {
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "تایمر تسک دیگر باز است",
+          message: current.running
+            ? "اول تایمر تسک قبلی را متوقف کن."
+            : "اول زمان تسک قبلی را به ساعت کاری اضافه کن.",
+        });
+        return;
+      }
     }
     if (current && current.issueId === issueId && !current.running) {
-      writeWorkTimer({ ...current, running: true, startedAt: Date.now() });
+      writeWorkTimer({
+        ...current,
+        issueName: current.issueName || issueName,
+        running: true,
+        startedAt: Date.now(),
+      });
       setOpen(true);
       return;
     }
@@ -135,6 +153,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       workspaceSlug,
       projectId,
       issueId,
+      issueName,
       running: true,
       startedAt: Date.now(),
       accumulatedMs: 0,
@@ -154,17 +173,22 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
   };
 
   const onSave = async (overrideMinutes?: number, fromTimer = false) => {
-    const duration = overrideMinutes ?? addMinutes;
+    let duration = overrideMinutes ?? addMinutes;
     if (duration < 1) {
       setError("حداقل ۱ دقیقه وارد کنید.");
       return;
     }
-    if (duration > 24 * 60) {
-      setError("حداکثر ۲۴ ساعت در هر ثبت.");
-      return;
+    if (duration > MAX_ENTRY_MINUTES) {
+      if (fromTimer) duration = MAX_ENTRY_MINUTES;
+      else {
+        setError("حداکثر ۲۴ ساعت در هر ثبت.");
+        return;
+      }
     }
-    if (fromTimer) setAddingTimer(true);
-    else setSaving(true);
+    if (fromTimer) {
+      addingRef.current = true;
+      setAddingTimer(true);
+    } else setSaving(true);
     setError(null);
     try {
       await service.createIssueWorkLog(workspaceSlug, projectId, issueId, {
@@ -192,17 +216,21 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
     } finally {
       setSaving(false);
       setAddingTimer(false);
+      addingRef.current = false;
     }
   };
 
   const onAddTimer = () => {
+    if (addingRef.current || addingTimer) return;
     const current = readWorkTimer();
     if (!current || current.issueId !== issueId) return;
     if (current.running) {
       setToast({ type: TOAST_TYPE.ERROR, title: "اول توقف بزن", message: "بعد از توقف می‌توانی به ساعت کاری اضافه کنی." });
       return;
     }
-    const mins = msToMinutes(elapsedMs(current));
+    const mins = Math.min(MAX_ENTRY_MINUTES, msToMinutes(elapsedMs(current)));
+    if (mins < 1) return;
+    addingRef.current = true;
     void onSave(mins, true);
   };
 
