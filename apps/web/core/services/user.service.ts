@@ -20,8 +20,31 @@ import type {
   IEmailCheckResponse,
 } from "@plane/types";
 import { APIService } from "@/services/api.service";
-// types
-// helpers
+
+export type TUserAssignedIssue = {
+  id: string;
+  name: string;
+  sequence_id: number;
+  priority: string | null;
+  target_date: string | null;
+  start_date: string | null;
+  state: {
+    id: string | null;
+    name: string | null;
+    group: string | null;
+    color: string | null;
+  };
+  project: {
+    id: string;
+    identifier: string;
+    name: string;
+  };
+  workspace: {
+    id: string;
+    slug: string;
+    name: string;
+  };
+};
 
 export class UserService extends APIService {
   constructor() {
@@ -46,6 +69,17 @@ export class UserService extends APIService {
     return this.get(`/api/workspaces/${workspaceSlug}/my-issues/`, {
       params,
     })
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
+  async assignedIssuesAcrossWorkspaces(params?: { include_done?: boolean }): Promise<{
+    results: TUserAssignedIssue[];
+    count: number;
+  }> {
+    return this.get(`/api/users/me/assigned-issues/`, { params })
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;

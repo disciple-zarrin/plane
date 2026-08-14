@@ -11,6 +11,7 @@ from plane.app.views import (
     UpdateUserTourCompletedEndpoint,
     UserActivityEndpoint,
     UserActivityGraphEndpoint,
+    UserAssignedIssuesEndpoint,
     ## User
     UserEndpoint,
     UserIssueCompletedGraphEndpoint,
@@ -63,6 +64,11 @@ urlpatterns = [
         name="user-tour",
     ),
     path("users/me/activities/", UserActivityEndpoint.as_view(), name="user-activities"),
+    path(
+        "users/me/assigned-issues/",
+        UserAssignedIssuesEndpoint.as_view(),
+        name="user-assigned-issues",
+    ),
     # user workspaces
     path("users/me/workspaces/", UserWorkSpacesEndpoint.as_view(), name="user-workspace"),
     # User Graphs

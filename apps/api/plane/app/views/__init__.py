@@ -30,6 +30,7 @@ from .user.base import (
     UpdateUserTourCompletedEndpoint,
     UserActivityEndpoint,
 )
+from .user.assigned_issues import UserAssignedIssuesEndpoint
 
 
 from .base import BaseAPIView, BaseViewSet

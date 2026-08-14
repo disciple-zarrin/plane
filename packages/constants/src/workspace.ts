@@ -250,6 +250,13 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
     highlight: (pathname: string, url: string) => pathname.includes(url),
   },
+  "my-work": {
+    key: "my_work",
+    labelTranslationKey: "sidebar.my_work",
+    href: `/my-work/`,
+    access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
+    highlight: (pathname: string, url: string) => pathname.includes(url),
+  },
   stickies: {
     key: "stickies",
     labelTranslationKey: "sidebar.stickies",
