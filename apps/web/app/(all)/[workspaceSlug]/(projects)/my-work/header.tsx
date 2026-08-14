@@ -23,12 +23,7 @@ export function MyWorkHeader() {
         {!loading && <span className="rounded-full bg-layer-2 px-2 py-0.5 text-11 text-tertiary">{total}</span>}
       </Header.LeftItem>
       <Header.RightItem>
-        <div className="hidden items-center gap-2 md:flex">
-          <MyWorkHeaderFilters />
-        </div>
-        <div className="flex md:hidden">
-          <MyWorkHeaderFilters />
-        </div>
+        <MyWorkHeaderFilters />
       </Header.RightItem>
     </Header>
   );
