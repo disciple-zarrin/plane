@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { Link } from "react-router";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import {
@@ -14,11 +14,15 @@ import {
   TimelineLayoutIcon,
 } from "@plane/propel/icons";
 import { cn } from "@plane/utils";
+import { IssueService } from "@/services/issue/issue.service";
 import { UserService, type TUserAssignedIssue } from "@/services/user.service";
 
 const service = new UserService();
+const issueService = new IssueService();
 
 type TLayout = "list" | "board" | "calendar" | "timeline";
+
+const SORT_GAP = 65535;
 
 const PRIORITY_LABEL: Record<string, string> = {
   urgent: "فوری",
@@ -30,12 +34,12 @@ const PRIORITY_LABEL: Record<string, string> = {
 
 const STATE_GROUP_ORDER = ["backlog", "unstarted", "started", "completed", "cancelled", "triage"];
 const STATE_GROUP_LABEL: Record<string, string> = {
-  backlog: "Backlog",
-  unstarted: "Todo",
-  started: "In Progress",
-  completed: "Done",
-  cancelled: "Cancelled",
-  triage: "Triage",
+  backlog: "بک‌لاگ",
+  unstarted: "انجام‌نشده",
+  started: "در حال پردازش",
+  completed: "انجام‌شده",
+  cancelled: "لغوشده",
+  triage: "تریاژ",
 };
 
 const LAYOUTS: { key: TLayout; label: string; Icon: typeof ListLayoutIcon }[] = [
@@ -47,6 +51,29 @@ const LAYOUTS: { key: TLayout; label: string; Icon: typeof ListLayoutIcon }[] = 
 
 function issueHref(issue: TUserAssignedIssue) {
   return `/${issue.workspace.slug}/projects/${issue.project.id}/issues/${issue.id}`;
+}
+
+function sortIssues(issues: TUserAssignedIssue[]) {
+  return [...issues].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+}
+
+/** Insert dragged card before targetId (or at end if targetId is null). */
+function computeSortOrder(columnIssues: TUserAssignedIssue[], draggedId: string, targetId: string | null) {
+  const others = columnIssues.filter((i) => i.id !== draggedId);
+  if (others.length === 0) return SORT_GAP;
+  if (!targetId) {
+    return (others[others.length - 1]?.sort_order ?? 0) + SORT_GAP;
+  }
+  const idx = others.findIndex((i) => i.id === targetId);
+  if (idx <= 0) {
+    return (others[0]?.sort_order ?? SORT_GAP) - SORT_GAP;
+  }
+  if (idx >= others.length) {
+    return (others[others.length - 1]?.sort_order ?? 0) + SORT_GAP;
+  }
+  const top = others[idx - 1]?.sort_order ?? 0;
+  const bottom = others[idx]?.sort_order ?? top + SORT_GAP;
+  return (top + bottom) / 2;
 }
 
 function formatDate(value: string | null) {
@@ -99,22 +126,57 @@ function daysInMonthGrid(month: Date) {
   return days;
 }
 
-function IssueCard({ issue }: { issue: TUserAssignedIssue }) {
+function IssueCard({
+  issue,
+  draggable,
+  onDragStart,
+  onDragOver,
+  onDrop,
+}: {
+  issue: TUserAssignedIssue;
+  draggable?: boolean;
+  onDragStart?: (issueId: string) => void;
+  onDragOver?: (e: React.DragEvent, issueId: string) => void;
+  onDrop?: (e: React.DragEvent, issueId: string) => void;
+}) {
   return (
-    <Link
-      to={issueHref(issue)}
-      className="block rounded-md border border-subtle bg-surface-1 px-2.5 py-2 hover:border-accent-primary/40"
+    <div
+      draggable={draggable}
+      onDragStart={(e) => {
+        if (!draggable) return;
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", issue.id);
+        onDragStart?.(issue.id);
+      }}
+      onDragOver={(e) => {
+        if (!draggable) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        onDragOver?.(e, issue.id);
+      }}
+      onDrop={(e) => {
+        if (!draggable) return;
+        e.preventDefault();
+        e.stopPropagation();
+        onDrop?.(e, issue.id);
+      }}
+      className={cn(
+        "rounded-md border border-subtle bg-surface-1 px-2.5 py-2 hover:border-accent-primary/40",
+        draggable && "cursor-grab active:cursor-grabbing"
+      )}
     >
-      <div className="mb-1 text-11 tabular-nums text-tertiary">
-        {issue.project.identifier}-{issue.sequence_id}
-      </div>
-      <div className="line-clamp-2 text-13 font-medium text-primary">{issue.name}</div>
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-11 text-tertiary">
-        <span>{issue.workspace.name}</span>
-        <span>·</span>
-        <span>{PRIORITY_LABEL[issue.priority || "none"] || issue.priority}</span>
-      </div>
-    </Link>
+      <Link to={issueHref(issue)} className="block" draggable={false} onClick={(e) => e.stopPropagation()}>
+        <div className="mb-1 text-11 tabular-nums text-tertiary">
+          {issue.project.identifier}-{issue.sequence_id}
+        </div>
+        <div className="line-clamp-2 text-13 font-medium text-primary">{issue.name}</div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-11 text-tertiary">
+          <span>{issue.workspace.name}</span>
+          <span>·</span>
+          <span>{PRIORITY_LABEL[issue.priority || "none"] || issue.priority}</span>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -128,6 +190,9 @@ export function MyWorkAcrossWorkspaces() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const savingOrderRef = useRef(false);
 
   const pageSize = layout === "list" ? 25 : 200;
 
@@ -179,10 +244,46 @@ export function MyWorkAcrossWorkspaces() {
       if (!map.has(g)) map.set(g, []);
       map.get(g)!.push(issue);
     }
-    return STATE_GROUP_ORDER.filter((g) => (map.get(g) || []).length > 0 || ["backlog", "unstarted", "started"].includes(g)).map(
-      (g) => ({ key: g, label: STATE_GROUP_LABEL[g] || g, issues: map.get(g) || [] })
-    );
+    return STATE_GROUP_ORDER.filter(
+      (g) => (map.get(g) || []).length > 0 || ["backlog", "unstarted", "started"].includes(g)
+    ).map((g) => ({
+      key: g,
+      label: STATE_GROUP_LABEL[g] || g,
+      issues: sortIssues(map.get(g) || []),
+    }));
   }, [items]);
+
+  const persistBoardOrder = useCallback(
+    async (draggedId: string, columnKey: string, targetId: string | null) => {
+      if (savingOrderRef.current || draggedId === targetId) return;
+      const column = boardColumns.find((c) => c.key === columnKey);
+      const dragged = items.find((i) => i.id === draggedId);
+      if (!column || !dragged) return;
+      if (dragged.state.group !== columnKey && dragged.state.group) {
+        // Only reorder within the same status group for now.
+        return;
+      }
+
+      const newSort = computeSortOrder(column.issues, draggedId, targetId);
+      const previous = items;
+      setItems((prev) =>
+        prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i))
+      );
+      savingOrderRef.current = true;
+      try {
+        await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
+          sort_order: newSort,
+        });
+      } catch {
+        setItems(previous);
+        setError("ذخیرهٔ ترتیب تسک انجام نشد.");
+      } finally {
+        savingOrderRef.current = false;
+        setDraggingId(null);
+      }
+    },
+    [boardColumns, items]
+  );
 
   const calendarDays = useMemo(() => daysInMonthGrid(calendarMonth), [calendarMonth]);
 
@@ -343,14 +444,35 @@ export function MyWorkAcrossWorkspaces() {
         {!loading && !error && items.length > 0 && layout === "board" && (
           <div className="flex min-h-full gap-3 overflow-x-auto pb-2">
             {boardColumns.map((col) => (
-              <div key={col.key} className="w-72 shrink-0 rounded-lg border border-subtle bg-surface-2/40 p-2">
+              <div
+                key={col.key}
+                className="w-72 shrink-0 rounded-lg border border-subtle bg-surface-2/40 p-2"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id = e.dataTransfer.getData("text/plain") || draggingId;
+                  if (id) void persistBoardOrder(id, col.key, null);
+                }}
+              >
                 <div className="mb-2 flex items-center justify-between px-1">
                   <span className="text-13 font-medium text-primary">{col.label}</span>
                   <span className="text-11 text-tertiary">{col.issues.length}</span>
                 </div>
                 <div className="space-y-2">
                   {col.issues.map((issue) => (
-                    <IssueCard key={issue.id} issue={issue} />
+                    <IssueCard
+                      key={issue.id}
+                      issue={issue}
+                      draggable
+                      onDragStart={setDraggingId}
+                      onDrop={(e, targetId) => {
+                        const id = e.dataTransfer.getData("text/plain") || draggingId;
+                        if (id) void persistBoardOrder(id, col.key, targetId);
+                      }}
+                    />
                   ))}
                   {col.issues.length === 0 && (
                     <div className="rounded-md border border-dashed border-subtle px-2 py-6 text-center text-11 text-tertiary">
@@ -358,6 +480,7 @@ export function MyWorkAcrossWorkspaces() {
                     </div>
                   )}
                 </div>
+                <p className="mt-2 px-1 text-11 text-tertiary">برای جابه‌جایی، کارت را بکش و رها کن</p>
               </div>
             ))}
           </div>

@@ -26,6 +26,7 @@ export type TUserAssignedIssue = {
   name: string;
   sequence_id: number;
   priority: string | null;
+  sort_order: number;
   target_date: string | null;
   start_date: string | null;
   state: {

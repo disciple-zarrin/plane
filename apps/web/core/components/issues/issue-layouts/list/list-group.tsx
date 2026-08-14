@@ -249,7 +249,8 @@ export const ListGroup = observer(function ListGroup(props: Props) {
   ]);
 
   const isDragAllowed = group_by ? DRAG_ALLOWED_GROUPS.includes(group_by) : true;
-  const canOverlayBeVisible = isWorkflowDropDisabled || orderBy !== "sort_order" || !!group.isDropDisabled;
+  // Allow same-column reorder even when not on Manual; drop handler switches order_by.
+  const canOverlayBeVisible = isWorkflowDropDisabled || !!group.isDropDisabled;
   const isDropDisabled = isWorkflowDropDisabled || !!group.isDropDisabled;
 
   const isGroupByCreatedBy = group_by === "created_by";

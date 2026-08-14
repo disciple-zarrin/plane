@@ -18,6 +18,7 @@ def _serialize_issue(issue):
         "name": issue.name,
         "sequence_id": issue.sequence_id,
         "priority": issue.priority,
+        "sort_order": issue.sort_order,
         "target_date": issue.target_date.isoformat() if issue.target_date else None,
         "start_date": issue.start_date.isoformat() if issue.start_date else None,
         "state": {

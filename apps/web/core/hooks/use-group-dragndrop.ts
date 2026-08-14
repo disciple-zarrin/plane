@@ -5,6 +5,7 @@
  */
 
 import { useParams } from "next/navigation";
+import { EIssueFilterType } from "@plane/constants";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { EIssuesStoreType, TIssue, TIssueGroupByOptions, TIssueOrderByOptions } from "@plane/types";
 import type { GroupDropLocation } from "@/components/issues/issue-layouts/utils";
@@ -33,12 +34,12 @@ export const useGroupIssuesDragNDrop = (
   groupBy: TIssueGroupByOptions | undefined,
   subGroupBy?: TIssueGroupByOptions
 ) => {
-  const { workspaceSlug } = useParams();
+  const { workspaceSlug, projectId } = useParams();
 
   const {
     issue: { getIssueById },
   } = useIssueDetail();
-  const { updateIssue } = useIssuesActions(storeType);
+  const { updateIssue, updateFilters } = useIssuesActions(storeType);
   const {
     issues: { getIssueIds, addCycleToIssue, removeCycleFromIssue, changeModulesInIssue },
   } = useIssues(storeType);
@@ -105,6 +106,25 @@ export const useGroupIssuesDragNDrop = (
       destination.id === source.id
     )
       return;
+
+    const isSameColumn = Boolean(
+      source.columnId && destination.columnId && source.columnId === destination.columnId
+    );
+
+    // Same-column reorder only sticks when ordered manually — switch automatically.
+    if (isSameColumn && orderBy !== "sort_order") {
+      const sourceIssue = source.id ? getIssueById(source.id) : undefined;
+      const filterProjectId = projectId?.toString() || sourceIssue?.project_id;
+      if (filterProjectId && updateFilters) {
+        try {
+          await updateFilters(filterProjectId, EIssueFilterType.DISPLAY_FILTERS, {
+            order_by: "sort_order",
+          });
+        } catch {
+          // Still attempt the drop; sort_order may persist even if filter update fails.
+        }
+      }
+    }
 
     await handleGroupDragDrop(
       source,
