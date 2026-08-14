@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { ChevronDown, ChevronUp, Timer, Trash2 } from "lucide-react";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { cn } from "@plane/utils";
+import { cn, renderFormattedPayloadDate } from "@plane/utils";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
 import { WorkTimerClock } from "@/components/issues/worklogs/work-timer-clock";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -67,7 +67,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
   const [hours, setHours] = useState("1");
   const [minutes, setMinutes] = useState("0");
   const [description, setDescription] = useState("");
-  const [loggedAt, setLoggedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [loggedAt, setLoggedAt] = useState(() => renderFormattedPayloadDate(new Date()) || "");
   const [saving, setSaving] = useState(false);
   const [addingTimer, setAddingTimer] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -202,7 +202,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       await service.createIssueWorkLog(workspaceSlug, projectId, issueId, {
         duration_minutes: duration,
         description: fromTimer ? description || "تایمر" : description,
-        logged_at: loggedAt,
+        logged_at: fromTimer ? renderFormattedPayloadDate(new Date()) || loggedAt : loggedAt,
       });
       setDescription("");
       setHours("1");
