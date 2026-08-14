@@ -246,12 +246,29 @@ export function MyWorkAcrossWorkspaces() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+  const [workspaceSlug, setWorkspaceSlug] = useState("");
+  const [projectId, setProjectId] = useState("");
+  const [priority, setPriority] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [workspaces, setWorkspaces] = useState<{ slug: string; name: string }[]>([]);
+  const [projects, setProjects] = useState<
+    { id: string; identifier: string; name: string; workspace_slug: string }[]
+  >([]);
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const savingOrderRef = useRef(false);
   const requestIdRef = useRef(0);
 
   const pageSize = layout === "list" ? 25 : 200;
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setPage(1);
+      setSearch(searchInput.trim());
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [searchInput]);
 
   const refresh = useCallback(async () => {
     const requestId = ++requestIdRef.current;
@@ -262,11 +279,17 @@ export function MyWorkAcrossWorkspaces() {
         include_done: includeDone,
         page,
         page_size: pageSize,
+        workspace_slug: workspaceSlug || undefined,
+        project_id: projectId || undefined,
+        priority: priority || undefined,
+        q: search || undefined,
       });
       if (requestId !== requestIdRef.current) return;
       setItems(Array.isArray(data?.results) ? data.results : []);
       setTotal(data?.count || 0);
       setTotalPages(data?.total_pages || 1);
+      setWorkspaces(data?.facets?.workspaces || []);
+      setProjects(data?.facets?.projects || []);
     } catch {
       if (requestId !== requestIdRef.current) return;
       setItems([]);
@@ -276,7 +299,7 @@ export function MyWorkAcrossWorkspaces() {
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [includeDone, page, pageSize]);
+  }, [includeDone, page, pageSize, workspaceSlug, projectId, priority, search]);
 
   useEffect(() => {
     void refresh();
@@ -291,6 +314,27 @@ export function MyWorkAcrossWorkspaces() {
     setPage(1);
     setIncludeDone(checked);
   };
+
+  const changeWorkspace = (slug: string) => {
+    setPage(1);
+    setWorkspaceSlug(slug);
+    setProjectId("");
+  };
+
+  const changeProject = (id: string) => {
+    setPage(1);
+    setProjectId(id);
+  };
+
+  const changePriority = (value: string) => {
+    setPage(1);
+    setPriority(value);
+  };
+
+  const filteredProjects = useMemo(
+    () => (workspaceSlug ? projects.filter((p) => p.workspace_slug === workspaceSlug) : projects),
+    [projects, workspaceSlug]
+  );
 
   const groupedByWorkspace = useMemo(() => {
     const map = new Map<string, { name: string; slug: string; issues: TUserAssignedIssue[] }>();
@@ -454,6 +498,49 @@ export function MyWorkAcrossWorkspaces() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="جستجو عنوان / پروژه…"
+            className="h-8 w-44 rounded-md border border-subtle bg-surface-1 px-2.5 text-13 text-primary placeholder:text-placeholder"
+          />
+          <select
+            value={workspaceSlug}
+            onChange={(e) => changeWorkspace(e.target.value)}
+            className="h-8 max-w-[10rem] rounded-md border border-subtle bg-surface-1 px-2 text-13 text-primary"
+          >
+            <option value="">همه ورک‌اسپیس‌ها</option>
+            {workspaces.map((ws) => (
+              <option key={ws.slug} value={ws.slug}>
+                {ws.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={projectId}
+            onChange={(e) => changeProject(e.target.value)}
+            className="h-8 max-w-[10rem] rounded-md border border-subtle bg-surface-1 px-2 text-13 text-primary"
+          >
+            <option value="">همه پروژه‌ها</option>
+            {filteredProjects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.identifier} · {p.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={priority}
+            onChange={(e) => changePriority(e.target.value)}
+            className="h-8 rounded-md border border-subtle bg-surface-1 px-2 text-13 text-primary"
+          >
+            <option value="">همه اولویت‌ها</option>
+            <option value="urgent">فوری</option>
+            <option value="high">بالا</option>
+            <option value="medium">متوسط</option>
+            <option value="low">پایین</option>
+            <option value="none">بدون اولویت</option>
+          </select>
           <div className="flex items-center gap-1 rounded-md border border-subtle bg-surface-2 p-1">
             {LAYOUTS.map(({ key, label, Icon }) => (
               <button

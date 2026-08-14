@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -47,6 +48,10 @@ class UserAssignedIssuesEndpoint(BaseAPIView):
 
     def get(self, request):
         include_done = str(request.GET.get("include_done", "")).lower() in ("1", "true", "yes")
+        workspace_slug = (request.GET.get("workspace_slug") or "").strip() or None
+        project_id = (request.GET.get("project_id") or "").strip() or None
+        priority = (request.GET.get("priority") or "").strip() or None
+        q = (request.GET.get("q") or "").strip()
 
         try:
             page = max(1, int(request.GET.get("page", 1)))
@@ -76,6 +81,47 @@ class UserAssignedIssuesEndpoint(BaseAPIView):
                 state__group__in=[StateGroup.COMPLETED.value, StateGroup.CANCELLED.value]
             )
 
+        # Facets from the include_done-scoped set (before workspace/project filters).
+        facet_base = qs
+        workspaces = [
+            {"slug": row["workspace__slug"], "name": row["workspace__name"]}
+            for row in facet_base.values("workspace__slug", "workspace__name")
+            .distinct()
+            .order_by("workspace__name")
+        ]
+        project_facet_qs = facet_base
+        if workspace_slug:
+            project_facet_qs = project_facet_qs.filter(workspace__slug=workspace_slug)
+        projects = [
+            {
+                "id": str(row["project_id"]),
+                "identifier": row["project__identifier"],
+                "name": row["project__name"],
+                "workspace_slug": row["workspace__slug"],
+            }
+            for row in project_facet_qs.values(
+                "project_id", "project__identifier", "project__name", "workspace__slug"
+            )
+            .distinct()
+            .order_by("project__identifier")
+        ]
+
+        if workspace_slug:
+            qs = qs.filter(workspace__slug=workspace_slug)
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        if priority and priority != "all":
+            qs = qs.filter(priority=priority)
+        if q:
+            text_q = (
+                Q(name__icontains=q)
+                | Q(project__identifier__icontains=q)
+                | Q(project__name__icontains=q)
+            )
+            if q.isdigit():
+                text_q = text_q | Q(sequence_id=int(q))
+            qs = qs.filter(text_q)
+
         qs = qs.order_by(
             "workspace__name",
             "project__identifier",
@@ -102,6 +148,10 @@ class UserAssignedIssuesEndpoint(BaseAPIView):
                 "total_pages": total_pages,
                 "has_next": page < total_pages,
                 "has_previous": page > 1,
+                "facets": {
+                    "workspaces": workspaces,
+                    "projects": projects,
+                },
             },
             status=status.HTTP_200_OK,
         )

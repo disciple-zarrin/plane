@@ -80,6 +80,10 @@ export class UserService extends APIService {
     include_done?: boolean;
     page?: number;
     page_size?: number;
+    workspace_slug?: string;
+    project_id?: string;
+    priority?: string;
+    q?: string;
   }): Promise<{
     results: TUserAssignedIssue[];
     count: number;
@@ -88,6 +92,10 @@ export class UserService extends APIService {
     total_pages: number;
     has_next: boolean;
     has_previous: boolean;
+    facets?: {
+      workspaces: { slug: string; name: string }[];
+      projects: { id: string; identifier: string; name: string; workspace_slug: string }[];
+    };
   }> {
     return this.get(`/api/users/me/assigned-issues/`, { params })
       .then((response) => response?.data)
