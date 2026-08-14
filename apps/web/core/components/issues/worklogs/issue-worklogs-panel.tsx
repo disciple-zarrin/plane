@@ -139,7 +139,11 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
         return;
       }
     }
-    if (current && current.issueId === issueId && !current.running) {
+    if (current && current.issueId === issueId) {
+      if (current.running) {
+        setOpen(true);
+        return;
+      }
       writeWorkTimer({
         ...current,
         issueName: current.issueName || issueName,
@@ -173,11 +177,13 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
   };
 
   const onSave = async (overrideMinutes?: number, fromTimer = false) => {
+    if (addingRef.current && !fromTimer) return;
     let duration = overrideMinutes ?? addMinutes;
     if (duration < 1) {
       setError("حداقل ۱ دقیقه وارد کنید.");
       return;
     }
+    const capped = fromTimer && duration > MAX_ENTRY_MINUTES;
     if (duration > MAX_ENTRY_MINUTES) {
       if (fromTimer) duration = MAX_ENTRY_MINUTES;
       else {
@@ -185,11 +191,13 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
         return;
       }
     }
-    if (fromTimer) {
-      addingRef.current = true;
-      setAddingTimer(true);
-    } else setSaving(true);
+    if (!fromTimer) addingRef.current = true;
+    if (fromTimer) setAddingTimer(true);
+    else setSaving(true);
     setError(null);
+    const timerSnapshot = fromTimer ? readWorkTimer() : null;
+    const leftoverMs =
+      fromTimer && timerSnapshot ? Math.max(0, elapsedMs(timerSnapshot) - duration * 60000) : 0;
     try {
       await service.createIssueWorkLog(workspaceSlug, projectId, issueId, {
         duration_minutes: duration,
@@ -199,12 +207,25 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       setDescription("");
       setHours("1");
       setMinutes("0");
-      if (fromTimer) writeWorkTimer(null);
+      if (fromTimer) {
+        if (msToMinutes(leftoverMs) >= 1 && timerSnapshot) {
+          writeWorkTimer({
+            ...timerSnapshot,
+            running: false,
+            startedAt: null,
+            accumulatedMs: leftoverMs,
+          });
+        } else {
+          writeWorkTimer(null);
+        }
+      }
       await refresh();
       setToast({
-        type: TOAST_TYPE.SUCCESS,
+        type: capped ? TOAST_TYPE.WARNING : TOAST_TYPE.SUCCESS,
         title: "ثبت شد",
-        message: `${formatHours(duration)} به جمع زمان تسک اضافه شد.`,
+        message: capped
+          ? `${formatHours(duration)} ثبت شد. باقی‌مانده هنوز روی تایمر است.`
+          : `${formatHours(duration)} به جمع زمان تسک اضافه شد.`,
       });
     } catch {
       setError("ثبت نشد. دوباره تلاش کنید.");
@@ -228,7 +249,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       setToast({ type: TOAST_TYPE.ERROR, title: "اول توقف بزن", message: "بعد از توقف می‌توانی به ساعت کاری اضافه کنی." });
       return;
     }
-    const mins = Math.min(MAX_ENTRY_MINUTES, msToMinutes(elapsedMs(current)));
+    const mins = msToMinutes(elapsedMs(current));
     if (mins < 1) return;
     addingRef.current = true;
     void onSave(mins, true);
