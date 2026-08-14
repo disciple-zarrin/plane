@@ -82,6 +82,11 @@ export const coreRoutes: RouteConfigEntry[] = [
           route(":workspaceSlug/drafts", "./(all)/[workspaceSlug]/(projects)/drafts/page.tsx"),
         ]),
 
+        // My Work (cross-workspace assigned issues)
+        layout("./(all)/[workspaceSlug]/(projects)/my-work/layout.tsx", [
+          route(":workspaceSlug/my-work", "./(all)/[workspaceSlug]/(projects)/my-work/page.tsx"),
+        ]),
+
         // Notifications
         layout("./(all)/[workspaceSlug]/(projects)/notifications/layout.tsx", [
           route(":workspaceSlug/notifications", "./(all)/[workspaceSlug]/(projects)/notifications/page.tsx"),
