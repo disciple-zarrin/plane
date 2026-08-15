@@ -69,24 +69,42 @@ export const SpreadsheetTable = observer(function SpreadsheetTable(props: Props)
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
-    const scrollLeft = containerRef.current.scrollLeft;
+    const el = containerRef.current;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const maxScroll = scrollWidth - clientWidth;
+    const rtl = getComputedStyle(el).direction === "rtl";
 
-    const columnShadow = "8px 22px 22px 10px rgba(0, 0, 0, 0.05)"; // shadow for regular columns
-    const headerShadow = "8px -22px 22px 10px rgba(0, 0, 0, 0.05)"; // shadow for headers
+    // Distance scrolled away from inline-start (works LTR + RTL / Blink + Firefox).
+    let scrolledFromStart = false;
+    if (maxScroll > 1) {
+      if (!rtl) {
+        scrolledFromStart = scrollLeft > 1;
+      } else if (scrollLeft <= 0) {
+        // WebKit/Blink RTL: 0 at start, negative when scrolled
+        scrolledFromStart = scrollLeft < -1;
+      } else {
+        // Firefox RTL: maxScroll at start, decreases toward 0
+        scrolledFromStart = scrollLeft < maxScroll - 1;
+      }
+    }
+
+    const shadowX = rtl ? "-8px" : "8px";
+    const columnShadow = `${shadowX} 22px 22px 10px rgba(0, 0, 0, 0.05)`;
+    const headerShadow = `${shadowX} -22px 22px 10px rgba(0, 0, 0, 0.05)`;
 
     //The shadow styles are added this way to avoid re-render of all the rows of table, which could be costly
-    if (scrollLeft > 0 !== isScrolled.current) {
-      const firstColumns = containerRef.current.querySelectorAll("table tr td:first-child, th:first-child");
+    if (scrolledFromStart !== isScrolled.current) {
+      const firstColumns = el.querySelectorAll("table tr td:first-child, th:first-child");
 
       for (let i = 0; i < firstColumns.length; i++) {
         const shadow = i === 0 ? headerShadow : columnShadow;
-        if (scrollLeft > 0) {
+        if (scrolledFromStart) {
           (firstColumns[i] as HTMLElement).style.boxShadow = shadow;
         } else {
           (firstColumns[i] as HTMLElement).style.boxShadow = "none";
         }
       }
-      isScrolled.current = scrollLeft > 0;
+      isScrolled.current = scrolledFromStart;
     }
   }, [containerRef]);
 
