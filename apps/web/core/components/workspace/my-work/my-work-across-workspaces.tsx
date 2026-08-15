@@ -108,17 +108,6 @@ function computeSortOrder(
   return (top + bottom) / 2;
 }
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  try {
-    return new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "short", day: "numeric" }).format(
-      new Date(value)
-    );
-  } catch {
-    return value;
-  }
-}
-
 function parseDay(value: string | null): Date | null {
   if (!value) return null;
   // Date-only strings are treated as local midnight to avoid UTC shifts.
@@ -128,6 +117,18 @@ function parseDay(value: string | null): Date | null {
   }
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "—";
+  const key = value.slice(0, 10);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(key) ? parseDay(key) : parseDay(value);
+  if (!d) return value;
+  try {
+    return new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "short", day: "numeric" }).format(d);
+  } catch {
+    return value;
+  }
 }
 
 function startOfMonth(d: Date) {
@@ -140,6 +141,20 @@ function addMonths(d: Date, n: number) {
 
 function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function addDays(d: Date, n: number) {
+  const next = new Date(d);
+  next.setDate(next.getDate() + n);
+  return next;
+}
+
+function pointerRatioInTrack(e: { clientX: number }, el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  if (rect.width <= 0) return 0;
+  const rtl = getComputedStyle(el).direction === "rtl";
+  const raw = rtl ? (rect.right - e.clientX) / rect.width : (e.clientX - rect.left) / rect.width;
+  return Math.max(0, Math.min(1, raw));
 }
 
 function daysInMonthGrid(month: Date) {
@@ -167,12 +182,14 @@ function IssueCard({
   issue,
   draggable,
   onDragStart,
+  onDragEnd,
   onDragOver,
   onDrop,
 }: {
   issue: TUserAssignedIssue;
   draggable?: boolean;
   onDragStart?: (issueId: string) => void;
+  onDragEnd?: () => void;
   onDragOver?: (e: DragEvent, issueId: string) => void;
   onDrop?: (e: DragEvent, issueId: string) => void;
 }) {
@@ -184,6 +201,10 @@ function IssueCard({
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", issue.id);
         onDragStart?.(issue.id);
+      }}
+      onDragEnd={() => {
+        if (!draggable) return;
+        onDragEnd?.();
       }}
       onDragOver={(e) => {
         if (!draggable) return;
@@ -264,91 +285,34 @@ export function MyWorkAcrossWorkspaces() {
 
   const clearDragging = () => setDraggingId(null);
 
-  const persistBoardOrder = useCallback(
-    async (draggedId: string, columnKey: string, targetId: string | null) => {
-      if (savingOrderRef.current || draggedId === targetId) {
-        clearDragging();
-        return;
-      }
-      const column = boardColumns.find((c) => c.key === columnKey);
-      const dragged = items.find((i) => i.id === draggedId);
-      if (!column || !dragged) {
-        clearDragging();
-        return;
-      }
+  const toastBusy = () =>
+    setToast({
+      type: TOAST_TYPE.INFO,
+      title: "صبر کن",
+      message: "ذخیرهٔ قبلی هنوز تموم نشده.",
+    });
 
-      const fromGroup = stateGroupOf(dragged);
-      const previous = items;
-      savingOrderRef.current = true;
-
-      try {
-        // Cross-column: move to a state in the destination group for this project.
-        if (fromGroup !== columnKey) {
-          const states = await statesForProject(dragged.workspace.slug, dragged.project.id);
-          const nextState = pickStateInGroup(states, columnKey);
-          if (!nextState) {
-            setToast({
-              type: TOAST_TYPE.WARNING,
-              title: "وضعیت نیست",
-              message: `در این پروژه ستونی برای گروه «${STATE_GROUP_LABEL[columnKey] || columnKey}» تعریف نشده.`,
-            });
-            return;
+  const restoreIssueFields = useCallback(
+    (
+      issueId: string,
+      snapshot: TUserAssignedIssue,
+      fields: Array<"state" | "sort_order" | "start_date" | "target_date">
+    ) => {
+      setItems((prev) =>
+        prev.map((i) => {
+          if (i.id !== issueId) return i;
+          const next = { ...i };
+          for (const f of fields) {
+            if (f === "state") next.state = snapshot.state;
+            else if (f === "sort_order") next.sort_order = snapshot.sort_order;
+            else if (f === "start_date") next.start_date = snapshot.start_date;
+            else if (f === "target_date") next.target_date = snapshot.target_date;
           }
-
-          setItems((prev) =>
-            prev.map((i) =>
-              i.id === draggedId
-                ? {
-                    ...i,
-                    state: {
-                      id: nextState.id,
-                      name: nextState.name,
-                      group: nextState.group,
-                      color: nextState.color,
-                    },
-                  }
-                : i
-            )
-          );
-
-          await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
-            state_id: nextState.id,
-          });
-          return;
-        }
-
-        if (targetId) {
-          const target = column.issues.find((i) => i.id === targetId);
-          if (target && target.project.id !== dragged.project.id) {
-            setToast({
-              type: TOAST_TYPE.INFO,
-              title: "ترتیب داخل پروژه",
-              message: "جابه‌جایی فقط نسبت به تسک‌های همان پروژه ذخیره می‌شود.",
-            });
-            return;
-          }
-        }
-
-        const newSort = computeSortOrder(column.issues, dragged, targetId);
-        if (newSort === null) return;
-
-        setItems((prev) => prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i)));
-        await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
-          sort_order: newSort,
-        });
-      } catch {
-        setItems(previous);
-        setToast({
-          type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "ذخیرهٔ جابه‌جایی تسک انجام نشد.",
-        });
-      } finally {
-        savingOrderRef.current = false;
-        clearDragging();
-      }
+          return next;
+        })
+      );
     },
-    [boardColumns, items]
+    [setItems]
   );
 
   const calendarDays = useMemo(() => daysInMonthGrid(calendarMonth), [calendarMonth]);
@@ -364,6 +328,8 @@ export function MyWorkAcrossWorkspaces() {
     return map;
   }, [items]);
 
+  const undatedIssues = useMemo(() => items.filter((i) => !i.target_date), [items]);
+
   const timelineRange = useMemo(() => {
     const dated = items
       .map((issue) => {
@@ -376,15 +342,259 @@ export function MyWorkAcrossWorkspaces() {
 
     if (dated.length === 0) {
       const today = new Date();
-      return { rows: dated, min: today, max: new Date(today.getTime() + 14 * 86400000), spanMs: 14 * 86400000 };
+      const max = new Date(today.getTime() + 14 * 86400000);
+      return { rows: dated, min: today, max, spanMs: max.getTime() - today.getTime() };
     }
     const min = new Date(Math.min(...dated.map((r) => r.start.getTime())));
-    const max = new Date(Math.max(...dated.map((r) => r.end.getTime())));
+    let max = new Date(Math.max(...dated.map((r) => r.end.getTime())));
     min.setDate(min.getDate() - 2);
     max.setDate(max.getDate() + 2);
-    const spanMs = Math.max(max.getTime() - min.getTime(), 7 * 86400000);
-    return { rows: dated, min, max, spanMs };
+    const minSpan = 7 * 86400000;
+    if (max.getTime() - min.getTime() < minSpan) {
+      max = new Date(min.getTime() + minSpan);
+    }
+    return { rows: dated, min, max, spanMs: max.getTime() - min.getTime() };
   }, [items]);
+
+  const persistPatch = useCallback(
+    async (
+      draggedId: string,
+      patch: Record<string, unknown>,
+      applyOptimistic: (issue: TUserAssignedIssue) => TUserAssignedIssue,
+      rollbackFields: Array<"state" | "sort_order" | "start_date" | "target_date">
+    ) => {
+      if (savingOrderRef.current) {
+        toastBusy();
+        clearDragging();
+        return;
+      }
+      const dragged = items.find((i) => i.id === draggedId);
+      if (!dragged) {
+        clearDragging();
+        return;
+      }
+      const snapshot = dragged;
+      savingOrderRef.current = true;
+      setItems((prev) => prev.map((i) => (i.id === draggedId ? applyOptimistic(i) : i)));
+      try {
+        await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, patch);
+      } catch {
+        restoreIssueFields(draggedId, snapshot, rollbackFields);
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا",
+          message: "ذخیرهٔ جابه‌جایی تسک انجام نشد.",
+        });
+      } finally {
+        savingOrderRef.current = false;
+        clearDragging();
+      }
+    },
+    [items, setItems, restoreIssueFields]
+  );
+
+  const persistBoardOrder = useCallback(
+    async (draggedId: string, columnKey: string, targetId: string | null) => {
+      if (savingOrderRef.current) {
+        toastBusy();
+        clearDragging();
+        return;
+      }
+      if (draggedId === targetId) {
+        clearDragging();
+        return;
+      }
+      const column = boardColumns.find((c) => c.key === columnKey);
+      const dragged = items.find((i) => i.id === draggedId);
+      if (!column || !dragged) {
+        clearDragging();
+        return;
+      }
+
+      const fromGroup = stateGroupOf(dragged);
+      const snapshot = dragged;
+      savingOrderRef.current = true;
+
+      try {
+        if (targetId) {
+          const target = column.issues.find((i) => i.id === targetId);
+          if (target && target.project.id !== dragged.project.id) {
+            setToast({
+              type: TOAST_TYPE.INFO,
+              title: "ترتیب داخل پروژه",
+              message: "جابه‌جایی فقط نسبت به تسک‌های همان پروژه ذخیره می‌شود.",
+            });
+            // Still allow cross-group state change without sort when dropping on foreign project.
+            if (fromGroup === columnKey) {
+              return;
+            }
+          }
+        }
+
+        if (fromGroup !== columnKey) {
+          const states = await statesForProject(dragged.workspace.slug, dragged.project.id);
+          const nextState = pickStateInGroup(states, columnKey);
+          if (!nextState) {
+            setToast({
+              type: TOAST_TYPE.WARNING,
+              title: "وضعیت نیست",
+              message: `در این پروژه ستونی برای گروه «${STATE_GROUP_LABEL[columnKey] || columnKey}» تعریف نشده.`,
+            });
+            return;
+          }
+
+          const sameProjectTarget =
+            targetId && column.issues.find((i) => i.id === targetId)?.project.id === dragged.project.id
+              ? targetId
+              : null;
+          const newSort = computeSortOrder(column.issues, dragged, sameProjectTarget);
+          const patch: Record<string, unknown> = { state_id: nextState.id };
+          if (newSort !== null) patch.sort_order = newSort;
+
+          setItems((prev) =>
+            prev.map((i) =>
+              i.id === draggedId
+                ? {
+                    ...i,
+                    state: {
+                      id: nextState.id,
+                      name: nextState.name,
+                      group: nextState.group,
+                      color: nextState.color,
+                    },
+                    ...(newSort !== null ? { sort_order: newSort } : {}),
+                  }
+                : i
+            )
+          );
+
+          await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, patch);
+          return;
+        }
+
+        const newSort = computeSortOrder(column.issues, dragged, targetId);
+        if (newSort === null) {
+          setToast({
+            type: TOAST_TYPE.WARNING,
+            title: "ترتیب ذخیره نشد",
+            message: "هدف دراپ برای همین پروژه پیدا نشد.",
+          });
+          return;
+        }
+
+        setItems((prev) => prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i)));
+        await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
+          sort_order: newSort,
+        });
+      } catch {
+        restoreIssueFields(draggedId, snapshot, ["state", "sort_order"]);
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا",
+          message: "ذخیرهٔ جابه‌جایی تسک انجام نشد.",
+        });
+      } finally {
+        savingOrderRef.current = false;
+        clearDragging();
+      }
+    },
+    [boardColumns, items, setItems, restoreIssueFields]
+  );
+
+  const persistTargetDate = useCallback(
+    async (draggedId: string, targetDate: string | null) => {
+      const dragged = items.find((i) => i.id === draggedId);
+      if (!dragged) {
+        clearDragging();
+        return;
+      }
+      const current = dragged.target_date ? dragged.target_date.slice(0, 10) : null;
+      if (current === targetDate) {
+        clearDragging();
+        return;
+      }
+
+      const startKey = dragged.start_date ? dragged.start_date.slice(0, 10) : null;
+      // Keep due >= start: if due moves before start, pull start down with it.
+      if (targetDate && startKey && targetDate < startKey) {
+        await persistPatch(
+          draggedId,
+          { target_date: targetDate, start_date: targetDate },
+          (i) => ({ ...i, target_date: targetDate, start_date: targetDate }),
+          ["target_date", "start_date"]
+        );
+        return;
+      }
+
+      await persistPatch(
+        draggedId,
+        { target_date: targetDate },
+        (i) => ({ ...i, target_date: targetDate }),
+        ["target_date"]
+      );
+    },
+    [items, persistPatch]
+  );
+
+  const persistTimelineDrop = useCallback(
+    async (draggedId: string, ratio: number) => {
+      const dragged = items.find((i) => i.id === draggedId);
+      if (!dragged) {
+        clearDragging();
+        return;
+      }
+      const start = parseDay(dragged.start_date) || parseDay(dragged.target_date);
+      const end = parseDay(dragged.target_date) || start;
+      if (!start || !end) {
+        clearDragging();
+        return;
+      }
+      const hasStart = Boolean(dragged.start_date);
+      const hasTarget = Boolean(dragged.target_date);
+      const durationDays =
+        hasStart && hasTarget
+          ? Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000))
+          : 0;
+      const spanDays = Math.max(1, Math.round(timelineRange.spanMs / 86400000));
+      const clampedRatio = Math.max(0, Math.min(1, ratio));
+      const newStart = addDays(timelineRange.min, Math.round(clampedRatio * spanDays));
+      // Keep within labeled axis (ratio already clamped; end may extend past max — clamp start so end fits when both dates).
+      let startKey = localDateKey(newStart);
+      if (hasStart && hasTarget) {
+        const newEnd = addDays(newStart, durationDays);
+        const maxKey = localDateKey(timelineRange.max);
+        let endKey = localDateKey(newEnd);
+        if (endKey > maxKey) {
+          const adjustedStart = addDays(timelineRange.max, -durationDays);
+          startKey = localDateKey(adjustedStart < timelineRange.min ? timelineRange.min : adjustedStart);
+          endKey = localDateKey(addDays(parseDay(startKey)!, durationDays));
+        }
+        await persistPatch(
+          draggedId,
+          { start_date: startKey, target_date: endKey },
+          (i) => ({ ...i, start_date: startKey, target_date: endKey }),
+          ["start_date", "target_date"]
+        );
+        return;
+      }
+      if (hasStart && !hasTarget) {
+        await persistPatch(
+          draggedId,
+          { start_date: startKey },
+          (i) => ({ ...i, start_date: startKey }),
+          ["start_date"]
+        );
+        return;
+      }
+      await persistPatch(
+        draggedId,
+        { target_date: startKey },
+        (i) => ({ ...i, target_date: startKey }),
+        ["target_date"]
+      );
+    },
+    [items, persistPatch, timelineRange]
+  );
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
@@ -422,48 +632,122 @@ export function MyWorkAcrossWorkspaces() {
                         <th className="px-3 py-2 font-medium">ددلاین</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {group.issues.map((issue) => (
-                        <tr key={issue.id} className="border-t border-subtle hover:bg-surface-2/60">
-                          <td className="whitespace-nowrap px-3 py-2 tabular-nums text-tertiary">
-                            <Link to={issueHref(issue)} className="hover:text-accent-primary">
-                              {issue.project.identifier}-{issue.sequence_id}
-                            </Link>
-                          </td>
-                          <td className="max-w-[28rem] px-3 py-2">
-                            <Link
-                              to={issueHref(issue)}
-                              className="line-clamp-1 font-medium text-primary hover:text-accent-primary"
+                    {STATE_GROUP_ORDER.map((groupKey) => {
+                      const sectionIssues = sortIssues(
+                        group.issues.filter((i) => stateGroupOf(i) === groupKey)
+                      );
+                      if (
+                        sectionIssues.length === 0 &&
+                        !["backlog", "unstarted", "started"].includes(groupKey)
+                      ) {
+                        return null;
+                      }
+                      return (
+                        <tbody
+                          key={groupKey}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const id = e.dataTransfer.getData("text/plain") || draggingId;
+                            if (id) void persistBoardOrder(id, groupKey, null);
+                            else clearDragging();
+                          }}
+                        >
+                          <tr className="border-t border-subtle bg-surface-2/80">
+                            <td colSpan={6} className="px-3 py-1.5 text-11 font-medium text-tertiary">
+                              {STATE_GROUP_LABEL[groupKey] || groupKey}
+                              <span className="ms-2 tabular-nums">({sectionIssues.length})</span>
+                            </td>
+                          </tr>
+                          {sectionIssues.map((issue) => (
+                            <tr
+                              key={issue.id}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.effectAllowed = "move";
+                                e.dataTransfer.setData("text/plain", issue.id);
+                                setDraggingId(issue.id);
+                              }}
+                              onDragEnd={clearDragging}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = "move";
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const id = e.dataTransfer.getData("text/plain") || draggingId;
+                                if (id) void persistBoardOrder(id, groupKey, issue.id);
+                                else clearDragging();
+                              }}
+                              className={cn(
+                                "cursor-grab border-t border-subtle hover:bg-surface-2/60 active:cursor-grabbing",
+                                draggingId === issue.id && "opacity-60"
+                              )}
                             >
-                              {issue.name}
-                            </Link>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-secondary">{issue.project.name}</td>
-                          <td className="whitespace-nowrap px-3 py-2">
-                            <span className="inline-flex items-center gap-1.5 text-secondary">
-                              <span
-                                className="size-2 rounded-full"
-                                style={{ backgroundColor: issue.state.color || "#94a3b8" }}
-                              />
-                              {issue.state.name || "—"}
-                            </span>
-                          </td>
-                          <td
-                            className={cn(
-                              "whitespace-nowrap px-3 py-2",
-                              issue.priority === "urgent" || issue.priority === "high"
-                                ? "text-danger-primary"
-                                : "text-secondary"
-                            )}
-                          >
-                            {PRIORITY_LABEL[issue.priority || "none"] || issue.priority || "—"}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-secondary">{formatDate(issue.target_date)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
+                              <td className="whitespace-nowrap px-3 py-2 tabular-nums text-tertiary">
+                                <Link
+                                  to={issueHref(issue)}
+                                  className="hover:text-accent-primary"
+                                  draggable={false}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {issue.project.identifier}-{issue.sequence_id}
+                                </Link>
+                              </td>
+                              <td className="max-w-[28rem] px-3 py-2">
+                                <Link
+                                  to={issueHref(issue)}
+                                  className="line-clamp-1 font-medium text-primary hover:text-accent-primary"
+                                  draggable={false}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {issue.name}
+                                </Link>
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-2 text-secondary">{issue.project.name}</td>
+                              <td className="whitespace-nowrap px-3 py-2">
+                                <span className="inline-flex items-center gap-1.5 text-secondary">
+                                  <span
+                                    className="size-2 rounded-full"
+                                    style={{ backgroundColor: issue.state.color || "#94a3b8" }}
+                                  />
+                                  {issue.state.name || "—"}
+                                </span>
+                              </td>
+                              <td
+                                className={cn(
+                                  "whitespace-nowrap px-3 py-2",
+                                  issue.priority === "urgent" || issue.priority === "high"
+                                    ? "text-danger-primary"
+                                    : "text-secondary"
+                                )}
+                              >
+                                {PRIORITY_LABEL[issue.priority || "none"] || issue.priority || "—"}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-2 text-secondary">
+                                {formatDate(issue.target_date)}
+                              </td>
+                            </tr>
+                          ))}
+                          {sectionIssues.length === 0 && (
+                            <tr className="border-t border-dashed border-subtle">
+                              <td colSpan={6} className="px-3 py-3 text-center text-11 text-tertiary">
+                                خالی — اینجا رها کن تا وضعیت عوض شود
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      );
+                    })}
                   </table>
                 </div>
+                <p className="mt-2 text-11 text-tertiary">
+                  بکش بین گروه‌های وضعیت = عوض شدن وضعیت؛ روی ردیف همان پروژه = ترتیب
+                </p>
               </section>
             ))}
           </>
@@ -497,6 +781,7 @@ export function MyWorkAcrossWorkspaces() {
                       issue={issue}
                       draggable
                       onDragStart={setDraggingId}
+                      onDragEnd={clearDragging}
                       onDrop={(e, targetId) => {
                         const id = e.dataTransfer.getData("text/plain") || draggingId;
                         if (id) void persistBoardOrder(id, col.key, targetId);
@@ -553,6 +838,16 @@ export function MyWorkAcrossWorkspaces() {
                   <div
                     key={key}
                     className={cn("min-h-28 bg-surface-1 p-1.5", !inMonth && "bg-surface-2/50 text-placeholder")}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const id = e.dataTransfer.getData("text/plain") || draggingId;
+                      if (id) void persistTargetDate(id, key);
+                      else clearDragging();
+                    }}
                   >
                     <div
                       className={cn(
@@ -563,29 +858,80 @@ export function MyWorkAcrossWorkspaces() {
                       {new Intl.DateTimeFormat("fa-IR", { day: "numeric" }).format(day)}
                     </div>
                     <div className="space-y-1">
-                      {dayIssues.slice(0, 3).map((issue) => (
-                        <Link
+                      {dayIssues.slice(0, 4).map((issue) => (
+                        <div
                           key={issue.id}
-                          to={issueHref(issue)}
-                          className="block truncate rounded bg-accent-primary/10 px-1.5 py-0.5 text-[10px] text-accent-primary hover:bg-accent-primary/20"
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/plain", issue.id);
+                            setDraggingId(issue.id);
+                          }}
+                          onDragEnd={clearDragging}
+                          className={cn(
+                            "cursor-grab truncate rounded bg-accent-primary/10 px-1.5 py-0.5 text-[10px] text-accent-primary hover:bg-accent-primary/20 active:cursor-grabbing",
+                            draggingId === issue.id && "opacity-50"
+                          )}
                           title={issue.name}
                         >
-                          {issue.project.identifier}-{issue.sequence_id}
-                        </Link>
+                          <Link
+                            to={issueHref(issue)}
+                            className="block truncate"
+                            draggable={false}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {issue.project.identifier}-{issue.sequence_id}
+                          </Link>
+                        </div>
                       ))}
-                      {dayIssues.length > 3 && (
-                        <div className="px-1 text-[10px] text-tertiary">+{dayIssues.length - 3}</div>
+                      {dayIssues.length > 4 && (
+                        <div className="px-1 text-[10px] text-tertiary">+{dayIssues.length - 4}</div>
                       )}
                     </div>
                   </div>
                 );
               })}
             </div>
-            {items.filter((i) => !i.target_date).length > 0 && (
-              <p className="mt-3 text-11 text-tertiary">
-                {items.filter((i) => !i.target_date).length} تسک بدون ددلاین در تقویم نشان داده نمی‌شود.
-              </p>
-            )}
+            <div
+              className="mt-3 rounded-lg border border-dashed border-subtle bg-surface-2/40 p-3"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData("text/plain") || draggingId;
+                if (id) void persistTargetDate(id, null);
+                else clearDragging();
+              }}
+            >
+              <div className="mb-2 text-12 font-medium text-secondary">بدون ددلاین</div>
+              {undatedIssues.length === 0 ? (
+                <p className="text-11 text-tertiary">اینجا رها کن تا ددلاین پاک شود.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {undatedIssues.map((issue) => (
+                    <div
+                      key={issue.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", issue.id);
+                        setDraggingId(issue.id);
+                      }}
+                      onDragEnd={clearDragging}
+                      className="cursor-grab rounded bg-surface-1 px-2 py-1 text-11 text-secondary active:cursor-grabbing"
+                      title={issue.name}
+                    >
+                      <Link to={issueHref(issue)} draggable={false} onClick={(e) => e.stopPropagation()}>
+                        {issue.project.identifier}-{issue.sequence_id}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="mt-2 text-11 text-tertiary">بکش روی روز دیگر = عوض شدن ددلاین</p>
           </div>
         )}
 
@@ -607,23 +953,69 @@ export function MyWorkAcrossWorkspaces() {
                     const width = Math.max(((end.getTime() - start.getTime()) / timelineRange.spanMs) * 100, 2);
                     return (
                       <div key={issue.id} className="grid grid-cols-[14rem_1fr] items-center gap-3">
-                        <Link to={issueHref(issue)} className="truncate text-13 text-primary hover:text-accent-primary">
+                        <Link
+                          to={issueHref(issue)}
+                          className="truncate text-13 text-primary hover:text-accent-primary"
+                          draggable={false}
+                        >
                           {issue.project.identifier}-{issue.sequence_id} · {issue.name}
                         </Link>
-                        <div className="relative h-8 rounded bg-surface-2">
-                          <Link
-                            to={issueHref(issue)}
-                            className="absolute top-1 h-6 truncate rounded-md bg-accent-primary/80 px-2 text-11 leading-6 text-on-color"
+                        <div
+                          className="relative h-8 rounded bg-surface-2"
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const id = e.dataTransfer.getData("text/plain") || draggingId;
+                            if (!id) {
+                              clearDragging();
+                              return;
+                            }
+                            const ratio = pointerRatioInTrack(e, e.currentTarget);
+                            void persistTimelineDrop(id, ratio);
+                          }}
+                        >
+                          <div
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move";
+                              e.dataTransfer.setData("text/plain", issue.id);
+                              setDraggingId(issue.id);
+                            }}
+                            onDragEnd={clearDragging}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = "move";
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const id = e.dataTransfer.getData("text/plain") || draggingId;
+                              const track = e.currentTarget.parentElement;
+                              if (!id || !track) {
+                                clearDragging();
+                                return;
+                              }
+                              const ratio = pointerRatioInTrack(e, track);
+                              void persistTimelineDrop(id, ratio);
+                            }}
+                            className={cn(
+                              "absolute top-1 h-6 cursor-grab truncate rounded-md bg-accent-primary/80 px-2 text-11 leading-6 text-on-color active:cursor-grabbing",
+                              draggingId === issue.id && "opacity-60"
+                            )}
                             style={{ insetInlineStart: `${offset}%`, width: `${width}%` }}
-                            title={`${formatDate(localDateKey(start))} → ${formatDate(localDateKey(end))}`}
+                            title={`${formatDate(localDateKey(start))} → ${formatDate(localDateKey(end))} — بکش برای جابه‌جایی`}
                           >
                             {issue.workspace.name}
-                          </Link>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
+                <p className="mt-3 text-11 text-tertiary">نوار را روی محور بکش؛ مدت ثابت می‌ماند و تاریخ‌ها جابه‌جا می‌شوند.</p>
               </div>
             )}
           </div>
