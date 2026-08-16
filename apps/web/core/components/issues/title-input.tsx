@@ -153,6 +153,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
             "block w-full resize-none overflow-hidden rounded-sm border-none bg-transparent px-3 py-0 text-20 font-medium ring-0 outline-none",
             {
               "mx-2.5 ring-1 ring-danger-strong": title?.length === 0,
+              "pe-12": isLengthVisible,
             },
             className
           )}
@@ -166,7 +167,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
         />
         <div
           className={cn(
-            "pointer-events-none absolute right-1 bottom-1 z-[2] rounded-sm bg-surface-1 p-0.5 text-11 text-secondary opacity-0 transition-opacity",
+            "pointer-events-none absolute end-1 bottom-1 z-[2] rounded-sm bg-surface-1 p-0.5 text-11 text-secondary opacity-0 transition-opacity",
             {
               "opacity-100": isLengthVisible,
             }
