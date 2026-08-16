@@ -5,6 +5,7 @@
  */
 
 import { differenceInDays, format, formatDistanceToNow, isAfter, isEqual, isValid, parseISO } from "date-fns";
+import { faIR } from "date-fns/locale";
 import {
   format as formatJalali,
   addMonths as addJalaliMonths,
@@ -113,6 +114,17 @@ export const renderFormattedTime = (date: string | Date, timeFormat: "12-hour" |
   if (!parsedDate) return "";
   // Check if the parsed date is valid
   if (!isValid(parsedDate)) return ""; // Return empty string for invalid dates
+  if (isPersianLocale()) {
+    try {
+      return new Intl.DateTimeFormat("fa-IR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: timeFormat === "12-hour",
+      }).format(parsedDate);
+    } catch {
+      /* fall through */
+    }
+  }
   // Format the date in 12 hour format if in12HourFormat is true
   if (timeFormat === "12-hour") {
     const formattedTime = format(parsedDate, "hh:mm a");
@@ -199,7 +211,10 @@ export const calculateTimeAgo = (time: string | number | Date | null): string =>
   // return if undefined
   if (!parsedTime) return ""; // Return empty string for invalid dates
   // Format the time in the form of amount of time passed since the event happened
-  const distance = formatDistanceToNow(parsedTime, { addSuffix: true });
+  const distance = formatDistanceToNow(parsedTime, {
+    addSuffix: true,
+    locale: isPersianLocale() ? faIR : undefined,
+  });
   return distance;
 };
 
