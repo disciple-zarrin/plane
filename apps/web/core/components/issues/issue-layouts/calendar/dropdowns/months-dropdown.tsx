@@ -122,7 +122,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
             {...attributes.popper}
             className="w-56 divide-y divide-subtle-1 rounded-sm border border-subtle bg-surface-1 p-3 shadow-raised-200"
           >
-            <div className="flex items-center justify-between gap-2 pb-3">
+            <div className="flex items-center justify-between gap-2 pb-3" dir="ltr">
               <button
                 type="button"
                 className="grid place-items-center"
@@ -133,7 +133,9 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
               >
                 <ChevronLeftIcon height={14} width={14} />
               </button>
-              <span className="text-11">{formatCalendarYear(activeMonthDate)}</span>
+              <span className="text-11" dir="auto">
+                {formatCalendarYear(activeMonthDate)}
+              </span>
               <button
                 type="button"
                 className="grid place-items-center"

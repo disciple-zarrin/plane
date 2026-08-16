@@ -96,12 +96,15 @@ export const CalendarHeader = observer(function CalendarHeader(props: ICalendarH
   return (
     <Row className="mb-4 flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5">
-        <button type="button" className="grid place-items-center" onClick={handlePrevious}>
-          <ChevronLeftIcon height={16} width={16} strokeWidth={2} />
-        </button>
-        <button type="button" className="grid place-items-center" onClick={handleNext}>
-          <ChevronRightIcon height={16} width={16} strokeWidth={2} />
-        </button>
+        {/* Keep prev/next chevrons in LTR visual order so RTL layout does not swap their meaning. */}
+        <div className="flex items-center gap-1.5" dir="ltr">
+          <button type="button" className="grid place-items-center" onClick={handlePrevious} aria-label="Previous">
+            <ChevronLeftIcon height={16} width={16} strokeWidth={2} />
+          </button>
+          <button type="button" className="grid place-items-center" onClick={handleNext} aria-label="Next">
+            <ChevronRightIcon height={16} width={16} strokeWidth={2} />
+          </button>
+        </div>
         <CalendarMonthsDropdown issuesFilterStore={issuesFilterStore} />
       </div>
       <div className="flex items-center gap-1.5">
