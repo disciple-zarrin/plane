@@ -16,6 +16,7 @@ import {
   webPushService,
   type TIssueUserAlarm,
 } from "@/services/web-push.service";
+import { issueAlarmsStore } from "@/store/issue-alarms.store";
 
 type Props = {
   workspaceSlug: string;
@@ -37,6 +38,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
     try {
       const data = await webPushService.getIssueAlarm(workspaceSlug, projectId, issueId);
       setAlarm(data);
+      issueAlarmsStore.setEnabled(issueId, !!data.enabled && !!data.fire_at);
     } catch {
       setAlarm(null);
     } finally {
@@ -59,6 +61,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || alarm.timezone || "UTC",
       });
       setAlarm(saved);
+      issueAlarmsStore.setEnabled(issueId, !!saved.enabled && !!saved.fire_at);
       const tag = `alarm-${issueId}`;
       if (saved.enabled && saved.fire_at) {
         await scheduleLocalAlarm({

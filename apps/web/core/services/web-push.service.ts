@@ -6,6 +6,7 @@
 
 import { API_BASE_URL } from "@plane/constants";
 import { APIService } from "@/services/api.service";
+import { issueAlarmsStore } from "@/store/issue-alarms.store";
 
 export type TIssueUserAlarm = {
   id?: string;
@@ -196,6 +197,8 @@ export async function syncPendingAlarmsFromServer(): Promise<number> {
   if (typeof window === "undefined" || !navigator.onLine) return 0;
   try {
     const pending = await webPushService.listMyPendingAlarms();
+    const enabledIds = pending.filter((a) => a.enabled && a.issue_id).map((a) => a.issue_id);
+    issueAlarmsStore.replaceAll(enabledIds);
     let n = 0;
     for (const alarm of pending) {
       if (!alarm.enabled || !alarm.fire_at || !alarm.issue_id) continue;

@@ -16,6 +16,7 @@ import {
   webPushService,
   type TPendingIssueAlarm,
 } from "@/services/web-push.service";
+import { issueAlarmsStore } from "@/store/issue-alarms.store";
 
 function formatFireAt(iso: string | null): string {
   if (!iso) return "—";
@@ -84,6 +85,7 @@ export function UpcomingAlarmsList({ variant = "settings" }: Props) {
       } else {
         await cancelLocalAlarm(tag);
       }
+      issueAlarmsStore.setEnabled(alarm.issue_id, !!saved.enabled && !!saved.fire_at);
       setAlarms((prev) =>
         prev.map((row) =>
           row.issue_id === alarm.issue_id
