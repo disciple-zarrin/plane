@@ -23,6 +23,7 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { useExpandableSearch } from "@/hooks/use-expandable-search";
 
 export const TopNavPowerK = observer(() => {
+  const { t } = useTranslation();
   // router
   const router = useAppRouter();
   const params = useParams();
@@ -224,7 +225,7 @@ export const TopNavPowerK = observer(() => {
           onClick={() => inputRef.current?.focus()}
           role="button"
         >
-          <SearchIcon className="mr-2 size-3.5 shrink-0 text-placeholder" />
+          <SearchIcon className="me-2 size-3.5 shrink-0 text-placeholder" />
           <input
             ref={inputRef}
             type="text"
@@ -236,11 +237,11 @@ export const TopNavPowerK = observer(() => {
             onMouseDown={handleMouseDown}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
-            placeholder="Search commands..."
+            placeholder={t("power_k.page_placeholders.default")}
             className="placeholder-text-placeholder min-w-0 flex-1 bg-transparent text-13 text-primary outline-none"
           />
           {searchTerm && (
-            <button type="button" onClick={handleClear} className="ml-2 shrink-0">
+            <button type="button" onClick={handleClear} className="ms-2 shrink-0">
               <CloseIcon className="size-3.5 text-placeholder hover:text-primary" />
             </button>
           )}
