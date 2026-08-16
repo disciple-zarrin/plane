@@ -14,9 +14,16 @@ void polyfills;
 
 if (typeof window !== "undefined" && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+    void navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(() => {
+      void import("@/services/web-push.service").then((m) => m.flushLocalAlarms());
+    }).catch(() => {
       /* ignore */
     });
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      void import("@/services/web-push.service").then((m) => m.flushLocalAlarms());
+    }
   });
 }
 

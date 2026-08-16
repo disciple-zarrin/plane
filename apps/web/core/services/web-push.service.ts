@@ -118,14 +118,53 @@ export async function scheduleLocalAlarm(params: {
   fireAtMs: number;
 }) {
   const reg = await ensureServiceWorker();
-  if (!reg?.active) return false;
-  reg.active.postMessage({ type: "SCHEDULE_ALARM", ...params });
+  if (!reg) return false;
+  await navigator.serviceWorker.ready;
+  const worker = reg.active || (await navigator.serviceWorker.ready).active;
+  if (!worker) return false;
+
+  worker.postMessage({ type: "SCHEDULE_ALARM", ...params });
+
+  // Ask browser to periodically wake SW so IndexedDB alarms can fire offline.
+  try {
+    const anyReg = reg as ServiceWorkerRegistration & {
+      periodicSync?: { register: (tag: string, opts: { minInterval: number }) => Promise<void> };
+    };
+    if (anyReg.periodicSync) {
+      await anyReg.periodicSync.register("hesar-deadline-alarms", {
+        minInterval: 15 * 60 * 1000,
+      });
+    }
+  } catch {
+    /* unsupported / permission */
+  }
+
+  try {
+    const syncManager = (reg as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } })
+      .sync;
+    if (syncManager) await syncManager.register("hesar-deadline-alarms");
+  } catch {
+    /* unsupported */
+  }
+
   return true;
 }
 
 export async function cancelLocalAlarm(tag: string) {
   const reg = await ensureServiceWorker();
-  if (!reg?.active) return false;
-  reg.active.postMessage({ type: "CANCEL_ALARM", tag });
+  if (!reg) return false;
+  await navigator.serviceWorker.ready;
+  const worker = reg.active || (await navigator.serviceWorker.ready).active;
+  if (!worker) return false;
+  worker.postMessage({ type: "CANCEL_ALARM", tag });
   return true;
+}
+
+/** Call on app focus to catch overdue alarms after being offline. */
+export async function flushLocalAlarms() {
+  const reg = await ensureServiceWorker();
+  if (!reg) return;
+  await navigator.serviceWorker.ready;
+  const worker = reg.active || (await navigator.serviceWorker.ready).active;
+  worker?.postMessage({ type: "FLUSH_ALARMS" });
 }

@@ -100,7 +100,119 @@ define(["./workbox-9f2f79cf"], function (workbox) {
   );
 });
 
-// --- Hesar Web Push + local deadline alarms (appended) ---
+// --- Hesar Web Push + offline-capable local deadline alarms ---
+const ALARM_DB = "hesar-alarms";
+const ALARM_STORE = "alarms";
+
+function openAlarmDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(ALARM_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(ALARM_STORE)) {
+        db.createObjectStore(ALARM_STORE, { keyPath: "tag" });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbPutAlarm(alarm) {
+  const db = await openAlarmDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(ALARM_STORE, "readwrite");
+    tx.objectStore(ALARM_STORE).put(alarm);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbDeleteAlarm(tag) {
+  const db = await openAlarmDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(ALARM_STORE, "readwrite");
+    tx.objectStore(ALARM_STORE).delete(tag);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbAllAlarms() {
+  const db = await openAlarmDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(ALARM_STORE, "readonly");
+    const req = tx.objectStore(ALARM_STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function showAlarmNotification(alarm) {
+  return self.registration.showNotification(alarm.title || "زنگ ددلاین", {
+    body: alarm.body || "",
+    tag: alarm.tag || "deadline",
+    renotify: true,
+    requireInteraction: true,
+    data: { url: alarm.url || "/" },
+    icon: "/favicon.ico",
+    badge: "/favicon.ico",
+    silent: false,
+    vibrate: [200, 100, 200, 100, 400],
+  });
+}
+
+/** Fire any stored alarms whose time has arrived (works after SW wake while offline). */
+async function flushDueAlarms() {
+  const now = Date.now();
+  const alarms = await idbAllAlarms();
+  for (const alarm of alarms) {
+    if (!alarm || !alarm.fireAtMs) continue;
+    if (Number(alarm.fireAtMs) > now + 1500) continue;
+    try {
+      await showAlarmNotification(alarm);
+      await idbDeleteAlarm(alarm.tag);
+    } catch (_) {
+      /* keep for retry on next wake */
+    }
+  }
+}
+
+async function scheduleAlarmRecord(alarm) {
+  await idbPutAlarm(alarm);
+  const fireAtMs = Number(alarm.fireAtMs);
+  const delay = Math.max(0, fireAtMs - Date.now());
+
+  // Best path for offline-at-exact-time: Notification Triggers (Chrome Android).
+  const Trigger = self.TimestampTrigger;
+  if (typeof Trigger === "function") {
+    try {
+      await self.registration.showNotification(alarm.title || "زنگ ددلاین", {
+        body: alarm.body || "",
+        tag: alarm.tag || "deadline",
+        renotify: true,
+        requireInteraction: true,
+        data: { url: alarm.url || "/" },
+        icon: "/favicon.ico",
+        badge: "/favicon.ico",
+        silent: false,
+        vibrate: [200, 100, 200, 100, 400],
+        showTrigger: new Trigger(fireAtMs),
+      });
+      return;
+    } catch (_) {
+      /* fall through */
+    }
+  }
+
+  // Fallback while SW stays alive; IndexedDB + flushDueAlarms covers later wakes.
+  if (delay < 2147483647) {
+    setTimeout(() => {
+      void flushDueAlarms();
+    }, delay);
+  }
+}
+
 self.addEventListener("push", (event) => {
   let data = { title: "Plane", body: "", url: "/", tag: "plane", requireInteraction: false };
   try {
@@ -121,8 +233,14 @@ self.addEventListener("push", (event) => {
     icon: "/favicon.ico",
     badge: "/favicon.ico",
     silent: false,
+    vibrate: data.type === "deadline_alarm" || data.type === "assign" ? [200, 100, 200, 100, 400] : undefined,
   };
-  event.waitUntil(self.registration.showNotification(data.title || "Plane", options));
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(data.title || "Plane", options),
+      flushDueAlarms(),
+    ])
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -141,52 +259,49 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-/** Local scheduled alarms (Notification Triggers when available). */
-const pendingAlarms = new Map();
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      await self.clients.claim();
+      await flushDueAlarms();
+    })()
+  );
+});
+
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "hesar-deadline-alarms") {
+    event.waitUntil(flushDueAlarms());
+  }
+});
+
+self.addEventListener("sync", (event) => {
+  if (event.tag === "hesar-deadline-alarms") {
+    event.waitUntil(flushDueAlarms());
+  }
+});
 
 self.addEventListener("message", (event) => {
   const msg = event.data || {};
   if (msg.type === "SCHEDULE_ALARM") {
-    const { tag, title, body, url, fireAtMs } = msg;
-    pendingAlarms.set(tag, { title, body, url, fireAtMs });
-    const delay = Math.max(0, Number(fireAtMs) - Date.now());
-    // Prefer TimestampTrigger when supported; otherwise setTimeout (works while SW alive / periodic wake).
-    const show = () =>
-      self.registration.showNotification(title || "زنگ ددلاین", {
-        body: body || "",
-        tag: tag || "deadline",
-        renotify: true,
-        requireInteraction: true,
-        data: { url: url || "/" },
-        icon: "/favicon.ico",
-        silent: false,
-      });
-
-    if (self.TimestampTrigger) {
-      event.waitUntil(
-        self.registration.showNotification(title || "زنگ ددلاین", {
-          body: body || "",
-          tag: tag || "deadline",
-          renotify: true,
-          requireInteraction: true,
-          data: { url: url || "/" },
-          icon: "/favicon.ico",
-          showTrigger: new self.TimestampTrigger(fireAtMs),
-        }).catch(() => {
-          setTimeout(() => {
-            void show();
-          }, delay);
-        })
-      );
-    } else {
-      setTimeout(() => {
-        void show();
-      }, delay);
-    }
+    const alarm = {
+      tag: msg.tag || "deadline",
+      title: msg.title || "زنگ ددلاین",
+      body: msg.body || "",
+      url: msg.url || "/",
+      fireAtMs: Number(msg.fireAtMs),
+    };
+    event.waitUntil(scheduleAlarmRecord(alarm));
   }
   if (msg.type === "CANCEL_ALARM" && msg.tag) {
-    pendingAlarms.delete(msg.tag);
-    event.waitUntil(self.registration.getNotifications({ tag: msg.tag }).then((list) => list.forEach((n) => n.close())));
+    event.waitUntil(
+      Promise.all([
+        idbDeleteAlarm(msg.tag),
+        self.registration.getNotifications({ tag: msg.tag }).then((list) => list.forEach((n) => n.close())),
+      ])
+    );
+  }
+  if (msg.type === "FLUSH_ALARMS") {
+    event.waitUntil(flushDueAlarms());
   }
 });
 //# sourceMappingURL=sw.js.map
