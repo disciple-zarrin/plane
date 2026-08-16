@@ -47,10 +47,18 @@ export const renderFormattedDate = (
 
 /** Map common Gregorian format tokens to Jalali-friendly equivalents for FA UI. */
 const mapFormatTokenForJalali = (token: string): string => {
-  if (token === "MMM dd, yyyy" || token === "MMMM dd, yyyy") return "yyyy/MM/dd";
-  if (token === "MMM dd") return "MM/dd";
-  if (token === "MMM") return "MMMM";
-  return token;
+  if (
+    token === "MMM dd, yyyy" ||
+    token === "MMMM dd, yyyy" ||
+    token === "dd MMM yyyy" ||
+    token === "dd MMMM yyyy" ||
+    token === "yyyy-MM-dd"
+  ) {
+    return "yyyy/MM/dd";
+  }
+  if (token === "MMM dd" || token === "dd MMM" || token === "MMMM dd" || token === "dd MMMM") return "MM/dd";
+  if (token === "MMM" || token === "MMMM") return "MMMM";
+  return "yyyy/MM/dd";
 };
 
 /**

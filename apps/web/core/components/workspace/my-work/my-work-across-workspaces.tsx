@@ -8,7 +8,7 @@ import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
 import { Link } from "react-router";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { cn } from "@plane/utils";
+import { cn, renderFormattedDate } from "@plane/utils";
 import type { TUserAssignedIssue } from "@/services/user.service";
 import type { ProjectStateService } from "@/services/project/project-state.service";
 import { myWorkIssueService as issueService, myWorkStateService as stateService, useMyWork } from "./my-work-provider";
@@ -121,14 +121,7 @@ function parseDay(value: string | null): Date | null {
 
 function formatDate(value: string | null) {
   if (!value) return "—";
-  const key = value.slice(0, 10);
-  const d = /^\d{4}-\d{2}-\d{2}$/.test(key) ? parseDay(key) : parseDay(value);
-  if (!d) return value;
-  try {
-    return new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "short", day: "numeric" }).format(d);
-  } catch {
-    return value;
-  }
+  return renderFormattedDate(value) || value;
 }
 
 function startOfMonth(d: Date) {

@@ -11,6 +11,7 @@ import { usePopper } from "react-popper";
 import { CalendarDays } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // ui
+import { useTranslation } from "@plane/i18n";
 import type { Matcher } from "@plane/propel/calendar";
 import { Calendar } from "@plane/propel/calendar";
 import { CloseIcon } from "@plane/propel/icons";
@@ -71,6 +72,8 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
     renderByDefault = true,
     labelClassName = "",
   } = props;
+  // Subscribe to locale so Jalali/Gregorian labels refresh when language changes.
+  const { currentLocale } = useTranslation();
   // states
   const [isOpen, setIsOpen] = useState(defaultOpen);
   // refs
@@ -146,7 +149,10 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
       >
         {!hideIcon && icon}
         {BUTTON_VARIANTS_WITH_TEXT.includes(buttonVariant) && (
-          <span className={cn("flex-grow truncate text-left text-body-xs-medium", labelClassName)}>
+          <span
+            key={currentLocale}
+            className={cn("flex-grow truncate text-left text-body-xs-medium", labelClassName)}
+          >
             {value ? renderFormattedDate(value, formatToken) : placeholder}
           </span>
         )}

@@ -18,11 +18,19 @@ export function Calendar({ className, showOutsideDays = true, ...props }: Calend
   const currentYear = new Date().getFullYear();
   const thirtyYearsAgoFirstDay = new Date(currentYear - 30, 0, 1);
   const thirtyYearsFromNowFirstDay = new Date(currentYear + 30, 11, 31);
+  // Re-evaluate when app language changes (Jalali vs Gregorian picker).
+  const [localeTick, setLocaleTick] = React.useState(0);
+  React.useEffect(() => {
+    const onLang = () => setLocaleTick((n) => n + 1);
+    window.addEventListener("plane:language-changed", onLang);
+    return () => window.removeEventListener("plane:language-changed", onLang);
+  }, []);
   const usePersian = isPersianLocale();
   const Picker = usePersian ? PersianDayPicker : DayPicker;
 
   return (
     <Picker
+      key={`${usePersian ? "jalali" : "gregorian"}-${localeTick}`}
       {...props}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}

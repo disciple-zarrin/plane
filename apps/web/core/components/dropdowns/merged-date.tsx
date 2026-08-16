@@ -6,6 +6,7 @@
 
 import React from "react";
 import { observer } from "mobx-react";
+import { useTranslation } from "@plane/i18n";
 // helpers
 import { formatDateRange, getDate } from "@plane/utils";
 
@@ -17,13 +18,14 @@ type Props = {
 
 /**
  * Formats merged date range display with smart formatting
- * - Single date: "Jan 24, 2025"
+ * - Single date: "Jan 24, 2025" / Jalali yyyy/MM/dd when FA
  * - Same year, same month: "Jan 24 - 28, 2025"
  * - Same year, different month: "Jan 24 - Feb 6, 2025"
  * - Different year: "Dec 28, 2024 - Jan 4, 2025"
  */
 export const MergedDateDisplay = observer(function MergedDateDisplay(props: Props) {
   const { startDate, endDate, className = "" } = props;
+  const { currentLocale } = useTranslation();
 
   // Parse dates
   const parsedStartDate = getDate(startDate);
@@ -35,5 +37,9 @@ export const MergedDateDisplay = observer(function MergedDateDisplay(props: Prop
     return null;
   }
 
-  return <span className={className}>{displayText}</span>;
+  return (
+    <span key={currentLocale} className={className}>
+      {displayText}
+    </span>
+  );
 });

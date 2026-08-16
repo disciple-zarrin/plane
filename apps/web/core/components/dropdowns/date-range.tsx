@@ -71,7 +71,8 @@ type Props = {
 };
 
 export const DateRangeDropdown = observer(function DateRangeDropdown(props: Props) {
-  const { t } = useTranslation();
+  const { t, currentLocale } = useTranslation();
+  void currentLocale;
   const {
     buttonClassName,
     buttonContainerClassName,

@@ -107,13 +107,14 @@ export class ProfileStore implements IUserProfileStore {
         this.error = undefined;
       });
       const userProfile = await this.userService.getCurrentUserProfile();
+      // Apply locale before publishing profile so date formatters see FA on first paint.
+      if (userProfile.language) {
+        await setLanguage(userProfile.language as TLanguage);
+      }
       runInAction(() => {
         this.isLoading = false;
         this.data = userProfile;
       });
-      if (userProfile.language) {
-        void setLanguage(userProfile.language as TLanguage);
-      }
       return userProfile;
     } catch (error) {
       runInAction(() => {
