@@ -13,6 +13,7 @@ from plane.app.views import (
     WebPushVapidPublicKeyEndpoint,
     WebPushSubscriptionEndpoint,
     IssueUserAlarmEndpoint,
+    MyPendingIssueAlarmsEndpoint,
 )
 
 
@@ -61,6 +62,11 @@ urlpatterns = [
         "users/me/web-push-subscriptions/",
         WebPushSubscriptionEndpoint.as_view(),
         name="web-push-subscriptions",
+    ),
+    path(
+        "users/me/issue-alarms/",
+        MyPendingIssueAlarmsEndpoint.as_view(),
+        name="my-pending-issue-alarms",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/issues/<uuid:issue_id>/my-alarm/",

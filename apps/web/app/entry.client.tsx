@@ -13,17 +13,28 @@ import polyfills from "@/lib/polyfills";
 void polyfills;
 
 if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    void navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(() => {
-      void import("@/services/web-push.service").then((m) => m.flushLocalAlarms());
-    }).catch(() => {
-      /* ignore */
+  const syncAlarms = () => {
+    void import("@/services/web-push.service").then(async (m) => {
+      await m.syncPendingAlarmsFromServer();
+      await m.flushLocalAlarms();
     });
+  };
+
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then(() => {
+        syncAlarms();
+      })
+      .catch(() => {
+        /* ignore */
+      });
   });
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-      void import("@/services/web-push.service").then((m) => m.flushLocalAlarms());
-    }
+    if (document.visibilityState === "visible") syncAlarms();
+  });
+  window.addEventListener("online", () => {
+    syncAlarms();
   });
 }
 

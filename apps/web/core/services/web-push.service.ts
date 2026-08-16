@@ -18,6 +18,15 @@ export type TIssueUserAlarm = {
   fired_at: string | null;
 };
 
+export type TPendingIssueAlarm = TIssueUserAlarm & {
+  issue_id: string;
+  project_id: string;
+  workspace_slug: string;
+  issue_name: string;
+  issue_identifier: string;
+  url: string;
+};
+
 export class WebPushService extends APIService {
   constructor() {
     super(API_BASE_URL);
@@ -67,6 +76,14 @@ export class WebPushService extends APIService {
         throw e?.response?.data;
       });
   }
+
+  async listMyPendingAlarms(): Promise<TPendingIssueAlarm[]> {
+    return this.get(`/api/users/me/issue-alarms/`)
+      .then((r) => (r?.data?.results as TPendingIssueAlarm[]) || [])
+      .catch((e) => {
+        throw e?.response?.data;
+      });
+  }
 }
 
 export const webPushService = new WebPushService();
@@ -107,6 +124,8 @@ export async function enableWebPush(): Promise<boolean> {
     applicationServerKey: urlBase64ToUint8Array(public_key),
   });
   await webPushService.saveSubscription(sub.toJSON());
+  // After this device is push-ready, pull alarms set elsewhere (e.g. Mac).
+  void syncPendingAlarmsFromServer();
   return true;
 }
 
@@ -167,4 +186,33 @@ export async function flushLocalAlarms() {
   await navigator.serviceWorker.ready;
   const worker = reg.active || (await navigator.serviceWorker.ready).active;
   worker?.postMessage({ type: "FLUSH_ALARMS" });
+}
+
+/**
+ * Pull alarms saved on any device (e.g. Mac) and schedule them on this device.
+ * Call when mobile comes online so later offline rings still work.
+ */
+export async function syncPendingAlarmsFromServer(): Promise<number> {
+  if (typeof window === "undefined" || !navigator.onLine) return 0;
+  try {
+    const pending = await webPushService.listMyPendingAlarms();
+    let n = 0;
+    for (const alarm of pending) {
+      if (!alarm.enabled || !alarm.fire_at || !alarm.issue_id) continue;
+      const fireAtMs = new Date(alarm.fire_at).getTime();
+      if (!Number.isFinite(fireAtMs)) continue;
+      await scheduleLocalAlarm({
+        tag: `alarm-${alarm.issue_id}`,
+        title: "زنگ ددلاین",
+        body: `${alarm.issue_identifier} · ${alarm.issue_name}`,
+        url: alarm.url || `/${alarm.workspace_slug}/projects/${alarm.project_id}/issues/${alarm.issue_id}`,
+        fireAtMs,
+      });
+      n += 1;
+    }
+    await flushLocalAlarms();
+    return n;
+  } catch {
+    return 0;
+  }
 }

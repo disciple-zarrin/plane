@@ -242,6 +242,7 @@ from .notification.web_push import (
     WebPushVapidPublicKeyEndpoint,
     WebPushSubscriptionEndpoint,
     IssueUserAlarmEndpoint,
+    MyPendingIssueAlarmsEndpoint,
 )
 from .user.base import AccountEndpoint, ProfileEndpoint, UserSessionEndpoint
 

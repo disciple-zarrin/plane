@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from datetime import timedelta
+
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -10,6 +13,43 @@ from plane.app.permissions import ProjectEntityPermission
 from plane.app.views.base import BaseAPIView
 from plane.db.models import Issue, IssueUserAlarm, WebPushSubscription
 from plane.utils.web_push import compute_fire_at, vapid_configured
+
+
+class MyPendingIssueAlarmsEndpoint(BaseAPIView):
+    """List enabled, not-yet-fired alarms so any device can schedule them locally."""
+
+    def get(self, request):
+        now = timezone.now()
+        # Include recently due (15m) so a device that just came online still schedules.
+        qs = (
+            IssueUserAlarm.objects.filter(
+                user=request.user,
+                enabled=True,
+                fired_at__isnull=True,
+                fire_at__isnull=False,
+                fire_at__gte=now - timedelta(minutes=15),
+            )
+            .select_related("issue", "issue__project", "issue__workspace")
+            .order_by("fire_at")[:200]
+        )
+        results = []
+        for alarm in qs:
+            issue = alarm.issue
+            project = issue.project
+            workspace = issue.workspace
+            identifier = f"{project.identifier}-{issue.sequence_id}"
+            results.append(
+                {
+                    **IssueUserAlarmEndpoint._serialize(alarm),
+                    "issue_id": str(issue.id),
+                    "project_id": str(project.id),
+                    "workspace_slug": workspace.slug,
+                    "issue_name": issue.name,
+                    "issue_identifier": identifier,
+                    "url": f"/{workspace.slug}/projects/{project.id}/issues/{issue.id}",
+                }
+            )
+        return Response({"results": results}, status=status.HTTP_200_OK)
 
 
 class WebPushVapidPublicKeyEndpoint(BaseAPIView):
