@@ -10,7 +10,7 @@ import { MyWorkAcrossWorkspaces } from "@/components/workspace/my-work/my-work-a
 export default function MyWorkPage() {
   return (
     <>
-      <PageHead title="کارهای من" />
+      <PageHead title="تسک‌های من" />
       <MyWorkAcrossWorkspaces />
     </>
   );

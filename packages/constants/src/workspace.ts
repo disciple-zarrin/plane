@@ -245,7 +245,7 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
   },
   "your-work": {
     key: "your_work",
-    labelTranslationKey: "your_work",
+    labelTranslationKey: "sidebar.your_work",
     href: `/profile/`,
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
     highlight: (pathname: string, url: string) => pathname.includes(url),

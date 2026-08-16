@@ -17,7 +17,7 @@ export function MyWorkHeader() {
       <Header.LeftItem>
         <Breadcrumbs>
           <Breadcrumbs.Item
-            component={<BreadcrumbLink label="کارهای من" disableTooltip isLast />}
+            component={<BreadcrumbLink label="تسک‌های من" disableTooltip isLast />}
           />
         </Breadcrumbs>
         {!loading && <span className="rounded-full bg-layer-2 px-2 py-0.5 text-11 text-tertiary">{total}</span>}
