@@ -12,6 +12,14 @@ import polyfills from "@/lib/polyfills";
 
 void polyfills;
 
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+      /* ignore */
+    });
+  });
+}
+
 startTransition(() => {
   hydrateRoot(
     document,

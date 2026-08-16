@@ -99,4 +99,94 @@ define(["./workbox-9f2f79cf"], function (workbox) {
     "GET"
   );
 });
+
+// --- Hesar Web Push + local deadline alarms (appended) ---
+self.addEventListener("push", (event) => {
+  let data = { title: "Plane", body: "", url: "/", tag: "plane", requireInteraction: false };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch (_) {
+    try {
+      data.body = event.data ? event.data.text() : "";
+    } catch (__) {
+      /* ignore */
+    }
+  }
+  const options = {
+    body: data.body || "",
+    tag: data.tag || "plane",
+    renotify: true,
+    requireInteraction: !!data.requireInteraction,
+    data: { url: data.url || "/" },
+    icon: "/favicon.ico",
+    badge: "/favicon.ico",
+    silent: false,
+  };
+  event.waitUntil(self.registration.showNotification(data.title || "Plane", options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })
+  );
+});
+
+/** Local scheduled alarms (Notification Triggers when available). */
+const pendingAlarms = new Map();
+
+self.addEventListener("message", (event) => {
+  const msg = event.data || {};
+  if (msg.type === "SCHEDULE_ALARM") {
+    const { tag, title, body, url, fireAtMs } = msg;
+    pendingAlarms.set(tag, { title, body, url, fireAtMs });
+    const delay = Math.max(0, Number(fireAtMs) - Date.now());
+    // Prefer TimestampTrigger when supported; otherwise setTimeout (works while SW alive / periodic wake).
+    const show = () =>
+      self.registration.showNotification(title || "زنگ ددلاین", {
+        body: body || "",
+        tag: tag || "deadline",
+        renotify: true,
+        requireInteraction: true,
+        data: { url: url || "/" },
+        icon: "/favicon.ico",
+        silent: false,
+      });
+
+    if (self.TimestampTrigger) {
+      event.waitUntil(
+        self.registration.showNotification(title || "زنگ ددلاین", {
+          body: body || "",
+          tag: tag || "deadline",
+          renotify: true,
+          requireInteraction: true,
+          data: { url: url || "/" },
+          icon: "/favicon.ico",
+          showTrigger: new self.TimestampTrigger(fireAtMs),
+        }).catch(() => {
+          setTimeout(() => {
+            void show();
+          }, delay);
+        })
+      );
+    } else {
+      setTimeout(() => {
+        void show();
+      }, delay);
+    }
+  }
+  if (msg.type === "CANCEL_ALARM" && msg.tag) {
+    pendingAlarms.delete(msg.tag);
+    event.waitUntil(self.registration.getNotifications({ tag: msg.tag }).then((list) => list.forEach((n) => n.close())));
+  }
+});
 //# sourceMappingURL=sw.js.map

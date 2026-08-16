@@ -668,6 +668,34 @@ def notifications(
             # Bulk create notifications
             Notification.objects.bulk_create(bulk_notifications, batch_size=100)
             EmailNotificationLog.objects.bulk_create(bulk_email_logs, batch_size=100, ignore_conflicts=True)
+
+            # Web Push: notify newly assigned users
+            try:
+                from plane.utils.web_push import push_assign_notification
+
+                for notif in bulk_notifications:
+                    activity = (notif.data or {}).get("issue_activity") or {}
+                    if activity.get("field") != "assignees":
+                        continue
+                    if not str(notif.sender).endswith(":assigned"):
+                        continue
+                    new_identifier = activity.get("new_identifier")
+                    if not new_identifier or str(new_identifier) != str(notif.receiver_id):
+                        continue
+                    # Only "added assignee" (has new_identifier, empty-ish old)
+                    if activity.get("verb") != "updated":
+                        continue
+                    issue_payload = dict((notif.data or {}).get("issue") or {})
+                    issue_payload.setdefault("project_id", str(project.id))
+                    issue_payload.setdefault("workspace_slug", str(project.workspace.slug))
+                    push_assign_notification(
+                        receiver_id=notif.receiver_id,
+                        issue_data=issue_payload,
+                        activity_data=activity,
+                    )
+            except Exception as push_exc:
+                print(push_exc)
+
         return
     except Exception as e:
         print(e)

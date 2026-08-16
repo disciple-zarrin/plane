@@ -254,6 +254,12 @@ def track_target_date(
                 epoch=epoch,
             )
         )
+        try:
+            from plane.bgtasks.web_push_alarm_task import recompute_alarms_for_issue
+
+            recompute_alarms_for_issue.delay(str(issue_id))
+        except Exception:
+            pass
 
 
 # Track changes in issue start date

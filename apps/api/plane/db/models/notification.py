@@ -118,6 +118,74 @@ class UserNotificationPreference(BaseModel):
         return f"<{self.user}>"
 
 
+class WebPushSubscription(BaseModel):
+    """Browser push subscription for a user (Web Push / VAPID)."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="web_push_subscriptions",
+    )
+    endpoint = models.URLField(max_length=2048, unique=True)
+    p256dh = models.CharField(max_length=255)
+    auth = models.CharField(max_length=255)
+    user_agent = models.TextField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Web Push Subscription"
+        verbose_name_plural = "Web Push Subscriptions"
+        db_table = "web_push_subscriptions"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user_id} <{self.endpoint[:48]}>"
+
+
+class IssueUserAlarm(BaseModel):
+    """Per-user per-issue deadline alarm (user-chosen time)."""
+
+    class Mode(models.TextChoices):
+        AT_TIME_ON_DUE_DATE = "at_time_on_due_date", "At time on due date"
+        HOURS_BEFORE = "hours_before", "Hours before due date"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="issue_alarms",
+    )
+    issue = models.ForeignKey(
+        "db.Issue",
+        on_delete=models.CASCADE,
+        related_name="user_alarms",
+    )
+    enabled = models.BooleanField(default=True)
+    mode = models.CharField(
+        max_length=32,
+        choices=Mode.choices,
+        default=Mode.AT_TIME_ON_DUE_DATE,
+    )
+    time_local = models.CharField(max_length=5, default="09:00")  # HH:MM
+    hours_before = models.PositiveIntegerField(null=True, blank=True)
+    timezone = models.CharField(max_length=255, default="UTC")
+    fire_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    fired_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Issue User Alarm"
+        verbose_name_plural = "Issue User Alarms"
+        db_table = "issue_user_alarms"
+        ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(fields=["user", "issue"], name="issue_user_alarm_unique"),
+        ]
+        indexes = [
+            models.Index(fields=["enabled", "fire_at", "fired_at"], name="issue_alarm_fire_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} alarm on {self.issue_id} @ {self.fire_at}"
+
+
 class EmailNotificationLog(BaseModel):
     # receiver
     receiver = models.ForeignKey(
