@@ -50,16 +50,16 @@ export const TopNavigationRoot = observer(function TopNavigationRoot() {
         "px-2": !showLabel,
       })}
     >
-      {/* Workspace Menu */}
-      <div className="flex-1 shrink-0">
+      {/* Workspace Menu — shrink-wrap so the trigger stays at the start edge (right in RTL) */}
+      <div className="flex shrink-0 items-center">
         <WorkspaceMenuRoot variant="top-navigation" />
       </div>
       {/* Power K Search */}
-      <div className="shrink-0">
+      <div className="mx-auto min-w-0 shrink">
         <TopNavPowerK />
       </div>
       {/* Additional Actions */}
-      <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
+      <div className="ms-auto flex shrink-0 items-center justify-end gap-1">
         <Tooltip tooltipContent="Inbox" position="bottom">
           <AppSidebarItem
             variant="link"
@@ -69,7 +69,7 @@ export const TopNavigationRoot = observer(function TopNavigationRoot() {
                 <div className="relative">
                   <InboxIcon className="size-5" />
                   {totalNotifications > 0 && (
-                    <span className="absolute top-0 right-0 size-2 rounded-full bg-danger-primary" />
+                    <span className="absolute top-0 end-0 size-2 rounded-full bg-danger-primary" />
                   )}
                 </div>
               ),
