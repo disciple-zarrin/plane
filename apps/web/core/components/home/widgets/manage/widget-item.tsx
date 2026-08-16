@@ -126,20 +126,21 @@ export const WidgetItem = observer(function WidgetItem(props: Props) {
       <div
         ref={elementRef}
         className={cn(
-          "group/widget-item relative flex items-center justify-between rounded-sm px-2 py-2 text-13 font-medium hover:bg-layer-1",
+          "group/widget-item relative flex items-center gap-3 rounded-md px-2 py-2.5 text-13 font-medium hover:bg-layer-1",
           {
             "cursor-grabbing bg-layer-1": isDragging,
           }
         )}
       >
-        <div className="flex items-center">
-          <WidgetItemDragHandle sort_order={widget.sort_order} isDragging={isDragging} />
-          <div>{t(widgetTitle, { count: 1 })}</div>
+        <WidgetItemDragHandle sort_order={widget.sort_order} isDragging={isDragging} />
+        <div className="min-w-0 flex-1 truncate text-start text-primary">{t(widgetTitle)}</div>
+        <div className="shrink-0">
+          <ToggleSwitch
+            value={widget.is_enabled}
+            onChange={() => handleToggle(workspaceSlug.toString(), widget.key, !widget.is_enabled)}
+            size="sm"
+          />
         </div>
-        <ToggleSwitch
-          value={widget.is_enabled}
-          onChange={() => handleToggle(workspaceSlug.toString(), widget.key, !widget.is_enabled)}
-        />
       </div>
       {isLastChild && <DropIndicator isVisible={instruction === "reorder-below"} />}
     </div>
