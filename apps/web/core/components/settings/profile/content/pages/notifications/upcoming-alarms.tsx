@@ -21,15 +21,26 @@ function formatFireAt(iso: string | null): string {
   if (!iso) return "—";
   try {
     return new Date(iso).toLocaleString("fa-IR", {
-      dateStyle: "medium",
-      timeStyle: "short",
+      calendar: "persian",
+      weekday: "short",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
   } catch {
     return iso;
   }
 }
 
-export function UpcomingAlarmsList() {
+type Props = {
+  /** Home page uses a tighter card that matches widget spacing. */
+  variant?: "settings" | "home";
+};
+
+export function UpcomingAlarmsList({ variant = "settings" }: Props) {
   const [alarms, setAlarms] = useState<TPendingIssueAlarm[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -105,15 +116,25 @@ export function UpcomingAlarmsList() {
     }
   };
 
+  const isHome = variant === "home";
+
   return (
-    <div className="mt-6 rounded-md border border-subtle bg-surface-1/40 p-3">
+    <div
+      className={
+        isHome
+          ? "rounded-md border border-subtle bg-surface-2/30 p-3"
+          : "mt-6 rounded-md border border-subtle bg-surface-1/40 p-3"
+      }
+    >
       <div className="mb-2 flex items-center gap-1.5 text-13 font-medium text-primary">
         <Bell className="size-3.5" />
         زنگ‌های پیش‌رو
       </div>
-      <p className="mb-3 text-11 text-tertiary">
-        زنگ‌هایی که برای تسک‌ها ست کرده‌ای. از اینجا روشن/خاموش کن؛ با باز کردن صفحه روی موبایل همگام می‌شوند.
-      </p>
+      {!isHome && (
+        <p className="mb-3 text-11 text-tertiary">
+          زنگ‌هایی که برای تسک‌ها ست کرده‌ای. از اینجا روشن/خاموش کن؛ با باز کردن صفحه روی موبایل همگام می‌شوند.
+        </p>
+      )}
       {loading ? (
         <p className="text-12 text-tertiary">در حال بارگذاری…</p>
       ) : alarms.length === 0 ? (
