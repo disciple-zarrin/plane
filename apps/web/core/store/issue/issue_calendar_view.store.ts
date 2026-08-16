@@ -9,8 +9,7 @@ import { observable, action, makeObservable, runInAction, computed, reaction } f
 // helpers
 import { computedFn } from "mobx-utils";
 import type { ICalendarPayload, ICalendarWeek } from "@plane/types";
-import { EStartOfTheWeek } from "@plane/types";
-import { generateCalendarData, getWeekNumberOfDate, renderFormattedPayloadDate, startOfCalendarMonth } from "@plane/utils";
+import { generateCalendarData, getWeekNumberOfDate, renderFormattedPayloadDate, startOfCalendarMonth, getCalendarStartOfWeek } from "@plane/utils";
 // types
 import type { IIssueRootStore } from "./root.store";
 
@@ -201,7 +200,7 @@ export class CalendarStore implements ICalendarStore {
     if (!this.calendarPayload) return null;
 
     const nextDate = new Date(date);
-    const startOfWeek = this.rootStore.rootStore.user.userProfile.data?.start_of_the_week ?? EStartOfTheWeek.SUNDAY;
+    const startOfWeek = getCalendarStartOfWeek(this.rootStore.rootStore.user.userProfile.data?.start_of_the_week);
 
     runInAction(() => {
       this.calendarPayload = generateCalendarData(this.calendarPayload, nextDate, startOfWeek);
@@ -209,7 +208,7 @@ export class CalendarStore implements ICalendarStore {
   };
 
   initCalendar = () => {
-    const startOfWeek = this.rootStore.rootStore.user.userProfile.data?.start_of_the_week ?? EStartOfTheWeek.SUNDAY;
+    const startOfWeek = getCalendarStartOfWeek(this.rootStore.rootStore.user.userProfile.data?.start_of_the_week);
     const monthStart = startOfCalendarMonth(new Date());
     const newCalendarPayload = generateCalendarData(null, monthStart, startOfWeek);
 
@@ -227,7 +226,7 @@ export class CalendarStore implements ICalendarStore {
    * This should be called when startOfWeek preference changes
    */
   regenerateCalendar = () => {
-    const startOfWeek = this.rootStore.rootStore.user.userProfile.data?.start_of_the_week ?? EStartOfTheWeek.SUNDAY;
+    const startOfWeek = getCalendarStartOfWeek(this.rootStore.rootStore.user.userProfile.data?.start_of_the_week);
     const { activeMonthDate } = this.calendarFilters;
 
     // Force complete regeneration by passing null to clear all cached data

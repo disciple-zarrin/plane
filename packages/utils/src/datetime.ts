@@ -12,7 +12,7 @@ import {
   startOfMonth as startOfJalaliMonth,
 } from "date-fns-jalali";
 import { isNumber } from "lodash-es";
-import { isPersianLocale } from "./persian-locale";
+import { isPersianLocale, localizeDigits } from "./persian-locale";
 
 // Format Date Helpers
 /**
@@ -608,21 +608,24 @@ export const addCalendarMonths = (date: Date, amount: number): Date =>
 /**
  * Calendar month/year label for headers (Jalali when FA).
  */
-export const formatCalendarMonthYear = (date: Date): string =>
-  isPersianLocale() ? formatJalali(date, "MMMM yyyy") : format(date, "MMMM yyyy");
+export const formatCalendarMonthYear = (date: Date): string => {
+  const label = isPersianLocale() ? formatJalali(date, "MMMM yyyy") : format(date, "MMMM yyyy");
+  return isPersianLocale() ? localizeDigits(label) : label;
+};
 
 /**
  * Short month label for month pickers (index 0-11).
  */
 export const formatCalendarMonthShort = (date: Date): string =>
-  isPersianLocale() ? formatJalali(date, "MMM") : format(date, "MMM");
+  isPersianLocale() ? formatJalali(date, "MMMM") : format(date, "MMM");
 
 /**
  * Year label for month pickers.
  */
-export const formatCalendarYear = (date: Date): number | string =>
-  isPersianLocale() ? formatJalali(date, "yyyy") : date.getFullYear();
-
+export const formatCalendarYear = (date: Date): number | string => {
+  if (!isPersianLocale()) return date.getFullYear();
+  return localizeDigits(formatJalali(date, "yyyy"));
+};
 
 /**
  * 1-based Jalali month index for the given date (FA calendar helpers).
@@ -632,8 +635,10 @@ export const getJalaliMonthIndex = (date: Date): number => Number(formatJalali(d
 /**
  * Format a date with Jalali tokens when FA; otherwise Gregorian date-fns tokens.
  */
-export const formatCalendarDate = (date: Date, jalaliToken: string, gregorianToken: string): string =>
-  isPersianLocale() ? formatJalali(date, jalaliToken) : format(date, gregorianToken);
+export const formatCalendarDate = (date: Date, jalaliToken: string, gregorianToken: string): string => {
+  const label = isPersianLocale() ? formatJalali(date, jalaliToken) : format(date, gregorianToken);
+  return isPersianLocale() ? localizeDigits(label) : label;
+};
 
 /**
  * Day-of-month number for calendar tiles (Jalali day when FA).
@@ -642,10 +647,15 @@ export const getCalendarDayNumber = (date: Date): number =>
   isPersianLocale() ? Number(formatJalali(date, "d")) : date.getDate();
 
 /**
- * Month short label shown before day 1 in calendar tiles.
+ * Day-of-month label for calendar tiles (Persian digits when FA).
+ */
+export const getCalendarDayLabel = (date: Date): string => localizeDigits(getCalendarDayNumber(date));
+
+/**
+ * Month label shown before day 1 in calendar tiles (full month name when FA).
  */
 export const getCalendarMonthShortForDate = (date: Date): string =>
-  isPersianLocale() ? formatJalali(date, "MMM") : format(date, "MMM");
+  isPersianLocale() ? formatJalali(date, "MMMM") : format(date, "MMM");
 
 /**
  * True when `date` is the first day of the active UI calendar month.

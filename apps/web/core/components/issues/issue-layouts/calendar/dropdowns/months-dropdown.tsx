@@ -155,7 +155,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
                     const monthDate = startOfCalendarMonth(addCalendarMonths(yearStart, index));
                     return {
                       key: `j-${index}`,
-                      label: formatCalendarDate(monthDate, "MMM", "MMM"),
+                      label: formatCalendarDate(monthDate, "MMMM", "MMM"),
                       date: monthDate,
                     };
                   })

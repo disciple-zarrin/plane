@@ -35,8 +35,8 @@ export function Calendar({ className, showOutsideDays = true, ...props }: Calend
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       dir={usePersian ? "rtl" : props.dir}
-      // Keep Latin digits to match formatted labels (yyyy/MM/dd) and avoid mixed numeral systems.
-      {...(usePersian ? { numerals: "latn" as const } : {})}
+      // Persian digits for Jalali day numbers in date pickers.
+      {...(usePersian ? { numerals: "arabext" as const } : {})}
       components={{
         Chevron: ({ className, ...chevronProps }) => (
           <ChevronLeftIcon

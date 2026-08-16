@@ -17,9 +17,10 @@ import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate 
 import {
   cn,
   renderFormattedPayloadDate,
-  getCalendarDayNumber,
+  getCalendarDayLabel,
   getCalendarMonthShortForDate,
   isCalendarMonthStart,
+  isCalendarWeekend,
   isPersianLocale,
 } from "@plane/utils";
 import { highlightIssueOnDrop } from "@/components/issues/issue-layouts/utils";
@@ -143,8 +144,9 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
   const isToday = date.is_today || date.date.toDateString() === new Date().toDateString();
   const isSelectedDate = date.date.toDateString() == selectedDate.toDateString();
 
-  const isWeekend = [0, 6].includes(date.date.getDay());
+  const isWeekend = isCalendarWeekend(date.date);
   const isMonthLayout = calendarLayout === "month";
+  const dayLabel = getCalendarDayLabel(date.date);
 
   const normalBackground = isWeekend ? "bg-layer-1" : "bg-layer-transparent";
   const draggingOverBackground = isWeekend ? "bg-layer-1" : "bg-layer-transparent-hover";
@@ -174,11 +176,11 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
               ? getCalendarMonthShortForDate(date.date) + " "
               : MONTHS_LIST[date.date.getMonth() + 1].shortTitle + " ")}
           {isToday ? (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-primary text-on-color ring-2 ring-accent-primary/40">
-              {getCalendarDayNumber(date.date)}
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-primary px-1 text-on-color ring-2 ring-accent-primary/40">
+              {dayLabel}
             </span>
           ) : (
-            <>{getCalendarDayNumber(date.date)}</>
+            <>{dayLabel}</>
           )}
         </div>
 
@@ -233,7 +235,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
               "ring-2 ring-accent-primary bg-accent-primary/20 text-accent-primary": isToday && !isSelectedDate,
             })}
           >
-            {getCalendarDayNumber(date.date)}
+            {dayLabel}
           </div>
         </div>
       </div>

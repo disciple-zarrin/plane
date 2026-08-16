@@ -4,6 +4,8 @@
  * See the LICENSE file for details.
  */
 
+import { EStartOfTheWeek } from "@plane/types";
+
 /** Detect Persian UI locale (client-side). Used for Jalali calendar display. */
 export const isPersianLocale = (): boolean => {
   if (typeof window === "undefined") {
@@ -24,4 +26,41 @@ export const isPersianLocale = (): boolean => {
   if (document.documentElement?.dir === "rtl") return true;
   // No stored language yet → default to Jalali for this FA build.
   return true;
+};
+
+const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+
+/** Convert ASCII digits to Persian digits. */
+export const toPersianDigits = (value: string | number): string =>
+  String(value).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit);
+
+/** Apply Persian digits when the UI locale is FA. */
+export const localizeDigits = (value: string | number): string =>
+  isPersianLocale() ? toPersianDigits(value) : String(value);
+
+/**
+ * Iranian calendars start on Saturday. Western preference is kept for non-FA.
+ */
+export const getCalendarStartOfWeek = (preference?: EStartOfTheWeek | null): EStartOfTheWeek => {
+  if (isPersianLocale()) return EStartOfTheWeek.SATURDAY;
+  return preference ?? EStartOfTheWeek.SUNDAY;
+};
+
+/**
+ * Weekend days for calendar chrome: Thu+Fri in FA, Sat+Sun otherwise.
+ */
+export const isCalendarWeekend = (date: Date): boolean => {
+  const day = date.getDay();
+  if (isPersianLocale()) return day === EStartOfTheWeek.THURSDAY || day === EStartOfTheWeek.FRIDAY;
+  return day === EStartOfTheWeek.SUNDAY || day === EStartOfTheWeek.SATURDAY;
+};
+
+export const shouldShowCalendarDay = (date: Date, showWeekends: boolean): boolean => {
+  if (showWeekends) return true;
+  return !isCalendarWeekend(date);
+};
+
+export const isCalendarWeekendWeekday = (weekday: EStartOfTheWeek): boolean => {
+  if (isPersianLocale()) return weekday === EStartOfTheWeek.THURSDAY || weekday === EStartOfTheWeek.FRIDAY;
+  return weekday === EStartOfTheWeek.SUNDAY || weekday === EStartOfTheWeek.SATURDAY;
 };
