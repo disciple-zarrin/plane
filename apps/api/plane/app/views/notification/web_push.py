@@ -16,15 +16,15 @@ from plane.utils.web_push import compute_fire_at, vapid_configured
 
 
 class MyPendingIssueAlarmsEndpoint(BaseAPIView):
-    """List enabled, not-yet-fired alarms so any device can schedule them locally."""
+    """List upcoming alarms for sync + settings UI (enabled and recently disabled)."""
 
     def get(self, request):
         now = timezone.now()
         # Include recently due (15m) so a device that just came online still schedules.
+        # Include disabled so the profile list can toggle them back on.
         qs = (
             IssueUserAlarm.objects.filter(
                 user=request.user,
-                enabled=True,
                 fired_at__isnull=True,
                 fire_at__isnull=False,
                 fire_at__gte=now - timedelta(minutes=15),
@@ -148,7 +148,8 @@ class IssueUserAlarmEndpoint(BaseAPIView):
 
         tz_name = request.data.get("timezone") or getattr(request.user, "user_timezone", None) or "UTC"
 
-        fire_at = None
+        existing = IssueUserAlarm.objects.filter(user=request.user, issue_id=issue_id).first()
+        fire_at = existing.fire_at if existing else None
         if enabled:
             if not issue.target_date:
                 return Response(
