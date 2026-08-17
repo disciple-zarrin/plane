@@ -31,9 +31,19 @@ type TCreatePageFn = (args: {
   description_html: string;
 }) => Promise<{ id: string }>;
 
-type TUpdateDescriptionFn = (pageId: string, html: string, title: string) => Promise<void>;
+type TUpdateDescriptionFn = (pageId: string, html: string) => Promise<void>;
 
 type TDeletePageFn = (pageId: string) => Promise<void>;
+
+function toDocumentPayload(html: string) {
+  const safeHtml = html?.trim() ? html : "<p></p>";
+  const binary = getBinaryDataFromDocumentEditorHTMLString(safeHtml);
+  return {
+    description_html: safeHtml,
+    description_binary: convertBinaryDataToBase64String(binary),
+    description_json: {},
+  };
+}
 
 async function importParsedPages(args: {
   file: File;
@@ -51,20 +61,23 @@ async function importParsedPages(args: {
 
   for (const page of ordered) {
     let createdId: string | undefined;
+    let wroteContentOnCreate = false;
     try {
       const oldParent = page.parent;
       const parentId =
         oldParent && idMap.has(oldParent) ? (idMap.get(oldParent) as string) : destinationPageId;
 
-      // Create page first (needed for entity_identifier on assets).
+      let html = page.html?.trim() ? page.html : "<p></p>";
+      wroteContentOnCreate = html !== "<p></p>";
+
+      // Create WITH content so wiki HTML is never empty if binary update fails.
       const created = await createPage({
         name: page.title,
         parent: parentId,
-        description_html: "<p></p>",
+        description_html: html,
       });
       createdId = created.id;
 
-      let html = page.html;
       for (const asset of page.assets) {
         const blob = new Blob([asset.bytes], { type: asset.mime });
         const fileObj = new File([blob], asset.name, { type: asset.mime });
@@ -76,21 +89,27 @@ async function importParsedPages(args: {
         html = html.split(asset.placeholder).join(assetId);
       }
 
-      await updateDescription(created.id, html || "<p></p>", page.title);
-      // Only remap after full success so failed orphans are not parents of later pages.
+      await updateDescription(created.id, html);
       if (page.id) idMap.set(page.id, created.id);
       result.created += 1;
     } catch (e) {
-      if (createdId) {
-        try {
-          await deletePage(createdId);
-        } catch {
-          /* best-effort cleanup */
-        }
-      }
-      result.failed += 1;
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "unknown";
-      result.errors.push(`${page.title}: ${msg}`);
+      if (createdId && wroteContentOnCreate) {
+        // Keep the page — content is already on create.
+        if (page.id) idMap.set(page.id, createdId);
+        result.created += 1;
+        result.errors.push(`${page.title}: هشدار آپدیت — ${msg}`);
+      } else {
+        if (createdId) {
+          try {
+            await deletePage(createdId);
+          } catch {
+            /* best-effort */
+          }
+        }
+        result.failed += 1;
+        result.errors.push(`${page.title}: ${msg}`);
+      }
     }
   }
 
@@ -120,7 +139,8 @@ export async function importMarkdownZipToWiki(args: {
       return { id: page.id };
     },
     updateDescription: async (pageId, html) => {
-      await workspacePageService.updateDescription(workspaceSlug, pageId, { description_html: html });
+      const payload = toDocumentPayload(html);
+      await workspacePageService.updateDescription(workspaceSlug, pageId, payload);
     },
     deletePage: async (pageId) => {
       await workspacePageService.remove(workspaceSlug, pageId);
@@ -158,13 +178,8 @@ export async function importMarkdownZipToProject(args: {
       } as Partial<TPage> & { description_html?: string });
       return { id: page.id };
     },
-    updateDescription: async (pageId, html, title) => {
-      const binary = getBinaryDataFromDocumentEditorHTMLString(html || "<p></p>", title || "");
-      await projectPageService.updateDescription(workspaceSlug, projectId, pageId, {
-        description_html: html,
-        description_binary: convertBinaryDataToBase64String(binary),
-        description_json: {},
-      });
+    updateDescription: async (pageId, html) => {
+      await projectPageService.updateDescription(workspaceSlug, projectId, pageId, toDocumentPayload(html));
     },
     deletePage: async (pageId) => {
       await projectPageService.remove(workspaceSlug, projectId, pageId);

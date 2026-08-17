@@ -30,6 +30,14 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function escapeHtmlText(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function sanitizeImportedHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html || "", "text/html");
   doc.querySelectorAll("script, iframe, object, embed, link[rel='import'], meta").forEach((el) => el.remove());
@@ -43,6 +51,37 @@ function sanitizeImportedHtml(html: string): string {
     });
   });
   return doc.body.innerHTML;
+}
+
+/**
+ * TipTap/document editor is most reliable with plain <p> blocks.
+ * Prefer that for line-oriented docs; fall back to marked for richer markdown.
+ */
+function markdownBodyToEditorHtml(body: string): string {
+  const withoutTitle = body.replace(/^#\s.+\n+/, "").trim();
+  if (!withoutTitle) return "<p></p>";
+
+  // Already HTML (from export tools) — sanitize and keep.
+  if (/<(p|h[1-6]|ul|ol|li|blockquote|table|image-component|img)\b/i.test(withoutTitle)) {
+    return sanitizeImportedHtml(withoutTitle) || "<p></p>";
+  }
+
+  const lines = withoutTitle
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  // Plain / numbered / bullet lines → one paragraph each (RTL-friendly).
+  const looksPlain =
+    lines.length > 0 &&
+    lines.every((l) => !l.startsWith("```") && !l.startsWith("|") && !/^#{1,6}\s/.test(l));
+  if (looksPlain) {
+    return lines.map((line) => `<p dir="rtl">${escapeHtmlText(line)}</p>`).join("");
+  }
+
+  const htmlRaw = marked.parse(withoutTitle, { async: false }) as string;
+  const html = sanitizeImportedHtml(typeof htmlRaw === "string" ? htmlRaw : String(htmlRaw));
+  return html?.trim() ? html : "<p></p>";
 }
 
 function resolveAssetFetchUrl(src: string, opts: TMarkdownZipBuildOptions): string | null {
@@ -346,8 +385,7 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
         body = body.split(m[0]).join(`![image](${placeholder})`);
       }
 
-      const htmlRaw = await marked.parse(body.replace(/^#\s.+\n+/, ""));
-      let html = sanitizeImportedHtml(typeof htmlRaw === "string" ? htmlRaw : String(htmlRaw));
+      let html = markdownBodyToEditorHtml(body);
       // Convert placeholder <img> tags into Plane image-component shells (src still placeholder).
       for (const asset of assets) {
         const imgTagRe = new RegExp(
@@ -359,6 +397,7 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
           `<image-component src="${asset.placeholder}" width="35%" height="auto" status="uploaded"></image-component>`
         );
       }
+      if (!html?.trim()) html = "<p></p>";
 
       return {
         id,
