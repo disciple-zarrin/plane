@@ -20,7 +20,7 @@ import { PageHead } from "@/components/core/page-title";
 import { DocumentEditor } from "@/components/editor/document/editor";
 import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 import { ExportPageModal } from "@/components/pages/modals/export-page-modal";
-import { parseMarkdownZip } from "@/components/pages/export/markdown-zip";
+import { importMarkdownZipToWiki } from "@/components/pages/export/import-markdown";
 import { registerSubpageCreateHandler } from "@/components/pages/subpage-create-bridge";
 import { WikiVersionPanel } from "@/components/pages/wiki/wiki-version-panel";
 import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
@@ -252,19 +252,26 @@ export default observer(function WikiDetailPage() {
             onChange={async (e) => {
               const file = e.target.files?.[0];
               e.target.value = "";
-              if (!file || !slug) return;
+              if (!file || !slug || !id) return;
               try {
-                const parsed = await parseMarkdownZip(file);
-                await parsed.reduce<Promise<void>>(async (chain, p) => {
-                  await chain;
-                  const parentId = p.parent && p.parent !== id ? p.parent : id;
-                  await pageService.create(slug, {
-                    name: p.title,
-                    parent: parentId === id ? id : parentId,
-                    description_html: p.html,
-                  } as Partial<TPage> & { description_html?: string });
-                }, Promise.resolve());
-                setToast({ type: TOAST_TYPE.SUCCESS, title: "ایمپورت شد", message: `${parsed.length} صفحه` });
+                const result = await importMarkdownZipToWiki({
+                  file,
+                  workspaceSlug: slug,
+                  destinationPageId: id,
+                });
+                if (result.failed === 0) {
+                  setToast({
+                    type: TOAST_TYPE.SUCCESS,
+                    title: "ایمپورت شد",
+                    message: `${result.created} صفحه`,
+                  });
+                } else {
+                  setToast({
+                    type: TOAST_TYPE.ERROR,
+                    title: "ایمپورت ناقص",
+                    message: `${result.created} موفق، ${result.failed} ناموفق`,
+                  });
+                }
                 await load();
               } catch {
                 setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق" });

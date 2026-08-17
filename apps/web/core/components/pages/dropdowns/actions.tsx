@@ -39,6 +39,7 @@ export type TPageActions =
   | "delete"
   | "version-history"
   | "export"
+  | "import-markdown"
   | "move";
 
 type Props = {
