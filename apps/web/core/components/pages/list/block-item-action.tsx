@@ -6,7 +6,8 @@
 
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
-import { ArrowUpToLine, Earth, Info, Minus } from "lucide-react";
+import { useParams } from "next/navigation";
+import { ArrowUpToLine, Earth, Info, Minus, Upload } from "lucide-react";
 // plane imports
 import { LockIcon } from "@plane/propel/icons";
 import { Tooltip } from "@plane/propel/tooltip";
@@ -17,11 +18,13 @@ import { useMember } from "@/hooks/store/use-member";
 import { usePageOperations } from "@/hooks/use-page-operations";
 // plane web hooks
 import type { EPageStoreType } from "@/hooks/store";
+import { usePageStore } from "@/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageActions } from "../dropdowns";
 import { ExportPageModal } from "../modals/export-page-modal";
+import { ImportMarkdownModal } from "../modals/import-markdown-modal";
 
 type Props = {
   page: TPageInstance;
@@ -32,20 +35,32 @@ type Props = {
 export const BlockItemAction = observer(function BlockItemAction(props: Props) {
   const { page, parentRef, storeType } = props;
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const { workspaceSlug, projectId } = useParams();
+  const pageStore = usePageStore(storeType);
   const { getUserDetails } = useMember();
   const { pageOperations } = usePageOperations({
     page,
   });
   const { access, created_at, is_favorite, owned_by, canCurrentUserFavoritePage, name, id } = page;
   const ownerDetails = owned_by ? getUserDetails(owned_by) : undefined;
+  const slug = workspaceSlug?.toString() || "";
+  const pid = projectId?.toString() || page.project_ids?.[0] || "";
 
   const EXTRA_MENU_OPTIONS = useMemo(
     () => [
       {
         key: "export" as const,
         action: () => setIsExportModalOpen(true),
-        title: "خروجی (PDF / Word / Markdown)",
+        title: "خروجی (PDF / Word / ZIP)",
         icon: ArrowUpToLine,
+        shouldRender: true,
+      },
+      {
+        key: "import-markdown" as const,
+        action: () => setIsImportModalOpen(true),
+        title: "ایمپورت ZIP مارک‌داون",
+        icon: Upload,
         shouldRender: true,
       },
     ],
@@ -63,6 +78,20 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
         exportContext="project"
         isRtl={Boolean(page.view_props?.is_rtl)}
       />
+      {id && slug && pid && (
+        <ImportMarkdownModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          context="project"
+          workspaceSlug={slug}
+          projectId={pid}
+          destinationPageId={id}
+          destinationPageTitle={name || "بدون عنوان"}
+          onSuccess={async () => {
+            await pageStore.fetchPagesList(slug, pid);
+          }}
+        />
+      )}
       <div className="cursor-default">
         <Tooltip tooltipHeading="Owned by" tooltipContent={ownerDetails?.display_name}>
           <Avatar src={getFileURL(ownerDetails?.avatar_url ?? "")} name={ownerDetails?.display_name} />
@@ -98,6 +127,7 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
           "open-in-new-tab",
           "copy-link",
           "export",
+          "import-markdown",
           "make-a-copy",
           "toggle-lock",
           "toggle-access",

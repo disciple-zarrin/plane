@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ArrowUpToLine, Clipboard, History, Upload } from "lucide-react";
@@ -18,13 +18,13 @@ import { useQueryParams } from "@/hooks/use-query-params";
 // plane web imports
 import type { TPageNavigationPaneTab } from "@/components/pages/navigation-pane/tab-panels";
 import type { EPageStoreType } from "@/hooks/store";
-import { EPageStoreType as PageStoreType } from "@/hooks/store";
+import { EPageStoreType as PageStoreType, usePageStore } from "@/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
-import { importMarkdownZipToProject } from "../../export/import-markdown";
 import { PageActions } from "../../dropdowns";
 import { ExportPageModal } from "../../modals/export-page-modal";
+import { ImportMarkdownModal } from "../../modals/import-markdown-modal";
 import { PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM } from "../../navigation-pane";
 
 type Props = {
@@ -36,11 +36,11 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
   const { page, storeType } = props;
   // states
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
-  const importInputRef = useRef<HTMLInputElement>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   // navigation
   const router = useAppRouter();
   const { workspaceSlug, projectId } = useParams();
+  const pageStore = usePageStore(PageStoreType.PROJECT);
   // store values
   const {
     name,
@@ -52,50 +52,8 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
   // query params
   const { updateQueryParams } = useQueryParams();
 
-  const handleImportMarkdown = async (file: File) => {
-    const slug = workspaceSlug?.toString();
-    const pid = projectId?.toString() || page.project_ids?.[0];
-    const pageId = page.id;
-    if (!slug || !pid || !pageId) {
-      setToast({
-        type: TOAST_TYPE.ERROR,
-        title: "ایمپورت ناموفق",
-        message: "شناسه فضای کاری یا پروژه در دسترس نیست.",
-      });
-      return;
-    }
-    if (isImportingMarkdown) return;
-    setIsImportingMarkdown(true);
-    try {
-      const result = await importMarkdownZipToProject({
-        file,
-        workspaceSlug: slug,
-        projectId: pid,
-        destinationPageId: pageId,
-      });
-      const errorHint = result.errors.length ? `\n${result.errors.slice(0, 3).join("\n")}` : "";
-      if (result.failed === 0) {
-        setToast({
-          type: TOAST_TYPE.SUCCESS,
-          title: "ایمپورت شد",
-          message: `${result.created} صفحه`,
-        });
-        window.location.reload();
-      } else {
-        setToast({
-          type: TOAST_TYPE.ERROR,
-          title: "ایمپورت ناقص",
-          message: `${result.created} موفق، ${result.failed} ناموفق${errorHint}`,
-        });
-        if (result.created > 0) window.location.reload();
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : undefined;
-      setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق", message: msg });
-    } finally {
-      setIsImportingMarkdown(false);
-    }
-  };
+  const slug = workspaceSlug?.toString() || "";
+  const pid = projectId?.toString() || page.project_ids?.[0] || "";
 
   // menu items list
   const EXTRA_MENU_OPTIONS = useMemo(
@@ -106,7 +64,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
           action: () => handleFullWidth(!isFullWidth),
           customContent: (
             <>
-              Full width
+              تمام‌عرض
               <ToggleSwitch value={isFullWidth} onChange={() => {}} />
             </>
           ),
@@ -117,7 +75,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
           action: () => handleStickyToolbar(!isStickyToolbarEnabled),
           customContent: (
             <>
-              Sticky toolbar
+              نوار ابزار چسبان
               <ToggleSwitch value={isStickyToolbarEnabled} onChange={() => {}} />
             </>
           ),
@@ -131,11 +89,11 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
             editorRef.copyMarkdownToClipboard();
             setToast({
               type: TOAST_TYPE.SUCCESS,
-              title: "Success!",
-              message: "Markdown copied to clipboard.",
+              title: "موفق",
+              message: "مارک‌داون در کلیپ‌بورد کپی شد.",
             });
           },
-          title: "Copy markdown",
+          title: "کپی مارک‌داون",
           icon: Clipboard,
           shouldRender: true,
         },
@@ -156,17 +114,14 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
         {
           key: "export",
           action: () => setIsExportModalOpen(true),
-          title: "خروجی (PDF / Word / Markdown)",
+          title: "خروجی (PDF / Word / ZIP)",
           icon: ArrowUpToLine,
           shouldRender: true,
         },
         {
           key: "import-markdown",
-          action: () => {
-            if (isImportingMarkdown) return;
-            importInputRef.current?.click();
-          },
-          title: isImportingMarkdown ? "در حال ایمپورت…" : "ایمپورت Markdown",
+          action: () => setIsImportModalOpen(true),
+          title: "ایمپورت ZIP مارک‌داون",
           icon: Upload,
           shouldRender: true,
         },
@@ -181,24 +136,11 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
       editorRef,
       updateQueryParams,
       router,
-      setIsExportModalOpen,
-      isImportingMarkdown,
     ]
   );
 
   return (
     <>
-      <input
-        ref={importInputRef}
-        type="file"
-        accept=".zip,application/zip"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          if (file) void handleImportMarkdown(file);
-        }}
-      />
       <ExportPageModal
         editorRef={editorRef}
         isOpen={isExportModalOpen}
@@ -208,6 +150,22 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
         exportContext={storeType === PageStoreType.PROJECT ? "project" : "wiki"}
         isRtl={Boolean(page.view_props?.is_rtl)}
       />
+      {page.id && slug && (
+        <ImportMarkdownModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          context={storeType === PageStoreType.PROJECT ? "project" : "wiki"}
+          workspaceSlug={slug}
+          projectId={pid || undefined}
+          destinationPageId={page.id}
+          destinationPageTitle={name || "بدون عنوان"}
+          onSuccess={async () => {
+            if (pid) {
+              await pageStore.fetchPagesList(slug, pid);
+            }
+          }}
+        />
+      )}
       <PageActions
         extraOptions={EXTRA_MENU_OPTIONS}
         optionsOrder={[

@@ -60,7 +60,7 @@ type TFormValues = {
 const EXPORT_FORMATS: { key: TExportFormats; label: string }[] = [
   { key: "pdf", label: "PDF" },
   { key: "docx", label: "Word (DOCX)" },
-  { key: "markdown", label: "Markdown (+ تصاویر)" },
+  { key: "markdown", label: "ZIP مارک‌داون (+ تصاویر)" },
 ];
 
 const PAGE_FORMATS: { key: TPageFormats; label: string }[] = [
@@ -216,12 +216,21 @@ export function ExportPageModal(props: Props) {
     if (pageId) {
       if (!workspaceSlug) throw new Error("missing workspace");
       const tree = await prepareTree();
-      const blob = await buildMarkdownZipFromTree(tree, {
+      const result = await buildMarkdownZipFromTree(tree, {
         workspaceSlug: workspaceSlug.toString(),
         projectId: exportContext === "project" ? projectId?.toString() : undefined,
+        noAssets: selectedContentVariety === "no-assets",
       });
-      initiateDownload(blob, `${fileName}-export.zip`);
-      return;
+      initiateDownload(result.blob, `${fileName}-export.zip`);
+      if (result.failedAssets.length > 0) {
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خروجی ناقص",
+          message: `${result.pageCount} صفحه ذخیره شد، ولی ${result.failedAssets.length} تصویر دریافت نشد.`,
+        });
+        return "partial";
+      }
+      return "ok";
     }
     const liveMd = editorRef?.getMarkDown() ?? "";
     const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
@@ -230,6 +239,7 @@ export function ExportPageModal(props: Props) {
     });
     const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
     initiateDownload(blob, `${fileName}.md`);
+    return "ok";
   };
 
   const handleExportAsDocx = async () => {
@@ -262,10 +272,13 @@ export function ExportPageModal(props: Props) {
   const handleExport = async () => {
     setIsExporting(true);
     try {
+      let markdownStatus: "ok" | "partial" | undefined;
       if (selectedExportFormat === "pdf") await handleExportAsPDF();
-      if (selectedExportFormat === "markdown") await handleExportAsMarkdown();
+      if (selectedExportFormat === "markdown") markdownStatus = await handleExportAsMarkdown();
       if (selectedExportFormat === "docx") await handleExportAsDocx();
-      setToast({ type: TOAST_TYPE.SUCCESS, title: "موفق", message: "خروجی آماده شد." });
+      if (markdownStatus !== "partial") {
+        setToast({ type: TOAST_TYPE.SUCCESS, title: "موفق", message: "خروجی آماده شد." });
+      }
       handleClose();
     } catch (error) {
       console.error(error);

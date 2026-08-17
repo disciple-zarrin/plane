@@ -20,7 +20,7 @@ import { PageHead } from "@/components/core/page-title";
 import { DocumentEditor } from "@/components/editor/document/editor";
 import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 import { ExportPageModal } from "@/components/pages/modals/export-page-modal";
-import { importMarkdownZipToWiki } from "@/components/pages/export/import-markdown";
+import { ImportMarkdownModal } from "@/components/pages/modals/import-markdown-modal";
 import { registerSubpageCreateHandler } from "@/components/pages/subpage-create-bridge";
 import { WikiVersionPanel } from "@/components/pages/wiki/wiki-version-panel";
 import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
@@ -59,8 +59,7 @@ export default observer(function WikiDetailPage() {
   const [initialHtml, setInitialHtml] = useState("<p></p>");
   const [exportOpen, setExportOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
-  const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
-  const importInputRef = useRef<HTMLInputElement>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!slug || !id) return;
@@ -245,64 +244,18 @@ export default observer(function WikiDetailPage() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <EditorRtlToggle editorRef={editorRef} />
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".zip,application/zip"
-            className="hidden"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              e.target.value = "";
-              if (!file || !slug || !id) return;
-              if (isImportingMarkdown) return;
-              setIsImportingMarkdown(true);
-              try {
-                const result = await importMarkdownZipToWiki({
-                  file,
-                  workspaceSlug: slug,
-                  destinationPageId: id,
-                });
-                const errorHint = result.errors.length ? `\n${result.errors.slice(0, 3).join("\n")}` : "";
-                if (result.failed === 0) {
-                  setToast({
-                    type: TOAST_TYPE.SUCCESS,
-                    title: "ایمپورت شد",
-                    message: `${result.created} صفحه`,
-                  });
-                } else {
-                  setToast({
-                    type: TOAST_TYPE.ERROR,
-                    title: "ایمپورت ناقص",
-                    message: `${result.created} موفق، ${result.failed} ناموفق${errorHint}`,
-                  });
-                }
-                await load();
-              } catch (err) {
-                const msg = err instanceof Error ? err.message : undefined;
-                setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق", message: msg });
-              } finally {
-                setIsImportingMarkdown(false);
-              }
-            }}
-          />
           <CustomMenu placement="bottom-end" ellipsis closeOnSelect>
             <CustomMenu.MenuItem onClick={() => setExportOpen(true)} className="flex items-center gap-2">
               <ArrowUpToLine className="size-3" />
-              خروجی (PDF / Word / Markdown)
+              خروجی (PDF / Word / ZIP)
             </CustomMenu.MenuItem>
             <CustomMenu.MenuItem onClick={() => setVersionsOpen(true)} className="flex items-center gap-2">
               <History className="size-3" />
               تاریخچه نسخه‌ها
             </CustomMenu.MenuItem>
-            <CustomMenu.MenuItem
-              onClick={() => {
-                if (isImportingMarkdown) return;
-                importInputRef.current?.click();
-              }}
-              className="flex items-center gap-2"
-            >
+            <CustomMenu.MenuItem onClick={() => setImportOpen(true)} className="flex items-center gap-2">
               <Upload className="size-3" />
-              {isImportingMarkdown ? "در حال ایمپورت…" : "ایمپورت Markdown"}
+              ایمپورت ZIP مارک‌داون
             </CustomMenu.MenuItem>
             <CustomMenu.MenuItem
               onClick={() => void createChild()}
@@ -339,6 +292,19 @@ export default observer(function WikiDetailPage() {
         exportContext="wiki"
         isRtl={Boolean(page?.view_props?.is_rtl)}
       />
+      {id && slug && (
+        <ImportMarkdownModal
+          isOpen={importOpen}
+          onClose={() => setImportOpen(false)}
+          context="wiki"
+          workspaceSlug={slug}
+          destinationPageId={id}
+          destinationPageTitle={title || "بدون عنوان"}
+          onSuccess={async () => {
+            await load();
+          }}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[720px] px-6 py-8">

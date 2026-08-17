@@ -19,6 +19,12 @@ export type TMarkdownImportResult = {
   errors: string[];
 };
 
+export type TMarkdownImportProgress = {
+  done: number;
+  total: number;
+  currentTitle?: string;
+};
+
 type TUploadFn = (args: {
   blockId: string;
   file: File;
@@ -52,14 +58,18 @@ async function importParsedPages(args: {
   updateDescription: TUpdateDescriptionFn;
   uploadAsset: TUploadFn;
   deletePage: TDeletePageFn;
+  onProgress?: (progress: TMarkdownImportProgress) => void;
 }): Promise<TMarkdownImportResult> {
-  const { file, destinationPageId, createPage, updateDescription, uploadAsset, deletePage } = args;
+  const { file, destinationPageId, createPage, updateDescription, uploadAsset, deletePage, onProgress } = args;
   const parsed = await parseMarkdownZip(file);
   const ordered = topoSortParsedPages(parsed);
   const idMap = new Map<string, string>();
   const result: TMarkdownImportResult = { created: 0, failed: 0, errors: [] };
+  const total = ordered.length;
 
-  for (const page of ordered) {
+  for (let i = 0; i < ordered.length; i++) {
+    const page = ordered[i];
+    onProgress?.({ done: i, total, currentTitle: page.title });
     let createdId: string | undefined;
     let wroteContentOnCreate = false;
     try {
@@ -113,6 +123,7 @@ async function importParsedPages(args: {
     }
   }
 
+  onProgress?.({ done: total, total });
   return result;
 }
 
@@ -125,11 +136,13 @@ export async function importMarkdownZipToWiki(args: {
   file: File;
   workspaceSlug: string;
   destinationPageId: string;
+  onProgress?: (progress: TMarkdownImportProgress) => void;
 }): Promise<TMarkdownImportResult> {
-  const { file, workspaceSlug, destinationPageId } = args;
+  const { file, workspaceSlug, destinationPageId, onProgress } = args;
   return importParsedPages({
     file,
     destinationPageId,
+    onProgress,
     createPage: async ({ name, parent, description_html }) => {
       const page = await workspacePageService.create(workspaceSlug, {
         name,
@@ -165,11 +178,13 @@ export async function importMarkdownZipToProject(args: {
   workspaceSlug: string;
   projectId: string;
   destinationPageId: string;
+  onProgress?: (progress: TMarkdownImportProgress) => void;
 }): Promise<TMarkdownImportResult> {
-  const { file, workspaceSlug, projectId, destinationPageId } = args;
+  const { file, workspaceSlug, projectId, destinationPageId, onProgress } = args;
   return importParsedPages({
     file,
     destinationPageId,
+    onProgress,
     createPage: async ({ name, parent, description_html }) => {
       const page = await projectPageService.create(workspaceSlug, projectId, {
         name,

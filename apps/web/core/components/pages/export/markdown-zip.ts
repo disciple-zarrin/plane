@@ -18,12 +18,22 @@ const MAX_ASSET_BYTES = 15 * 1024 * 1024;
 export type TMarkdownZipBuildOptions = {
   workspaceSlug: string;
   projectId?: string;
+  /** Skip downloading/embedding images into the ZIP. */
+  noAssets?: boolean;
+};
+
+export type TMarkdownZipBuildResult = {
+  blob: Blob;
+  pageCount: number;
+  assetCount: number;
+  failedAssets: string[];
 };
 
 type TAssetExportRegistry = {
   counter: number;
   /** Original src → ../assets/img_N.ext */
   rewritten: Map<string, string>;
+  failed: string[];
 };
 
 function escapeRegExp(value: string): string {
@@ -234,20 +244,34 @@ async function extractAndRewriteImages(
     (u) => u && !u.startsWith("data:") && !u.startsWith("./") && !u.startsWith("../")
   );
 
+  if (opts.noAssets) {
+    // Strip image components so MD does not keep dangling asset ids.
+    return html
+      .replace(/<image-component[^>]*\/?>/gi, "")
+      .replace(/<image-component[^>]*>[\s\S]*?<\/image-component>/gi, "")
+      .replace(/<img\b[^>]*\/?>/gi, "");
+  }
+
   for (const url of unique) {
     if (registry.rewritten.has(url)) continue;
     try {
       const fetchUrl = resolveAssetFetchUrl(url, opts);
-      if (!fetchUrl) continue;
+      if (!fetchUrl) {
+        registry.failed.push(url);
+        continue;
+      }
       const res = await fetch(fetchUrl, { credentials: "include" });
-      if (!res.ok) continue;
+      if (!res.ok) {
+        registry.failed.push(url);
+        continue;
+      }
       const buf = await res.arrayBuffer();
       const ext = extFromUrlOrType(url, res.headers.get("content-type"));
       const name = `img_${registry.counter++}.${ext}`;
       zip.file(`assets/${name}`, buf);
       registry.rewritten.set(url, `../assets/${name}`);
     } catch {
-      /* skip failed asset */
+      registry.failed.push(url);
     }
   }
 
@@ -261,7 +285,7 @@ async function extractAndRewriteImages(
 export async function buildMarkdownZipFromTree(
   tree: TExportTree,
   opts: TMarkdownZipBuildOptions
-): Promise<Blob> {
+): Promise<TMarkdownZipBuildResult> {
   const zip = new JSZip();
   const ordered = flattenExportTree(tree);
   const localeRtl = treeIsRtl(tree);
@@ -269,7 +293,7 @@ export async function buildMarkdownZipFromTree(
   const indexTitle = localeRtl ? "خروجی ویکی" : "Wiki export";
   const indexPages = localeRtl ? "صفحات" : "Pages";
   const indexLines = [`# ${indexTitle}`, "", `## ${indexPages}`, ""];
-  const registry: TAssetExportRegistry = { counter: 0, rewritten: new Map() };
+  const registry: TAssetExportRegistry = { counter: 0, rewritten: new Map(), failed: [] };
 
   // Sequential so shared assets get one global name (no img_0 clobber across pages).
   for (const page of ordered) {
@@ -294,7 +318,13 @@ export async function buildMarkdownZipFromTree(
   }
 
   zip.file("index.md", `${indexLines.join("\n")}\n`);
-  return zip.generateAsync({ type: "blob" });
+  const blob = await zip.generateAsync({ type: "blob" });
+  return {
+    blob,
+    pageCount: ordered.length,
+    assetCount: registry.counter,
+    failedAssets: [...new Set(registry.failed)],
+  };
 }
 
 export type TParsedMdAsset = {
@@ -440,4 +470,10 @@ export function topoSortParsedPages(pages: TParsedMdPage[]): TParsedMdPage[] {
     if (!done.has(page.id || page.filename)) ordered.push(page);
   }
   return ordered;
+}
+
+/** Quick peek: page count inside a Markdown export ZIP (for import confirm UI). */
+export async function peekMarkdownZipPageCount(file: File): Promise<number> {
+  const pages = await parseMarkdownZip(file);
+  return pages.length;
 }
