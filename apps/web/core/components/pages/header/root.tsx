@@ -4,16 +4,20 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
-import { ListFilter } from "lucide-react";
+import { ArrowUpToLine, ListFilter, Upload } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import type { TPageFilterProps, TPageNavigationTabs } from "@plane/types";
-import { Header, EHeaderVariant } from "@plane/ui";
+import { Button } from "@plane/propel/button";
+import { Header, CustomSelect, EHeaderVariant } from "@plane/ui";
 import { calculateTotalFilters } from "@plane/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
+import { ExportPageModal } from "@/components/pages/modals/export-page-modal";
+import { ImportMarkdownModal } from "@/components/pages/modals/import-markdown-modal";
+import type { TImportDestinationOption } from "@/components/pages/modals/import-markdown-modal";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { usePageStore } from "@/hooks/store";
@@ -36,10 +40,14 @@ export const PagesListHeaderRoot = observer(function PagesListHeaderRoot(props: 
   const { pageType, projectId, storeType, workspaceSlug } = props;
   const { t } = useTranslation();
   // store hooks
-  const { filters, updateFilters, clearAllFilters } = usePageStore(storeType);
+  const { filters, updateFilters, clearAllFilters, getCurrentProjectPageIdsByTab, getPageById, fetchPagesList } =
+    usePageStore(storeType);
   const {
     workspace: { workspaceMemberIds },
   } = useMember();
+  const [selectedPageId, setSelectedPageId] = useState<string>("");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const handleRemoveFilter = useCallback(
     (key: keyof TPageFilterProps, value: string | null) => {
@@ -57,9 +65,58 @@ export const PagesListHeaderRoot = observer(function PagesListHeaderRoot(props: 
   );
 
   const isFiltersApplied = calculateTotalFilters(filters?.filters ?? {}) !== 0;
+  const rootPageIds = getCurrentProjectPageIdsByTab(pageType) ?? [];
+  const destinationOptions: TImportDestinationOption[] = useMemo(
+    () =>
+      rootPageIds
+        .map((id) => {
+          const page = getPageById(id);
+          return page?.id ? { id: page.id, title: page.name || "بدون عنوان", depth: 0 } : null;
+        })
+        .filter((opt): opt is TImportDestinationOption => !!opt),
+    [getPageById, rootPageIds]
+  );
+
+  useEffect(() => {
+    if (!destinationOptions.length) {
+      setSelectedPageId("");
+      return;
+    }
+    if (!selectedPageId || !destinationOptions.some((opt) => opt.id === selectedPageId)) {
+      setSelectedPageId(destinationOptions[0].id);
+    }
+  }, [destinationOptions, selectedPageId]);
+
+  const selectedPageTitle = destinationOptions.find((opt) => opt.id === selectedPageId)?.title || "بدون عنوان";
 
   return (
     <>
+      {selectedPageId && (
+        <>
+          <ExportPageModal
+            editorRef={null}
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            pageTitle={selectedPageTitle}
+            pageId={selectedPageId}
+            exportContext="project"
+          />
+          <ImportMarkdownModal
+            isOpen={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            context="project"
+            workspaceSlug={workspaceSlug}
+            projectId={projectId}
+            destinationPageId={selectedPageId}
+            destinationPageTitle={selectedPageTitle}
+            destinationOptions={destinationOptions}
+            onDestinationChange={setSelectedPageId}
+            onSuccess={async () => {
+              await fetchPagesList(workspaceSlug, projectId, pageType);
+            }}
+          />
+        </>
+      )}
       <Header variant={EHeaderVariant.SECONDARY}>
         <Header.LeftItem>
           <PageTabNavigation workspaceSlug={workspaceSlug} projectId={projectId} pageType={pageType} />
@@ -89,6 +146,32 @@ export const PagesListHeaderRoot = observer(function PagesListHeaderRoot(props: 
               memberIds={workspaceMemberIds ?? undefined}
             />
           </FiltersDropdown>
+          {destinationOptions.length > 0 && (
+            <>
+              <CustomSelect
+                label={selectedPageTitle}
+                buttonClassName="border-none max-w-[180px]"
+                value={selectedPageId}
+                onChange={(val: string) => setSelectedPageId(val)}
+                className="flex-shrink-0"
+                placement="bottom-end"
+              >
+                {destinationOptions.map((opt) => (
+                  <CustomSelect.Option key={opt.id} value={opt.id}>
+                    {opt.title}
+                  </CustomSelect.Option>
+                ))}
+              </CustomSelect>
+              <Button variant="secondary" size="sm" onClick={() => setIsExportModalOpen(true)}>
+                <ArrowUpToLine className="size-3.5" />
+                خروجی ZIP
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setIsImportModalOpen(true)}>
+                <Upload className="size-3.5" />
+                ایمپورت ZIP
+              </Button>
+            </>
+          )}
         </Header.RightItem>
       </Header>
       {calculateTotalFilters(filters?.filters ?? {}) !== 0 && (
