@@ -6,9 +6,79 @@
 
 import JSZip from "jszip";
 import { marked } from "marked";
-import { convertHTMLToMarkdown } from "@plane/utils";
+import { convertHTMLToMarkdown, getAssetIdFromUrl, getEditorAssetSrc, getFileURL } from "@plane/utils";
 import type { TExportTree, TExportTreePage } from "@/services/page/page-export.service";
 import { exportLabels, flattenExportTree, stripHtmlToText, treeIsRtl } from "./tree-utils";
+
+const MAX_ZIP_BYTES = 50 * 1024 * 1024;
+const MAX_PAGES = 200;
+const MAX_ASSETS_PER_PAGE = 100;
+const MAX_ASSET_BYTES = 15 * 1024 * 1024;
+
+export type TMarkdownZipBuildOptions = {
+  workspaceSlug: string;
+  projectId?: string;
+};
+
+type TAssetExportRegistry = {
+  counter: number;
+  /** Original src → ../assets/img_N.ext */
+  rewritten: Map<string, string>;
+};
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sanitizeImportedHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  doc.querySelectorAll("script, iframe, object, embed, link[rel='import'], meta").forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    [...el.attributes].forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith("on")) el.removeAttribute(attr.name);
+      if ((name === "href" || name === "src") && /^\s*javascript:/i.test(attr.value)) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return doc.body.innerHTML;
+}
+
+function resolveAssetFetchUrl(src: string, opts: TMarkdownZipBuildOptions): string | null {
+  if (!src || src.startsWith("data:")) return null;
+  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("blob:")) return src;
+
+  let assetId = src;
+  try {
+    assetId = getAssetIdFromUrl(src);
+  } catch {
+    /* keep raw */
+  }
+
+  const fromEditor = getEditorAssetSrc({
+    assetId,
+    workspaceSlug: opts.workspaceSlug,
+    projectId: opts.projectId,
+  });
+  if (fromEditor) return fromEditor;
+
+  if (src.startsWith("/")) return getFileURL(src) ?? src;
+  return getFileURL(src) ?? null;
+}
+
+function extFromUrlOrType(url: string, contentType: string | null): string {
+  if (contentType?.includes("png")) return "png";
+  if (contentType?.includes("jpeg") || contentType?.includes("jpg")) return "jpg";
+  if (contentType?.includes("gif")) return "gif";
+  if (contentType?.includes("webp")) return "webp";
+  if (contentType?.includes("svg")) return "svg";
+  const fromUrl = (url.split("?")[0].split(".").pop() || "").replace(/[^a-z0-9]/gi, "").slice(0, 4);
+  if (fromUrl && ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(fromUrl.toLowerCase())) {
+    return fromUrl.toLowerCase() === "jpeg" ? "jpg" : fromUrl.toLowerCase();
+  }
+  return "png";
+}
 
 function pageMdPath(id: string) {
   return `pages/${id}.md`;
@@ -112,38 +182,47 @@ function rewriteMentionsToRelativeLinks(html: string, pages: TExportTreePage[], 
   });
 }
 
-async function extractAndRewriteImages(html: string, zip: JSZip): Promise<string> {
+async function extractAndRewriteImages(
+  html: string,
+  zip: JSZip,
+  opts: TMarkdownZipBuildOptions,
+  registry: TAssetExportRegistry
+): Promise<string> {
   // Plane editor stores images as <image-component src="assetId">; also handle plain <img>.
   const imgRe = /<(?:img|image-component)[^>]+src=["']([^"']+)["'][^>]*>/gi;
   const urls = [...html.matchAll(imgRe)].map((m) => m[1]).filter(Boolean);
-  const unique = [...new Set(urls)].filter((u) => u && !u.startsWith("data:") && !u.startsWith("./") && !u.startsWith("../"));
-
-  const fetched = await Promise.all(
-    unique.map(async (url, i) => {
-      try {
-        // Asset ids are resolved via signed URLs elsewhere; absolute http(s) fetch works for live URLs.
-        const fetchUrl = url.startsWith("http") ? url : url;
-        const res = await fetch(fetchUrl);
-        if (!res.ok) return null;
-        const buf = await res.arrayBuffer();
-        const ext = (url.split("?")[0].split(".").pop() || "png").replace(/[^a-z0-9]/gi, "").slice(0, 4) || "png";
-        const name = `img_${i}.${ext}`;
-        zip.file(`assets/${name}`, buf);
-        return { from: url, to: `../assets/${name}` };
-      } catch {
-        return null;
-      }
-    })
+  const unique = [...new Set(urls)].filter(
+    (u) => u && !u.startsWith("data:") && !u.startsWith("./") && !u.startsWith("../")
   );
 
+  for (const url of unique) {
+    if (registry.rewritten.has(url)) continue;
+    try {
+      const fetchUrl = resolveAssetFetchUrl(url, opts);
+      if (!fetchUrl) continue;
+      const res = await fetch(fetchUrl, { credentials: "include" });
+      if (!res.ok) continue;
+      const buf = await res.arrayBuffer();
+      const ext = extFromUrlOrType(url, res.headers.get("content-type"));
+      const name = `img_${registry.counter++}.${ext}`;
+      zip.file(`assets/${name}`, buf);
+      registry.rewritten.set(url, `../assets/${name}`);
+    } catch {
+      /* skip failed asset */
+    }
+  }
+
   let result = html;
-  for (const r of fetched) {
-    if (r) result = result.split(r.from).join(r.to);
+  for (const [from, to] of registry.rewritten) {
+    if (result.includes(from)) result = result.split(from).join(to);
   }
   return result;
 }
 
-export async function buildMarkdownZipFromTree(tree: TExportTree): Promise<Blob> {
+export async function buildMarkdownZipFromTree(
+  tree: TExportTree,
+  opts: TMarkdownZipBuildOptions
+): Promise<Blob> {
   const zip = new JSZip();
   const ordered = flattenExportTree(tree);
   const localeRtl = treeIsRtl(tree);
@@ -151,31 +230,28 @@ export async function buildMarkdownZipFromTree(tree: TExportTree): Promise<Blob>
   const indexTitle = localeRtl ? "خروجی ویکی" : "Wiki export";
   const indexPages = localeRtl ? "صفحات" : "Pages";
   const indexLines = [`# ${indexTitle}`, "", `## ${indexPages}`, ""];
+  const registry: TAssetExportRegistry = { counter: 0, rewritten: new Map() };
 
-  const pageFiles = await Promise.all(
-    ordered.map(async (page) => {
-      let html = rewriteMentionsToRelativeLinks(page.description_html || "<p></p>", tree.pages, labels.page);
-      html = await extractAndRewriteImages(html, zip);
-      const mdBody = htmlToMarkdownPreservingDirection(html);
-      const frontmatter = [
-        "---",
-        `id: ${page.id}`,
-        `parent: ${page.parent ?? "null"}`,
-        `title: ${JSON.stringify(page.name || labels.untitled)}`,
-        "---",
-        "",
-        `# ${page.name || labels.untitled}`,
-        "",
-        mdBody,
-        "",
-      ].join("\n");
-      return { path: pageMdPath(page.id), content: frontmatter, name: page.name };
-    })
-  );
-
-  for (const f of pageFiles) {
-    zip.file(f.path, f.content);
-    indexLines.push(`- [${f.name}](./${f.path})`);
+  // Sequential so shared assets get one global name (no img_0 clobber across pages).
+  for (const page of ordered) {
+    let html = rewriteMentionsToRelativeLinks(page.description_html || "<p></p>", tree.pages, labels.page);
+    html = await extractAndRewriteImages(html, zip, opts, registry);
+    const mdBody = htmlToMarkdownPreservingDirection(html);
+    const frontmatter = [
+      "---",
+      `id: ${page.id}`,
+      `parent: ${page.parent ?? "null"}`,
+      `title: ${JSON.stringify(page.name || labels.untitled)}`,
+      "---",
+      "",
+      `# ${page.name || labels.untitled}`,
+      "",
+      mdBody,
+      "",
+    ].join("\n");
+    const path = pageMdPath(page.id);
+    zip.file(path, frontmatter);
+    indexLines.push(`- [${page.name || labels.untitled}](./${path})`);
   }
 
   zip.file("index.md", `${indexLines.join("\n")}\n`);
@@ -201,8 +277,24 @@ export type TParsedMdPage = {
 };
 
 export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
+  if (file.size > MAX_ZIP_BYTES) {
+    throw new Error(`حجم فایل زیپ بیش از حد مجاز است (حداکثر ${MAX_ZIP_BYTES / (1024 * 1024)} مگابایت).`);
+  }
+
   const zip = await JSZip.loadAsync(file);
-  const mdFiles = Object.keys(zip.files).filter((n) => n.endsWith(".md") && !n.endsWith("index.md") && !zip.files[n].dir);
+  // Prefer pages/*.md; never treat TOC-only index.md as a page.
+  const mdFiles = Object.keys(zip.files).filter(
+    (n) =>
+      n.endsWith(".md") &&
+      !zip.files[n].dir &&
+      n !== "index.md" &&
+      !n.endsWith("/index.md") &&
+      (n.startsWith("pages/") || !n.includes("/"))
+  );
+
+  if (mdFiles.length > MAX_PAGES) {
+    throw new Error(`تعداد صفحات بیش از حد مجاز است (حداکثر ${MAX_PAGES}).`);
+  }
 
   return Promise.all(
     mdFiles.map(async (name) => {
@@ -230,13 +322,21 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
 
       const assets: TParsedMdAsset[] = [];
       const imgLinks = [...body.matchAll(/!\[[^\]]*]\((\.\/)?\.\.\/assets\/([^)]+)\)/g)];
+      if (imgLinks.length > MAX_ASSETS_PER_PAGE) {
+        throw new Error(`تعداد تصاویر صفحه «${title}» بیش از حد مجاز است.`);
+      }
       let assetIndex = 0;
       for (const m of imgLinks) {
         const assetName = m[2];
         const assetFile = zip.file(`assets/${assetName}`) || zip.file(`assets/${decodeURIComponent(assetName)}`);
-        if (!assetFile) continue;
-        const placeholder = `IMG_PLACEHOLDER_${assetIndex++}_${assetName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        if (!assetFile) {
+          throw new Error(`فایل پیوست یافت نشد: assets/${assetName} (صفحه «${title}»)`);
+        }
         const bytes = await assetFile.async("arraybuffer");
+        if (bytes.byteLength > MAX_ASSET_BYTES) {
+          throw new Error(`فایل پیوست بیش از حد بزرگ است: assets/${assetName}`);
+        }
+        const placeholder = `IMG_PLACEHOLDER_${assetIndex++}_${assetName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
         assets.push({
           placeholder,
           name: assetName,
@@ -247,10 +347,13 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
       }
 
       const htmlRaw = await marked.parse(body.replace(/^#\s.+\n+/, ""));
-      let html = typeof htmlRaw === "string" ? htmlRaw : String(htmlRaw);
+      let html = sanitizeImportedHtml(typeof htmlRaw === "string" ? htmlRaw : String(htmlRaw));
       // Convert placeholder <img> tags into Plane image-component shells (src still placeholder).
       for (const asset of assets) {
-        const imgTagRe = new RegExp(`<img([^>]*?)src=["']${asset.placeholder}["']([^>]*)/?>`, "gi");
+        const imgTagRe = new RegExp(
+          `<img([^>]*?)src=["']${escapeRegExp(asset.placeholder)}["']([^>]*)/?>`,
+          "gi"
+        );
         html = html.replace(
           imgTagRe,
           `<image-component src="${asset.placeholder}" width="35%" height="auto" status="uploaded"></image-component>`
@@ -269,7 +372,7 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
   );
 }
 
-/** Stable parent-before-child order; pages whose parent is outside the ZIP become roots. */
+/** Stable parent-before-child order; pages whose parent is outside the ZIP become roots. Cycles → parent cleared. */
 export function topoSortParsedPages(pages: TParsedMdPage[]): TParsedMdPage[] {
   const byId = new Map(pages.filter((p) => p.id).map((p) => [p.id as string, p]));
   const visiting = new Set<string>();
@@ -279,7 +382,11 @@ export function topoSortParsedPages(pages: TParsedMdPage[]): TParsedMdPage[] {
   const visit = (page: TParsedMdPage) => {
     const key = page.id || page.filename;
     if (done.has(key)) return;
-    if (visiting.has(key)) return;
+    if (visiting.has(key)) {
+      // Cycle: detach so import can proceed under destination.
+      page.parent = null;
+      return;
+    }
     visiting.add(key);
     if (page.parent && byId.has(page.parent)) {
       visit(byId.get(page.parent)!);
@@ -290,7 +397,6 @@ export function topoSortParsedPages(pages: TParsedMdPage[]): TParsedMdPage[] {
   };
 
   for (const page of pages) visit(page);
-  // Any pages without id that weren't visited
   for (const page of pages) {
     if (!done.has(page.id || page.filename)) ordered.push(page);
   }

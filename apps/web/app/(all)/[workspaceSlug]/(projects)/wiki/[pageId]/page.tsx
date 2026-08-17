@@ -59,6 +59,7 @@ export default observer(function WikiDetailPage() {
   const [initialHtml, setInitialHtml] = useState("<p></p>");
   const [exportOpen, setExportOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -253,12 +254,15 @@ export default observer(function WikiDetailPage() {
               const file = e.target.files?.[0];
               e.target.value = "";
               if (!file || !slug || !id) return;
+              if (isImportingMarkdown) return;
+              setIsImportingMarkdown(true);
               try {
                 const result = await importMarkdownZipToWiki({
                   file,
                   workspaceSlug: slug,
                   destinationPageId: id,
                 });
+                const errorHint = result.errors.length ? `\n${result.errors.slice(0, 3).join("\n")}` : "";
                 if (result.failed === 0) {
                   setToast({
                     type: TOAST_TYPE.SUCCESS,
@@ -269,12 +273,15 @@ export default observer(function WikiDetailPage() {
                   setToast({
                     type: TOAST_TYPE.ERROR,
                     title: "ایمپورت ناقص",
-                    message: `${result.created} موفق، ${result.failed} ناموفق`,
+                    message: `${result.created} موفق، ${result.failed} ناموفق${errorHint}`,
                   });
                 }
                 await load();
-              } catch {
-                setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق" });
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : undefined;
+                setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق", message: msg });
+              } finally {
+                setIsImportingMarkdown(false);
               }
             }}
           />
@@ -287,9 +294,15 @@ export default observer(function WikiDetailPage() {
               <History className="size-3" />
               تاریخچه نسخه‌ها
             </CustomMenu.MenuItem>
-            <CustomMenu.MenuItem onClick={() => importInputRef.current?.click()} className="flex items-center gap-2">
+            <CustomMenu.MenuItem
+              onClick={() => {
+                if (isImportingMarkdown) return;
+                importInputRef.current?.click();
+              }}
+              className="flex items-center gap-2"
+            >
               <Upload className="size-3" />
-              ایمپورت Markdown
+              {isImportingMarkdown ? "در حال ایمپورت…" : "ایمپورت Markdown"}
             </CustomMenu.MenuItem>
             <CustomMenu.MenuItem
               onClick={() => void createChild()}

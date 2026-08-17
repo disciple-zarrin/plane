@@ -214,8 +214,12 @@ export function ExportPageModal(props: Props) {
 
   const handleExportAsMarkdown = async () => {
     if (pageId) {
+      if (!workspaceSlug) throw new Error("missing workspace");
       const tree = await prepareTree();
-      const blob = await buildMarkdownZipFromTree(tree);
+      const blob = await buildMarkdownZipFromTree(tree, {
+        workspaceSlug: workspaceSlug.toString(),
+        projectId: exportContext === "project" ? projectId?.toString() : undefined,
+      });
       initiateDownload(blob, `${fileName}-export.zip`);
       return;
     }

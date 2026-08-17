@@ -5,6 +5,7 @@
  */
 
 import { v4 as uuidv4 } from "uuid";
+import { convertBinaryDataToBase64String, getBinaryDataFromDocumentEditorHTMLString } from "@plane/editor";
 import { EFileAssetType } from "@plane/types";
 import type { TPage } from "@plane/types";
 import { parseMarkdownZip, topoSortParsedPages } from "@/components/pages/export/markdown-zip";
@@ -30,7 +31,9 @@ type TCreatePageFn = (args: {
   description_html: string;
 }) => Promise<{ id: string }>;
 
-type TUpdateDescriptionFn = (pageId: string, html: string) => Promise<void>;
+type TUpdateDescriptionFn = (pageId: string, html: string, title: string) => Promise<void>;
+
+type TDeletePageFn = (pageId: string) => Promise<void>;
 
 async function importParsedPages(args: {
   file: File;
@@ -38,20 +41,20 @@ async function importParsedPages(args: {
   createPage: TCreatePageFn;
   updateDescription: TUpdateDescriptionFn;
   uploadAsset: TUploadFn;
+  deletePage: TDeletePageFn;
 }): Promise<TMarkdownImportResult> {
-  const { file, destinationPageId, createPage, updateDescription, uploadAsset } = args;
+  const { file, destinationPageId, createPage, updateDescription, uploadAsset, deletePage } = args;
   const parsed = await parseMarkdownZip(file);
   const ordered = topoSortParsedPages(parsed);
   const idMap = new Map<string, string>();
   const result: TMarkdownImportResult = { created: 0, failed: 0, errors: [] };
 
   for (const page of ordered) {
+    let createdId: string | undefined;
     try {
       const oldParent = page.parent;
       const parentId =
-        oldParent && idMap.has(oldParent)
-          ? (idMap.get(oldParent) as string)
-          : destinationPageId;
+        oldParent && idMap.has(oldParent) ? (idMap.get(oldParent) as string) : destinationPageId;
 
       // Create page first (needed for entity_identifier on assets).
       const created = await createPage({
@@ -59,7 +62,7 @@ async function importParsedPages(args: {
         parent: parentId,
         description_html: "<p></p>",
       });
-      if (page.id) idMap.set(page.id, created.id);
+      createdId = created.id;
 
       let html = page.html;
       for (const asset of page.assets) {
@@ -73,9 +76,18 @@ async function importParsedPages(args: {
         html = html.split(asset.placeholder).join(assetId);
       }
 
-      await updateDescription(created.id, html || "<p></p>");
+      await updateDescription(created.id, html || "<p></p>", page.title);
+      // Only remap after full success so failed orphans are not parents of later pages.
+      if (page.id) idMap.set(page.id, created.id);
       result.created += 1;
     } catch (e) {
+      if (createdId) {
+        try {
+          await deletePage(createdId);
+        } catch {
+          /* best-effort cleanup */
+        }
+      }
       result.failed += 1;
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "unknown";
       result.errors.push(`${page.title}: ${msg}`);
@@ -110,6 +122,9 @@ export async function importMarkdownZipToWiki(args: {
     updateDescription: async (pageId, html) => {
       await workspacePageService.updateDescription(workspaceSlug, pageId, { description_html: html });
     },
+    deletePage: async (pageId) => {
+      await workspacePageService.remove(workspaceSlug, pageId);
+    },
     uploadAsset: async ({ blockId: _blockId, file: f, pageId }) => {
       const res = await fileService.uploadWorkspaceAsset(
         workspaceSlug,
@@ -143,12 +158,16 @@ export async function importMarkdownZipToProject(args: {
       } as Partial<TPage> & { description_html?: string });
       return { id: page.id };
     },
-    updateDescription: async (pageId, html) => {
+    updateDescription: async (pageId, html, title) => {
+      const binary = getBinaryDataFromDocumentEditorHTMLString(html || "<p></p>", title || "");
       await projectPageService.updateDescription(workspaceSlug, projectId, pageId, {
         description_html: html,
-        description_binary: "",
+        description_binary: convertBinaryDataToBase64String(binary),
         description_json: {},
       });
+    },
+    deletePage: async (pageId) => {
+      await projectPageService.remove(workspaceSlug, projectId, pageId);
     },
     uploadAsset: async ({ file: f, pageId }) => {
       const res = await fileService.uploadProjectAsset(

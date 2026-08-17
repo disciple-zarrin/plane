@@ -36,6 +36,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
   const { page, storeType } = props;
   // states
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
   // navigation
   const router = useAppRouter();
@@ -55,7 +56,16 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
     const slug = workspaceSlug?.toString();
     const pid = projectId?.toString() || page.project_ids?.[0];
     const pageId = page.id;
-    if (!slug || !pid || !pageId) return;
+    if (!slug || !pid || !pageId) {
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: "ایمپورت ناموفق",
+        message: "شناسه فضای کاری یا پروژه در دسترس نیست.",
+      });
+      return;
+    }
+    if (isImportingMarkdown) return;
+    setIsImportingMarkdown(true);
     try {
       const result = await importMarkdownZipToProject({
         file,
@@ -63,21 +73,27 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
         projectId: pid,
         destinationPageId: pageId,
       });
+      const errorHint = result.errors.length ? `\n${result.errors.slice(0, 3).join("\n")}` : "";
       if (result.failed === 0) {
         setToast({
           type: TOAST_TYPE.SUCCESS,
           title: "ایمپورت شد",
           message: `${result.created} صفحه`,
         });
+        window.location.reload();
       } else {
         setToast({
           type: TOAST_TYPE.ERROR,
           title: "ایمپورت ناقص",
-          message: `${result.created} موفق، ${result.failed} ناموفق`,
+          message: `${result.created} موفق، ${result.failed} ناموفق${errorHint}`,
         });
+        if (result.created > 0) window.location.reload();
       }
-    } catch {
-      setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق" });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : undefined;
+      setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق", message: msg });
+    } finally {
+      setIsImportingMarkdown(false);
     }
   };
 
@@ -146,8 +162,11 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
         },
         {
           key: "import-markdown",
-          action: () => importInputRef.current?.click(),
-          title: "ایمپورت Markdown",
+          action: () => {
+            if (isImportingMarkdown) return;
+            importInputRef.current?.click();
+          },
+          title: isImportingMarkdown ? "در حال ایمپورت…" : "ایمپورت Markdown",
           icon: Upload,
           shouldRender: true,
         },
@@ -163,6 +182,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
       updateQueryParams,
       router,
       setIsExportModalOpen,
+      isImportingMarkdown,
     ]
   );
 
