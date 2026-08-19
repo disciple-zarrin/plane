@@ -7,29 +7,29 @@
 import { startTransition, StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { HydratedRouter } from "react-router/dom";
+import { syncPendingAlarmsFromServer, flushLocalAlarms } from "@/services/web-push.service";
 
 import polyfills from "@/lib/polyfills";
 
 void polyfills;
 
-if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+if (typeof window !== "undefined") {
+  (window as any).syncPendingAlarmsFromServer = syncPendingAlarmsFromServer;
+
   const syncAlarms = () => {
-    void import("@/services/web-push.service").then(async (m) => {
-      await m.syncPendingAlarmsFromServer();
-      await m.flushLocalAlarms();
-    });
+    void syncPendingAlarmsFromServer();
+    void flushLocalAlarms();
   };
 
-  window.addEventListener("load", () => {
-    void navigator.serviceWorker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
       .register("/sw.js", { scope: "/" })
-      .then(() => {
-        syncAlarms();
-      })
-      .catch(() => {
-        /* ignore */
-      });
-  });
+      .then(() => syncAlarms())
+      .catch(() => syncAlarms());
+  } else {
+    syncAlarms();
+  }
+
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") syncAlarms();
   });

@@ -137,6 +137,20 @@ export async function scheduleLocalAlarm(params: {
   url: string;
   fireAtMs: number;
 }) {
+  // 1. Android Native AlarmManager (wakes phone from deep sleep / closed app)
+  if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge) {
+    try {
+      (window as any).PlaneAndroidBridge.scheduleAlarm(
+        params.tag,
+        params.title,
+        params.body,
+        params.url,
+        params.fireAtMs
+      );
+    } catch (e) {
+      console.warn("Failed to schedule native alarm:", e);
+    }
+  }
   const reg = await ensureServiceWorker();
   if (!reg) return false;
   await navigator.serviceWorker.ready;
@@ -171,6 +185,14 @@ export async function scheduleLocalAlarm(params: {
 }
 
 export async function cancelLocalAlarm(tag: string) {
+  // 1. Android Native AlarmManager
+  if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge) {
+    try {
+      (window as any).PlaneAndroidBridge.cancelAlarm(tag);
+    } catch (e) {
+      console.warn("Failed to cancel native alarm:", e);
+    }
+  }
   const reg = await ensureServiceWorker();
   if (!reg) return false;
   await navigator.serviceWorker.ready;
@@ -199,23 +221,37 @@ export async function syncPendingAlarmsFromServer(): Promise<number> {
     const pending = await webPushService.listMyPendingAlarms();
     const enabledIds = pending.filter((a) => a.enabled && a.issue_id).map((a) => a.issue_id);
     issueAlarmsStore.replaceAll(enabledIds);
+
+    const nativePayload: any[] = [];
     let n = 0;
     for (const alarm of pending) {
       if (!alarm.enabled || !alarm.fire_at || !alarm.issue_id) continue;
       const fireAtMs = new Date(alarm.fire_at).getTime();
       if (!Number.isFinite(fireAtMs)) continue;
-      await scheduleLocalAlarm({
+      const item = {
         tag: `alarm-${alarm.issue_id}`,
         title: "زنگ ددلاین",
         body: `${alarm.issue_identifier} · ${alarm.issue_name}`,
         url: alarm.url || `/${alarm.workspace_slug}/projects/${alarm.project_id}/issues/${alarm.issue_id}`,
         fireAtMs,
-      });
+      };
+      await scheduleLocalAlarm(item);
+      nativePayload.push(item);
       n += 1;
     }
+
+    if ((window as any).PlaneAndroidBridge && nativePayload.length > 0) {
+      try {
+        (window as any).PlaneAndroidBridge.syncPendingAlarms(JSON.stringify(nativePayload));
+      } catch (e) {
+        console.warn("Failed to sync alarms with native bridge:", e);
+      }
+    }
+
     await flushLocalAlarms();
     return n;
-  } catch {
+  } catch (err) {
+    console.warn("Failed to sync pending alarms:", err);
     return 0;
   }
 }
