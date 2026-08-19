@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { ToggleSwitch } from "@plane/ui";
 import { cn } from "@plane/utils";
@@ -99,12 +99,32 @@ export function IssueDeadlineAlarmControl(props: Props) {
           <Bell className="size-3.5" />
           زنگ ددلاین
         </div>
-        <ToggleSwitch
-          value={alarm.enabled}
-          disabled={disabled || saving || !targetDate}
-          onChange={(v) => void persist({ enabled: v })}
-          size="sm"
-        />
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge?.openAlarmSettings) {
+                (window as any).PlaneAndroidBridge.openAlarmSettings();
+              } else {
+                setToast({
+                  type: TOAST_TYPE.INFO,
+                  title: "تنظیمات زنگ",
+                  message: "برای انتخاب آهنگ زنگ و رفتار ساعت زنگ‌دار، از اپلیکیشن اندروید استفاده کنید.",
+                });
+              }
+            }}
+            className="p-1 text-tertiary hover:text-primary transition-colors rounded hover:bg-surface-1"
+            title="تنظیمات آهنگ زنگ و ساعت"
+          >
+            <Settings className="size-3.5" />
+          </button>
+          <ToggleSwitch
+            value={alarm.enabled}
+            disabled={disabled || saving || !targetDate}
+            onChange={(v) => void persist({ enabled: v })}
+            size="sm"
+          />
+        </div>
       </div>
       {!targetDate && <p className="text-11 text-tertiary">اول ددلاین را مشخص کن.</p>}
       {targetDate && (
