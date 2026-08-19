@@ -36,6 +36,8 @@ def fire_due_issue_alarms():
             "state_name": getattr(issue.state, "name", "") if issue.state_id else "",
             "state_group": getattr(issue.state, "group", "") if issue.state_id else "",
         }
+        if not issue.assignees.filter(id=alarm.user_id).exists():
+            continue
         push_deadline_alarm(receiver_id=alarm.user_id, issue_data=issue_data, alarm_id=str(alarm.id))
         alarm.fired_at = now
         alarm.save(update_fields=["fired_at", "updated_at"])

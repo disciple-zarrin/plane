@@ -28,6 +28,7 @@ class MyPendingIssueAlarmsEndpoint(BaseAPIView):
                 fired_at__isnull=True,
                 fire_at__isnull=False,
                 fire_at__gte=now - timedelta(minutes=15),
+                issue__assignees=request.user,
             )
             .select_related("issue", "issue__project", "issue__workspace")
             .order_by("fire_at")[:200]

@@ -4,16 +4,14 @@
  * See the LICENSE file for details.
  */
 
+import React from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { useTranslation } from "@plane/i18n";
 import type { IWorkspaceMemberInvitation } from "@plane/types";
-// components
-import { LogoSpinner } from "@/components/common/logo-spinner";
+import { LogoSpinner } from "@/components/common";
 import { WorkspaceLogo } from "@/components/workspace/logo";
-// helpers
 import { EAuthModes, EAuthSteps } from "@/helpers/authentication.helper";
-// services
 import { WorkspaceService } from "@/services/workspace.service";
 
 type TAuthHeader = {
@@ -27,30 +25,30 @@ type TAuthHeader = {
 const Titles = {
   [EAuthModes.SIGN_IN]: {
     [EAuthSteps.EMAIL]: {
-      header: "Work in all dimensions.",
-      subHeader: "Welcome back to Plane.",
+      header: "کار در تمام ابعاد.",
+      subHeader: "به پلین خوش آمدید.",
     },
     [EAuthSteps.PASSWORD]: {
-      header: "Work in all dimensions.",
-      subHeader: "Welcome back to Plane.",
+      header: "کار در تمام ابعاد.",
+      subHeader: "به پلین خوش آمدید.",
     },
     [EAuthSteps.UNIQUE_CODE]: {
-      header: "Work in all dimensions.",
-      subHeader: "Welcome back to Plane.",
+      header: "کار در تمام ابعاد.",
+      subHeader: "به پلین خوش آمدید.",
     },
   },
   [EAuthModes.SIGN_UP]: {
     [EAuthSteps.EMAIL]: {
-      header: "Work in all dimensions.",
-      subHeader: "Create your Plane account.",
+      header: "کار در تمام ابعاد.",
+      subHeader: "حساب کاربری پلین خود را ایجاد کنید.",
     },
     [EAuthSteps.PASSWORD]: {
-      header: "Work in all dimensions.",
-      subHeader: "Create your Plane account.",
+      header: "کار در تمام ابعاد.",
+      subHeader: "حساب کاربری پلین خود را ایجاد کنید.",
     },
     [EAuthSteps.UNIQUE_CODE]: {
-      header: "Work in all dimensions.",
-      subHeader: "Create your Plane account.",
+      header: "کار در تمام ابعاد.",
+      subHeader: "حساب کاربری پلین خود را ایجاد کنید.",
     },
   },
 };
@@ -59,7 +57,6 @@ const workSpaceService = new WorkspaceService();
 
 export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
   const { workspaceSlug, invitationId, invitationEmail, authMode, currentAuthStep } = props;
-  // plane imports
   const { t } = useTranslation();
 
   const { data: invitation, isLoading } = useSWR(
@@ -89,8 +86,8 @@ export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
         ),
         subHeader:
           mode == EAuthModes.SIGN_UP
-            ? "Create an account to start managing work with your team."
-            : "Log in to start managing work with your team.",
+            ? "برای شروع مدیریت کارها با تیم خود، حساب کاربری ایجاد کنید."
+            : "برای شروع مدیریت کارها با تیم خود وارد شوید.",
       };
     }
 
