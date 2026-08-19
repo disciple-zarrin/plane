@@ -39,6 +39,7 @@ export const WorkspaceSettingsSidebarHeader = observer(function WorkspaceSetting
           variant="ghost"
           size="base"
           icon={ArrowLeft}
+          iconClassName="rtl:rotate-180"
           onClick={() => router.push(`/${currentWorkspace?.slug}/`)}
         />
         <p>Workspace settings</p>

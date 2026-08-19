@@ -154,7 +154,7 @@ function BreadcrumbSeparator(props: BreadcrumbSeparatorProps) {
           containerClassName
         )}
       >
-        <ChevronRightIcon className={cn("h-3.5 w-3.5 flex-shrink-0", iconClassName)} />
+        <ChevronRightIcon className={cn("h-3.5 w-3.5 flex-shrink-0 rtl:rotate-180", iconClassName)} />
       </div>
     </div>
   );

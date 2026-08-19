@@ -198,3 +198,28 @@
     0 0 4px --alpha(var(--background-color-accent-primary) / 40%) !important;
   will-change: transform, opacity;
 }
+
+/* ==========================================================================
+   RTL Directional Icon Mirroring (Persian / Farsi RTL Support)
+   ========================================================================== */
+
+[dir="rtl"] .rtl-flip,
+[dir="rtl"] [data-rtl-flip="true"],
+[dir="rtl"] .breadcrumb-separator svg,
+[dir="rtl"] [data-breadcrumb-separator] svg,
+[dir="rtl"] nav[aria-label="Breadcrumb"] svg,
+[dir="rtl"] nav[aria-label="Breadcrumbs"] svg,
+[dir="rtl"] .rdp-nav_button_previous svg,
+[dir="rtl"] .rdp-nav_button_next svg,
+[dir="rtl"] button[aria-label*="Next"] svg,
+[dir="rtl"] button[aria-label*="next"] svg,
+[dir="rtl"] button[aria-label*="Previous"] svg,
+[dir="rtl"] button[aria-label*="previous"] svg,
+[dir="rtl"] button[aria-label*="Back"] svg,
+[dir="rtl"] button[aria-label*="back"] svg,
+[dir="rtl"] .sub-menu-indicator svg,
+[dir="rtl"] .pagination-arrow svg,
+[dir="rtl"] .back-arrow svg {
+  transform: scaleX(-1);
+}
+
