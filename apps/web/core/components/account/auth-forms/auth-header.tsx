@@ -22,37 +22,6 @@ type TAuthHeader = {
   currentAuthStep: EAuthSteps;
 };
 
-const Titles = {
-  [EAuthModes.SIGN_IN]: {
-    [EAuthSteps.EMAIL]: {
-      header: "کار در تمام ابعاد.",
-      subHeader: "به پلین خوش آمدید.",
-    },
-    [EAuthSteps.PASSWORD]: {
-      header: "کار در تمام ابعاد.",
-      subHeader: "به پلین خوش آمدید.",
-    },
-    [EAuthSteps.UNIQUE_CODE]: {
-      header: "کار در تمام ابعاد.",
-      subHeader: "به پلین خوش آمدید.",
-    },
-  },
-  [EAuthModes.SIGN_UP]: {
-    [EAuthSteps.EMAIL]: {
-      header: "کار در تمام ابعاد.",
-      subHeader: "حساب کاربری پلین خود را ایجاد کنید.",
-    },
-    [EAuthSteps.PASSWORD]: {
-      header: "کار در تمام ابعاد.",
-      subHeader: "حساب کاربری پلین خود را ایجاد کنید.",
-    },
-    [EAuthSteps.UNIQUE_CODE]: {
-      header: "کار در تمام ابعاد.",
-      subHeader: "حساب کاربری پلین خود را ایجاد کنید.",
-    },
-  },
-};
-
 const workSpaceService = new WorkspaceService();
 
 export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
@@ -85,13 +54,19 @@ export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
           </div>
         ),
         subHeader:
-          mode == EAuthModes.SIGN_UP
-            ? "برای شروع مدیریت کارها با تیم خود، حساب کاربری ایجاد کنید."
-            : "برای شروع مدیریت کارها با تیم خود وارد شوید.",
+          mode === EAuthModes.SIGN_UP
+            ? t("auth.sign_up.header.label", "Create an account to start managing work with your team.")
+            : t("auth.sign_in.header.label", "Log in to start managing work with your team."),
       };
     }
 
-    return Titles[mode][step];
+    const header = t("auth.common.work_in_all_dimensions", "Work in all dimensions.");
+    const subHeader =
+      mode === EAuthModes.SIGN_UP
+        ? t("auth.sign_up.header.sub_title", "Create your Plane account.")
+        : t("auth.sign_in.header.sub_title", "Welcome back to Plane.");
+
+    return { header, subHeader };
   };
 
   const { header, subHeader } = getHeaderSubHeader(currentAuthStep, authMode, invitation || undefined, invitationEmail);
