@@ -16,16 +16,16 @@ import { useInstance } from "@/hooks/store/use-instance";
 
 const authContentMap = {
   [EAuthModes.SIGN_IN]: {
-    pageTitle: "Sign up",
+    pageTitle: "auth.common.create_account",
     text: "auth.common.new_to_plane",
-    linkText: "Sign up",
+    linkText: "auth.common.create_account",
     linkHref: "/sign-up",
   },
   [EAuthModes.SIGN_UP]: {
-    pageTitle: "Sign in",
+    pageTitle: "auth.common.login",
     text: "auth.common.already_have_an_account",
-    linkText: "Sign in",
-    linkHref: "/sign-in",
+    linkText: "auth.common.login",
+    linkHref: "/",
   },
 };
 
@@ -44,7 +44,7 @@ export const AuthHeader = observer(function AuthHeader({ type }: AuthHeaderProps
     <AuthHeaderBase
       pageTitle={t(authContentMap[type].pageTitle)}
       additionalAction={
-        enableSignUpConfig && (
+        enableSignUpConfig ? (
           <div className="flex flex-col items-end text-center text-13 font-medium text-tertiary sm:flex-row sm:items-center sm:gap-2">
             <span className="text-body-sm-regular text-tertiary">{t(authContentMap[type].text)}</span>
             <Link
@@ -55,7 +55,7 @@ export const AuthHeader = observer(function AuthHeader({ type }: AuthHeaderProps
               {t(authContentMap[type].linkText)}
             </Link>
           </div>
-        )
+        ) : null
       }
     />
   );
