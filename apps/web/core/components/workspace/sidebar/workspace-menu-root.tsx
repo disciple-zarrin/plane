@@ -79,7 +79,7 @@ export const WorkspaceMenuRoot = observer(function WorkspaceMenuRoot(props: Work
       as="div"
       className={cn("relative flex h-full w-fit max-w-48 truncate whitespace-nowrap", {
         "w-full justify-center text-center": variant === "sidebar",
-        "flex-grow justify-stretch truncate text-left": variant === "top-navigation",
+        "flex-grow justify-stretch truncate text-start": variant === "top-navigation",
       })}
     >
       {({ open, close }: { open: boolean; close: () => void }) => {
@@ -147,15 +147,15 @@ export const WorkspaceMenuRoot = observer(function WorkspaceMenuRoot(props: Work
               <Menu.Items as={Fragment}>
                 <div
                   className={cn(
-                    "fixed z-21 mt-1 flex w-[19rem] origin-top-left flex-col divide-y divide-subtle rounded-md border-[0.5px] border-strong bg-surface-1 shadow-raised-200 outline-none",
+                    "fixed z-21 mt-1 flex w-[19rem] ltr:origin-top-left rtl:origin-top-right flex-col divide-y divide-subtle rounded-md border-[0.5px] border-strong bg-surface-1 shadow-raised-200 outline-none",
                     {
-                      "top-11 left-14": variant === "sidebar",
-                      "top-10 left-4": variant === "top-navigation",
+                      "top-11 ltr:left-14 rtl:right-14": variant === "sidebar",
+                      "top-10 ltr:left-4 rtl:right-4": variant === "top-navigation",
                     }
                   )}
                 >
                   <div className="vertical-scrollbar flex scrollbar-sm max-h-96 flex-col items-start justify-start overflow-x-hidden overflow-y-scroll">
-                    <span className="sticky top-0 z-21 h-full w-full flex-shrink-0 truncate rounded-md bg-surface-1 px-4 pt-3 pb-1 text-left text-13 font-medium text-placeholder">
+                    <span className="sticky top-0 z-21 h-full w-full flex-shrink-0 truncate rounded-md bg-surface-1 px-4 pt-3 pb-1 text-start text-13 font-medium text-placeholder">
                       {currentUser?.email}
                     </span>
                     {workspacesList ? (
