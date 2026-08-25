@@ -23,6 +23,7 @@ import {
   Smile,
   Table,
   TextQuote,
+  FileIcon,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -301,6 +302,21 @@ export const getSlashCommandFilteredSections =
         pushAfter: "code",
       });
     }
+
+    internalAdditionalOptions.push({
+      commandKey: "file",
+      key: "file",
+      title: "File",
+      icon: <FileIcon className="size-3.5" />,
+      description: "Upload a file or attachment",
+      searchTerms: ["file", "attachment", "upload", "doc", "pdf"],
+      command: ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).run();
+        editor.commands.insertAttachmentComponent({ event: "insert" });
+      },
+      section: "general",
+      pushAfter: "image",
+    });
 
     [
       ...internalAdditionalOptions,
