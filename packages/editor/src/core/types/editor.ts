@@ -63,6 +63,7 @@ export type TEditorCommands =
   | "attachment"
   | "bookmark"
   | "toggle"
+  | "table-of-contents"
   | "divider"
   | "link"
   | "issue-embed"
