@@ -137,11 +137,19 @@ export const CustomKeymap = Extension.create({
         const { state } = editor;
         const { selection } = state;
         const { $from } = selection;
-        const currentDepth = $from.depth;
-        if (currentDepth <= 0) return false;
+        if ($from.depth <= 0) return false;
 
-        const node = $from.node(currentDepth);
-        const posAfter = $from.after(currentDepth);
+        let targetDepth = 1;
+        for (let d = $from.depth; d >= 1; d--) {
+          const n = $from.node(d);
+          if (n.type.name === "listItem" || n.type.name === "taskItem") {
+            targetDepth = d;
+            break;
+          }
+        }
+
+        const node = $from.node(targetDepth);
+        const posAfter = $from.after(targetDepth);
 
         if (node) {
           editor.chain().focus().insertContentAt(posAfter, node.toJSON()).run();

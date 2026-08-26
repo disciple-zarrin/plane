@@ -6,7 +6,7 @@
 
 import type { NodeViewProps } from "@tiptap/react";
 import { NodeViewWrapper } from "@tiptap/react";
-import { ExternalLink, Globe, Play, Edit2, Check, Video } from "lucide-react";
+import { ExternalLink, Globe, Edit2, Video, GitFork, Code, Music } from "lucide-react";
 import React, { useState, useCallback, useRef, useEffect } from "react";
 // plane imports
 import { cn } from "@plane/utils";
@@ -91,7 +91,7 @@ export const transformToEmbedUrl = (
   // GitHub Gist
   if (url.includes("gist.github.com")) {
     return {
-      embedUrl: `${url}.pibb`,
+      embedUrl: url,
       provider: "gist",
     };
   }
@@ -135,26 +135,41 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
     setIsEditing(false);
   }, [inputUrl, provider, updateAttributes]);
 
-  const providerTitle = {
-    youtube: "YouTube Video",
-    aparat: "Aparat Video",
-    figma: "Figma Prototype",
-    codepen: "CodePen",
-    spotify: "Spotify Audio",
-    soundcloud: "SoundCloud Audio",
-    github: "GitHub Repository",
-    gist: "GitHub Gist",
-    generic: "Web Embed",
-  }[provider] || "Web Embed";
+  const providerTitle =
+    {
+      youtube: "YouTube Video",
+      aparat: "Aparat Video",
+      figma: "Figma Prototype",
+      codepen: "CodePen",
+      spotify: "Spotify Audio",
+      soundcloud: "SoundCloud Audio",
+      github: "GitHub Repository",
+      gist: "GitHub Gist",
+      generic: "Web Embed",
+    }[provider] || "Web Embed";
+
+  // Parse repo path for github display
+  const githubRepoPath =
+    provider === "github" && originalUrl.includes("github.com/")
+      ? (originalUrl.split("github.com/")[1]?.split(/[?#]/)[0] ?? originalUrl)
+      : originalUrl;
+
+  const gistId =
+    provider === "gist" && originalUrl.includes("gist.github.com/")
+      ? (originalUrl.split("gist.github.com/")[1]?.split(/[?#]/)[0] ?? originalUrl)
+      : originalUrl;
+
+  const isAudio = provider === "spotify" || provider === "soundcloud";
+  const isGithubCard = provider === "github" || provider === "gist";
 
   return (
     <NodeViewWrapper className="editor-embed-component my-4 select-none">
       <div
         contentEditable={false}
         className={cn(
-          "group relative flex w-full flex-col overflow-hidden rounded-xl border border-subtle bg-layer-1 shadow-sm transition-all",
+          "group shadow-sm relative flex w-full flex-col overflow-hidden rounded-xl border border-subtle bg-layer-1 transition-all",
           {
-            "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+            "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
             "hover:border-strong": !selected && !isEditing,
           }
         )}
@@ -162,10 +177,16 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
         {!isEditing && src ? (
           <>
             {/* Top Toolbar */}
-            <div className="flex items-center justify-between border-b border-subtle bg-layer-2 px-3 py-1.5 text-xs text-tertiary">
+            <div className="text-xs flex items-center justify-between border-b border-subtle bg-layer-2 px-3 py-1.5 text-tertiary">
               <div className="flex items-center gap-2 font-medium text-secondary">
                 {provider === "youtube" || provider === "aparat" ? (
-                  <Video className="h-3.5 w-3.5 text-red-500" />
+                  <Video className="text-red-500 h-3.5 w-3.5" />
+                ) : isAudio ? (
+                  <Music className="text-green-500 h-3.5 w-3.5" />
+                ) : provider === "github" ? (
+                  <GitFork className="text-slate-700 dark:text-slate-200 h-3.5 w-3.5" />
+                ) : provider === "gist" ? (
+                  <Code className="text-slate-700 dark:text-slate-200 h-3.5 w-3.5" />
                 ) : (
                   <Globe className="h-3.5 w-3.5 text-accent-primary" />
                 )}
@@ -196,21 +217,62 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
               </div>
             </div>
 
-            {/* iFrame Container */}
-            <div className="relative aspect-video w-full bg-black/5">
-              <iframe
-                src={src}
-                title={providerTitle}
-                className="size-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
+            {/* Content Display */}
+            {isGithubCard ? (
+              <div className="flex items-center justify-between gap-4 bg-layer-1 p-4 transition-colors hover:bg-layer-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-subtle bg-layer-2">
+                    {provider === "github" ? (
+                      <GitFork className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Code className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-sm truncate font-semibold text-primary">
+                      {provider === "github" ? githubRepoPath : `Gist: ${gistId}`}
+                    </span>
+                    <span className="text-xs truncate text-tertiary">{originalUrl}</span>
+                  </div>
+                </div>
+                <a
+                  href={originalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs flex shrink-0 items-center gap-1.5 rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 font-medium text-secondary transition hover:bg-layer-3 hover:text-primary"
+                >
+                  <span>مشاهده در GitHub</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            ) : isAudio ? (
+              <div className="relative h-40 w-full bg-black/5">
+                <iframe
+                  src={src}
+                  title={providerTitle}
+                  className="size-full border-0"
+                  sandbox="allow-scripts allow-presentation allow-popups allow-forms"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="relative aspect-video w-full bg-black/5">
+                <iframe
+                  src={src}
+                  title={providerTitle}
+                  className="size-full border-0"
+                  sandbox="allow-scripts allow-presentation allow-popups allow-forms"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            )}
           </>
         ) : (
           /* Edit / Input Mode */
-          <div className="flex w-full flex-col gap-2.5 p-4 bg-layer-2">
-            <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+          <div className="flex w-full flex-col gap-2.5 bg-layer-2 p-4">
+            <div className="text-xs flex items-center gap-2 font-semibold text-primary">
               <Globe className="h-4 w-4 text-accent-primary" />
               <span>جاسازی تعاملی (Embed Web Content / Video)</span>
             </div>
@@ -224,12 +286,12 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                   if (e.key === "Enter") handleSave();
                 }}
                 placeholder="آدرس یوتیوب، آپارات، فیگما، کدپن یا لینک وبسایت..."
-                className="flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+                className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-1.5 text-primary placeholder:text-tertiary focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleSave}
-                className="shrink-0 rounded-lg bg-accent-primary px-4 py-1.5 text-xs font-medium text-white shadow transition hover:bg-accent-primary/90"
+                className="text-xs shadow shrink-0 rounded-lg bg-accent-primary px-4 py-1.5 font-medium text-white transition hover:bg-accent-primary/90"
               >
                 جاسازی
               </button>
