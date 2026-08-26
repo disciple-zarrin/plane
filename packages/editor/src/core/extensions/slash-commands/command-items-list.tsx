@@ -486,6 +486,19 @@ export const getSlashCommandFilteredSections =
         pushAfter: "table-of-contents",
       },
       {
+        commandKey: "inline-math",
+        key: "inline-math",
+        title: "Inline Math / فرمول ریاضی درون‌خطی",
+        icon: <Sigma className="size-3.5 text-accent-primary" />,
+        description: "Insert an inline LaTeX equation ($...$)",
+        searchTerms: ["inline math", "equation", "latex inline", "formula", "riazi", "formool"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" $E = mc^2$ ").run();
+        },
+        section: "structure",
+        pushAfter: "math",
+      },
+      {
         commandKey: "2columns",
         key: "2columns",
         title: "2 Columns",
