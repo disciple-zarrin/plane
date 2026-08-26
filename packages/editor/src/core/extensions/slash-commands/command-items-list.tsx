@@ -29,6 +29,7 @@ import {
   FileText,
   Bookmark,
   ChevronRight,
+  ListTree,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -392,6 +393,20 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "bookmark",
+      },
+      {
+        commandKey: "table-of-contents",
+        key: "table-of-contents",
+        title: "Table of Contents",
+        icon: <ListTree className="size-3.5" />,
+        description: "Insert a dynamic outline of page headings",
+        searchTerms: ["toc", "table of contents", "outline", "headings", "index"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertTableOfContents();
+        },
+        section: "general",
+        pushAfter: "toggle",
       }
     );
 

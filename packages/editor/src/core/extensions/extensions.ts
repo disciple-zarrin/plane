@@ -42,6 +42,7 @@ import { CustomImageExtension } from "./custom-image/extension";
 import { CustomAttachmentExtension } from "./custom-attachment/extension";
 import { CustomBookmarkExtension } from "./custom-bookmark/extension";
 import { CustomToggleExtension } from "./custom-toggle/extension";
+import { CustomTableOfContentsExtension } from "./custom-table-of-contents/extension";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomPlaceholderExtension } from "./placeholder";
 import { CustomStarterKitExtension } from "./starter-kit";
@@ -126,6 +127,7 @@ export const CoreEditorExtensions = (args: TArguments): Extensions => {
     CustomCalloutExtension,
     CustomBookmarkExtension({ isEditable: editable }),
     CustomToggleExtension(),
+    CustomTableOfContentsExtension(),
     UtilityExtension({
       disabledExtensions,
       flaggedExtensions,
