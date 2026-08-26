@@ -20,9 +20,11 @@ export function CustomToggleExtension() {
     addCommands() {
       return {
         insertToggle:
-          () =>
+          (options?: { headingLevel?: 1 | 2 | 3 }) =>
           ({ commands }) => {
             const toggleId = uuidv4();
+            const headingLevel = options?.headingLevel;
+
             return commands.insertContent({
               type: CORE_EXTENSIONS.CUSTOM_TOGGLE,
               attrs: {
@@ -30,6 +32,20 @@ export function CustomToggleExtension() {
                 [EToggleAttributeNames.IS_OPEN]: true,
               },
               content: [
+                headingLevel
+                  ? {
+                      type: CORE_EXTENSIONS.HEADING,
+                      attrs: { level: headingLevel },
+                      content: [
+                        {
+                          type: "text",
+                          text: `تیتر تاشو ${headingLevel === 1 ? "بزرگ" : headingLevel === 2 ? "متوسط" : "کوچک"}`,
+                        },
+                      ],
+                    }
+                  : {
+                      type: CORE_EXTENSIONS.PARAGRAPH,
+                    },
                 {
                   type: CORE_EXTENSIONS.PARAGRAPH,
                 },

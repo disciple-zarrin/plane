@@ -100,6 +100,7 @@ export const getSlashCommandFilteredSections =
     const SLASH_COMMAND_SECTIONS: TSlashCommandSection[] = [
       {
         key: "general",
+        title: "بلوک‌های پایه (Basic Blocks)",
         items: [
           {
             commandKey: "text",
@@ -251,6 +252,36 @@ export const getSlashCommandFilteredSections =
         ],
       },
       {
+        key: "structure",
+        title: "ساختار و چیدمان (Structure & Layout)",
+        items: [],
+      },
+      {
+        key: "media",
+        title: "رسانه و فایل‌ها (Media & Files)",
+        items: [],
+      },
+      {
+        key: "embeds",
+        title: "جاسازی و وب (Embeds & Web)",
+        items: [],
+      },
+      {
+        key: "templates",
+        title: "قالب‌ها و تاریخ‌ها (Templates & Dates)",
+        items: [],
+      },
+      {
+        key: "badges",
+        title: "وضعیت و اولویت (Status & Badges)",
+        items: [],
+      },
+      {
+        key: "highlights",
+        title: "کالبوت‌ها و هایلایت‌ها (Callouts & Highlights)",
+        items: [],
+      },
+      {
         key: "text-colors",
         title: "Colors",
         items: [
@@ -336,7 +367,7 @@ export const getSlashCommandFilteredSections =
         description: "Insert an image",
         searchTerms: ["img", "photo", "picture", "media", "upload"],
         command: ({ editor, range }: CommandProps) => insertImage({ editor, event: "insert", range }),
-        section: "general",
+        section: "media",
         pushAfter: "code",
       });
     }
@@ -353,7 +384,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
         },
-        section: "general",
+        section: "media",
         pushAfter: "image",
       },
       {
@@ -367,7 +398,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
         },
-        section: "general",
+        section: "media",
         pushAfter: "video",
       },
       {
@@ -381,7 +412,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
         },
-        section: "general",
+        section: "media",
         pushAfter: "audio",
       },
       {
@@ -395,7 +426,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
         },
-        section: "general",
+        section: "media",
         pushAfter: "pdf",
       },
       {
@@ -409,7 +440,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertBookmarkComponent({});
         },
-        section: "general",
+        section: "media",
         pushAfter: "file",
       },
       {
@@ -421,9 +452,9 @@ export const getSlashCommandFilteredSections =
         searchTerms: ["toggle", "collapsible", "dropdown", "accordion", "hide", "show"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertToggle();
+          editor.commands.insertToggle({});
         },
-        section: "general",
+        section: "structure",
         pushAfter: "bookmark",
       },
       {
@@ -437,7 +468,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertTableOfContents();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "toggle",
       },
       {
@@ -451,7 +482,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertMath({ latex: "E = mc^2" });
         },
-        section: "general",
+        section: "structure",
         pushAfter: "table-of-contents",
       },
       {
@@ -465,7 +496,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertColumns({ count: 2 });
         },
-        section: "general",
+        section: "structure",
         pushAfter: "math",
       },
       {
@@ -479,7 +510,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertColumns({ count: 3 });
         },
-        section: "general",
+        section: "structure",
         pushAfter: "2columns",
       },
       {
@@ -493,7 +524,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertBreadcrumb();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "3columns",
       },
       {
@@ -507,7 +538,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertPageLink({});
         },
-        section: "general",
+        section: "structure",
         pushAfter: "breadcrumb",
       },
       {
@@ -522,7 +553,7 @@ export const getSlashCommandFilteredSections =
           const formatted = now.toLocaleDateString("fa-IR");
           editor.chain().focus().deleteRange(range).insertContent(`📅 ${formatted} `).run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "page-link",
       },
       {
@@ -537,7 +568,7 @@ export const getSlashCommandFilteredSections =
           const formatted = `${now.toLocaleDateString("fa-IR")} - ${now.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}`;
           editor.chain().focus().deleteRange(range).insertContent(`🕒 ${formatted} `).run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "today",
       },
       {
@@ -552,7 +583,7 @@ export const getSlashCommandFilteredSections =
           const formatted = now.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
           editor.chain().focus().deleteRange(range).insertContent(`📅 ${formatted} `).run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "now",
       },
       // Callout Presets
@@ -580,7 +611,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "date",
       },
       {
@@ -607,7 +638,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "tip",
       },
       {
@@ -634,7 +665,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "warning",
       },
       {
@@ -661,7 +692,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "danger",
       },
       {
@@ -688,7 +719,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "info",
       },
       // Colors
@@ -702,7 +733,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-pink-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "note",
       },
       {
@@ -715,7 +746,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-green-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-red",
       },
       {
@@ -728,7 +759,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-light-blue-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-green",
       },
       {
@@ -741,7 +772,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-peach-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-blue",
       },
       {
@@ -754,7 +785,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-purple-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-yellow",
       },
       {
@@ -767,7 +798,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-orange-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-purple",
       },
       {
@@ -780,7 +811,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-gray-text)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-orange",
       },
       {
@@ -846,7 +877,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "color-gray",
       },
       // Interactive Embeds
@@ -861,7 +892,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "generic" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "shortcuts",
       },
       {
@@ -875,7 +906,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "youtube" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "embed",
       },
       {
@@ -889,7 +920,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "aparat" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "youtube",
       },
       {
@@ -903,7 +934,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "figma" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "aparat",
       },
       {
@@ -917,7 +948,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "codepen" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "figma",
       },
       // Database & Work Items
@@ -931,7 +962,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent("@").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "codepen",
       },
       {
@@ -944,7 +975,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent("@").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "database",
       },
       // Mermaid Diagrams & Flowcharts
@@ -970,7 +1001,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "issue",
       },
       // Audio Streaming
@@ -985,7 +1016,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "spotify" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "mermaid",
       },
       {
@@ -999,7 +1030,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "soundcloud" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "spotify",
       },
       // Duplicate Block
@@ -1015,16 +1046,24 @@ export const getSlashCommandFilteredSections =
           const { state } = editor;
           const { selection } = state;
           const { $from } = selection;
-          const currentDepth = $from.depth;
-          if (currentDepth > 0) {
-            const node = $from.node(currentDepth);
-            const posAfter = $from.after(currentDepth);
-            if (node) {
-              editor.chain().focus().insertContentAt(posAfter, node.toJSON()).run();
+          if ($from.depth <= 0) return;
+
+          let targetDepth = 1;
+          for (let d = $from.depth; d >= 1; d--) {
+            const n = $from.node(d);
+            if (n.type.name === "listItem" || n.type.name === "taskItem") {
+              targetDepth = d;
+              break;
             }
           }
+
+          const node = $from.node(targetDepth);
+          const posAfter = $from.after(targetDepth);
+          if (node) {
+            editor.chain().focus().insertContentAt(posAfter, node.toJSON()).run();
+          }
         },
-        section: "general",
+        section: "structure",
         pushAfter: "soundcloud",
       },
       // Turn Into Commands
@@ -1038,7 +1077,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "duplicate",
       },
       {
@@ -1051,7 +1090,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-h1",
       },
       {
@@ -1064,7 +1103,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-h2",
       },
       {
@@ -1077,7 +1116,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).toggleBlockquote().run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-h3",
       },
       {
@@ -1090,7 +1129,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).toggleTaskList().run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-quote",
       },
       {
@@ -1103,7 +1142,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).toggleBulletList().run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-todo",
       },
       {
@@ -1116,7 +1155,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).toggleOrderedList().run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-bullet",
       },
       {
@@ -1129,7 +1168,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-number",
       },
       {
@@ -1142,7 +1181,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertCallout().run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-code",
       },
       // Toggle Headings
@@ -1154,9 +1193,9 @@ export const getSlashCommandFilteredSections =
         description: "Insert a collapsible Heading 1 section",
         searchTerms: ["toggle h1", "collapsible h1", "heading 1 toggle", "titr tasho"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertToggle().run();
+          editor.chain().focus().deleteRange(range).insertToggle({ headingLevel: 1 }).run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "turn-callout",
       },
       {
@@ -1167,9 +1206,9 @@ export const getSlashCommandFilteredSections =
         description: "Insert a collapsible Heading 2 section",
         searchTerms: ["toggle h2", "collapsible h2", "heading 2 toggle"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertToggle().run();
+          editor.chain().focus().deleteRange(range).insertToggle({ headingLevel: 2 }).run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "toggle-h1",
       },
       {
@@ -1180,9 +1219,9 @@ export const getSlashCommandFilteredSections =
         description: "Insert a collapsible Heading 3 section",
         searchTerms: ["toggle h3", "collapsible h3", "heading 3 toggle"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertToggle().run();
+          editor.chain().focus().deleteRange(range).insertToggle({ headingLevel: 3 }).run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "toggle-h2",
       },
       // GitHub & Gist Embeds
@@ -1197,7 +1236,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "gist" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "toggle-h3",
       },
       {
@@ -1211,7 +1250,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertEmbed({ provider: "github" });
         },
-        section: "general",
+        section: "embeds",
         pushAfter: "gist",
       },
       // Lock Mode Callout / Badge
@@ -1254,7 +1293,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "structure",
         pushAfter: "github",
       },
       // Status Badges
@@ -1268,7 +1307,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `✅ انجام شد` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "lock",
       },
       {
@@ -1281,7 +1320,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `🔄 در حال انجام` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "badge-done",
       },
       {
@@ -1294,7 +1333,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `⛔ متوقف شده` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "badge-progress",
       },
       {
@@ -1307,7 +1346,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `👀 در حال بررسی` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "badge-blocked",
       },
       {
@@ -1320,7 +1359,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `📋 در انتظار` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "badge-review",
       },
       // Smart Relative Dates
@@ -1337,7 +1376,7 @@ export const getSlashCommandFilteredSections =
           const formatted = tomorrow.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
           editor.chain().focus().deleteRange(range).insertContent(`📅 فردا (${formatted}) `).run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "badge-todo",
       },
       {
@@ -1353,7 +1392,7 @@ export const getSlashCommandFilteredSections =
           const formatted = yesterday.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
           editor.chain().focus().deleteRange(range).insertContent(`📅 دیروز (${formatted}) `).run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "tomorrow",
       },
       // Document Templates
@@ -1444,7 +1483,7 @@ export const getSlashCommandFilteredSections =
             ])
             .run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "yesterday",
       },
       {
@@ -1542,7 +1581,7 @@ export const getSlashCommandFilteredSections =
             ])
             .run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "template-meeting",
       },
       {
@@ -1611,7 +1650,7 @@ export const getSlashCommandFilteredSections =
             ])
             .run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "template-bug",
       },
       {
@@ -1696,7 +1735,7 @@ export const getSlashCommandFilteredSections =
             ])
             .run();
         },
-        section: "general",
+        section: "templates",
         pushAfter: "template-standup",
       },
       // Priority & Ratings
@@ -1710,7 +1749,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent("⭐⭐⭐⭐⭐ ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "template-rfc",
       },
       {
@@ -1723,7 +1762,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `🔴 اولویت بالا` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "stars",
       },
       {
@@ -1736,7 +1775,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `🟡 اولویت متوسط` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "priority-high",
       },
       {
@@ -1749,7 +1788,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `🟢 اولویت پایین` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "priority-medium",
       },
       {
@@ -1762,7 +1801,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" `[█████░░░░░] 50%` ").run();
         },
-        section: "general",
+        section: "badges",
         pushAfter: "priority-low",
       },
       // Callout Color Themes
@@ -1790,7 +1829,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "progress",
       },
       {
@@ -1817,7 +1856,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "callout-pink",
       },
       {
@@ -1844,7 +1883,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "callout-purple",
       },
       {
@@ -1871,7 +1910,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "callout-cyan",
       },
       {
@@ -1898,7 +1937,7 @@ export const getSlashCommandFilteredSections =
             })
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "callout-orange",
       },
       // Highlighter Pen Tools
@@ -1912,7 +1951,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-peach-background)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "callout-gray",
       },
       {
@@ -1925,7 +1964,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-green-background)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "highlight-yellow",
       },
       {
@@ -1938,7 +1977,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-pink-background)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "highlight-green",
       },
       {
@@ -1956,7 +1995,7 @@ export const getSlashCommandFilteredSections =
             .setBackgroundColor("var(--editor-colors-light-blue-background)")
             .run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "highlight-pink",
       },
       {
@@ -1969,7 +2008,7 @@ export const getSlashCommandFilteredSections =
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-purple-background)").run();
         },
-        section: "general",
+        section: "highlights",
         pushAfter: "highlight-blue",
       }
     );
