@@ -50,6 +50,8 @@ import {
   Database,
   GitFork,
   Music,
+  Copy,
+  RefreshCw,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -924,6 +926,149 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "spotify",
+      },
+      // Duplicate Block
+      {
+        commandKey: "duplicate",
+        key: "duplicate",
+        title: "Duplicate / تکثیر بلوک",
+        icon: <Copy className="size-3.5 text-accent-primary" />,
+        description: "Duplicate current block (Cmd+D / Ctrl+D)",
+        searchTerms: ["duplicate", "copy block", "clone", "taksir", "kopi"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          const { state } = editor;
+          const { selection } = state;
+          const { $from } = selection;
+          const currentDepth = $from.depth;
+          if (currentDepth > 0) {
+            const node = $from.node(currentDepth);
+            const posAfter = $from.after(currentDepth);
+            if (node) {
+              editor.chain().focus().insertContentAt(posAfter, node.toJSON()).run();
+            }
+          }
+        },
+        section: "general",
+        pushAfter: "soundcloud",
+      },
+      // Turn Into Commands
+      {
+        commandKey: "turn-h1",
+        key: "turn-h1",
+        title: "Turn into Heading 1",
+        icon: <RefreshCw className="size-3.5 text-blue-500" />,
+        description: "Transform current block into Heading 1",
+        searchTerms: ["turn into heading 1", "turn h1", "convert h1", "tabdil"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run();
+        },
+        section: "general",
+        pushAfter: "duplicate",
+      },
+      {
+        commandKey: "turn-h2",
+        key: "turn-h2",
+        title: "Turn into Heading 2",
+        icon: <RefreshCw className="size-3.5 text-blue-500" />,
+        description: "Transform current block into Heading 2",
+        searchTerms: ["turn into heading 2", "turn h2", "convert h2"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run();
+        },
+        section: "general",
+        pushAfter: "turn-h1",
+      },
+      {
+        commandKey: "turn-h3",
+        key: "turn-h3",
+        title: "Turn into Heading 3",
+        icon: <RefreshCw className="size-3.5 text-blue-500" />,
+        description: "Transform current block into Heading 3",
+        searchTerms: ["turn into heading 3", "turn h3", "convert h3"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run();
+        },
+        section: "general",
+        pushAfter: "turn-h2",
+      },
+      {
+        commandKey: "turn-quote",
+        key: "turn-quote",
+        title: "Turn into Quote",
+        icon: <RefreshCw className="size-3.5 text-amber-500" />,
+        description: "Transform current block into Quote",
+        searchTerms: ["turn into quote", "turn quote", "convert quote"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).toggleBlockquote().run();
+        },
+        section: "general",
+        pushAfter: "turn-h3",
+      },
+      {
+        commandKey: "turn-todo",
+        key: "turn-todo",
+        title: "Turn into To-do List",
+        icon: <RefreshCw className="size-3.5 text-emerald-500" />,
+        description: "Transform current block into To-do checklist",
+        searchTerms: ["turn into todo", "turn todo", "convert todo", "checklist"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).toggleTaskList().run();
+        },
+        section: "general",
+        pushAfter: "turn-quote",
+      },
+      {
+        commandKey: "turn-bullet",
+        key: "turn-bullet",
+        title: "Turn into Bullet List",
+        icon: <RefreshCw className="size-3.5 text-purple-500" />,
+        description: "Transform current block into Bullet list",
+        searchTerms: ["turn into bullet", "turn bullet", "convert list"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).toggleBulletList().run();
+        },
+        section: "general",
+        pushAfter: "turn-todo",
+      },
+      {
+        commandKey: "turn-number",
+        key: "turn-number",
+        title: "Turn into Numbered List",
+        icon: <RefreshCw className="size-3.5 text-indigo-500" />,
+        description: "Transform current block into Numbered list",
+        searchTerms: ["turn into numbered", "turn number", "convert number"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+        },
+        section: "general",
+        pushAfter: "turn-bullet",
+      },
+      {
+        commandKey: "turn-code",
+        key: "turn-code",
+        title: "Turn into Code Block",
+        icon: <RefreshCw className="size-3.5 text-teal-500" />,
+        description: "Transform current block into Code block",
+        searchTerms: ["turn into code", "turn code", "convert code"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+        },
+        section: "general",
+        pushAfter: "turn-number",
+      },
+      {
+        commandKey: "turn-callout",
+        key: "turn-callout",
+        title: "Turn into Callout",
+        icon: <RefreshCw className="size-3.5 text-rose-500" />,
+        description: "Transform current block into Callout box",
+        searchTerms: ["turn into callout", "turn callout", "convert callout"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCallout().run();
+        },
+        section: "general",
+        pushAfter: "turn-code",
       }
     );
 
