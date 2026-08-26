@@ -557,10 +557,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "today",
         key: "today",
-        title: "Today's Date",
+        title: "Today's Date / تاریخ امروز",
         icon: <Calendar className="size-3.5" />,
         description: "Insert today's date badge",
-        searchTerms: ["today", "date", "calendar", "emrooz"],
+        searchTerms: ["today", "date", "calendar", "emrooz", "tarikh"],
         command: ({ editor, range }: CommandProps) => {
           const now = new Date();
           const formatted = now.toLocaleDateString("fa-IR");
@@ -570,9 +570,61 @@ export const getSlashCommandFilteredSections =
         pushAfter: "page-link",
       },
       {
+        commandKey: "tomorrow",
+        key: "tomorrow",
+        title: "Tomorrow / تاریخ فردا",
+        icon: <Calendar className="text-emerald-500 size-3.5" />,
+        description: "Insert tomorrow's formatted date",
+        searchTerms: ["tomorrow", "farda", "date", "tarikh"],
+        command: ({ editor, range }: CommandProps) => {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const formatted = tomorrow.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
+          editor.chain().focus().deleteRange(range).insertContent(`📅 فردا (${formatted}) `).run();
+        },
+        section: "templates",
+        pushAfter: "today",
+      },
+      {
+        commandKey: "yesterday",
+        key: "yesterday",
+        title: "Yesterday / تاریخ دیروز",
+        icon: <Calendar className="text-slate-500 size-3.5" />,
+        description: "Insert yesterday's formatted date",
+        searchTerms: ["yesterday", "dirooz", "date", "tarikh"],
+        command: ({ editor, range }: CommandProps) => {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const formatted = yesterday.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
+          editor.chain().focus().deleteRange(range).insertContent(`📅 دیروز (${formatted}) `).run();
+        },
+        section: "templates",
+        pushAfter: "tomorrow",
+      },
+      {
+        commandKey: "persian-date",
+        key: "persian-date",
+        title: "Full Persian Date / تاریخ کامل شمسی",
+        icon: <Calendar className="text-indigo-500 size-3.5" />,
+        description: "Insert complete Persian weekday and date",
+        searchTerms: ["persian date", "shamsi", "rooz", "tarikh kamel", "taghvim"],
+        command: ({ editor, range }: CommandProps) => {
+          const now = new Date();
+          const formatted = now.toLocaleDateString("fa-IR", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+          editor.chain().focus().deleteRange(range).insertContent(`🗓️ ${formatted} `).run();
+        },
+        section: "templates",
+        pushAfter: "yesterday",
+      },
+      {
         commandKey: "now",
         key: "now",
-        title: "Current Date & Time",
+        title: "Current Date & Time / تاریخ و ساعت",
         icon: <Clock className="size-3.5" />,
         description: "Insert current date and time",
         searchTerms: ["now", "time", "clock", "alan", "saat"],
@@ -582,7 +634,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).insertContent(`🕒 ${formatted} `).run();
         },
         section: "templates",
-        pushAfter: "today",
+        pushAfter: "persian-date",
       },
       {
         commandKey: "date",
@@ -1375,39 +1427,6 @@ export const getSlashCommandFilteredSections =
         section: "badges",
         pushAfter: "badge-review",
       },
-      // Smart Relative Dates
-      {
-        commandKey: "tomorrow",
-        key: "tomorrow",
-        title: "Tomorrow / تاریخ فردا",
-        icon: <Calendar className="text-emerald-500 size-3.5" />,
-        description: "Insert tomorrow's formatted date",
-        searchTerms: ["tomorrow", "farda", "date"],
-        command: ({ editor, range }: CommandProps) => {
-          const tomorrow = new Date();
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          const formatted = tomorrow.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
-          editor.chain().focus().deleteRange(range).insertContent(`📅 فردا (${formatted}) `).run();
-        },
-        section: "templates",
-        pushAfter: "badge-todo",
-      },
-      {
-        commandKey: "yesterday",
-        key: "yesterday",
-        title: "Yesterday / تاریخ دیروز",
-        icon: <Calendar className="text-slate-500 size-3.5" />,
-        description: "Insert yesterday's formatted date",
-        searchTerms: ["yesterday", "dirooz", "date"],
-        command: ({ editor, range }: CommandProps) => {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          const formatted = yesterday.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
-          editor.chain().focus().deleteRange(range).insertContent(`📅 دیروز (${formatted}) `).run();
-        },
-        section: "templates",
-        pushAfter: "tomorrow",
-      },
       // Document Templates
       {
         commandKey: "template-meeting",
@@ -1497,7 +1516,7 @@ export const getSlashCommandFilteredSections =
             .run();
         },
         section: "templates",
-        pushAfter: "yesterday",
+        pushAfter: "date",
       },
       {
         commandKey: "template-bug",
