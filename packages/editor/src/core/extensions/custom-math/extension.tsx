@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // local components
 import { CustomMathBlock } from "./components/block";
+import type { CustomMathNodeViewProps } from "./components/block";
 import { CustomMathExtensionConfig } from "./extension-config";
 import { EMathAttributeNames } from "./types";
 import type { CustomMathExtensionOptions, CustomMathExtensionStorage } from "./types";
@@ -34,7 +35,9 @@ export function CustomMathExtension() {
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer((mathProps) => <CustomMathBlock {...mathProps} />);
+      return ReactNodeViewRenderer((mathProps) => (
+        <CustomMathBlock {...(mathProps as unknown as CustomMathNodeViewProps)} />
+      ));
     },
   });
 }
