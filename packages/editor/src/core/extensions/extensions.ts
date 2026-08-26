@@ -41,6 +41,7 @@ import type { IEditorProps } from "@/types";
 // local imports
 import { CustomImageExtension } from "./custom-image/extension";
 import { CustomAttachmentExtension } from "./custom-attachment/extension";
+import { CustomBookmarkExtension } from "./custom-bookmark/extension";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomPlaceholderExtension } from "./placeholder";
 import { CustomStarterKitExtension } from "./starter-kit";
@@ -124,6 +125,7 @@ export const CoreEditorExtensions = (args: TArguments): Extensions => {
     CustomTextAlignExtension,
     CustomTextDirectionExtension,
     CustomCalloutExtension,
+    CustomBookmarkExtension({ isEditable: editable }),
     UtilityExtension({
       disabledExtensions,
       flaggedExtensions,

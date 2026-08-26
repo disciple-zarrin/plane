@@ -17,6 +17,7 @@ import { CustomCodeInlineExtension } from "./code-inline";
 import { CustomColorExtension } from "./custom-color";
 import { CustomImageExtensionConfig } from "./custom-image/extension-config";
 import { CustomAttachmentExtensionConfig } from "./custom-attachment/extension-config";
+import { CustomBookmarkExtensionConfig } from "./custom-bookmark/extension-config";
 import { CustomLinkExtension } from "./custom-link";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
@@ -40,6 +41,7 @@ export const CoreEditorExtensionsWithoutProps = [
   ImageExtensionConfig,
   CustomImageExtensionConfig,
   CustomAttachmentExtensionConfig,
+  CustomBookmarkExtensionConfig,
   Underline,
   TextStyle,
   TaskList.configure({
