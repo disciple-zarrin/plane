@@ -255,7 +255,7 @@ export const getSlashCommandFilteredSections =
         title: "Colors",
         items: [
           {
-            commandKey: "text-color",
+            commandKey: "text-color-default",
             key: "text-color-default",
             title: "Default",
             description: "Change text color",
@@ -266,7 +266,7 @@ export const getSlashCommandFilteredSections =
           ...COLORS_LIST.map(
             (color) =>
               ({
-                commandKey: "text-color",
+                commandKey: `text-color-${color.key}`,
                 key: `text-color-${color.key}`,
                 title: color.label,
                 description: "Change text color",
@@ -291,7 +291,7 @@ export const getSlashCommandFilteredSections =
         title: "Background colors",
         items: [
           {
-            commandKey: "background-color",
+            commandKey: "background-color-default",
             key: "background-color-default",
             title: "Default background",
             description: "Change background color",
@@ -302,12 +302,12 @@ export const getSlashCommandFilteredSections =
               backgroundColor: "var(--background-color-surface-1)",
               border: "1px solid var(--border-color-strong)",
             },
-            command: ({ editor, range }) => toggleTextColor(undefined, editor, range),
+            command: ({ editor, range }) => toggleBackgroundColor(undefined, editor, range),
           },
           ...COLORS_LIST.map(
             (color) =>
               ({
-                commandKey: "background-color",
+                commandKey: `background-color-${color.key}`,
                 key: `background-color-${color.key}`,
                 title: color.label,
                 description: "Change background color",
@@ -560,19 +560,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "tip",
         key: "tip",
         title: "Tip / نکته",
-        icon: <Lightbulb className="size-3.5 text-emerald-500" />,
+        icon: <Lightbulb className="text-emerald-500 size-3.5" />,
         description: "Insert a green Tip callout with lightbulb",
         searchTerms: ["tip", "hint", "idea", "lightbulb", "nokteh"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f4a1",
-              "data-background": "rgb(236, 253, 245)",
-            },
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f4a1",
+                "data-background": "rgb(236, 253, 245)",
+                "data-block-type": "callout-component",
+              },
+            })
+            .run();
         },
         section: "general",
         pushAfter: "date",
@@ -581,19 +587,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "warning",
         key: "warning",
         title: "Warning / هشدار",
-        icon: <AlertTriangle className="size-3.5 text-amber-500" />,
+        icon: <AlertTriangle className="text-amber-500 size-3.5" />,
         description: "Insert a yellow Warning callout",
         searchTerms: ["warning", "alert", "caution", "heed", "tahzir", "hoshdar"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "26a0-fe0f",
-              "data-background": "rgb(254, 243, 199)",
-            },
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "26a0-fe0f",
+                "data-background": "rgb(254, 243, 199)",
+                "data-block-type": "callout-component",
+              },
+            })
+            .run();
         },
         section: "general",
         pushAfter: "tip",
@@ -602,19 +614,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "danger",
         key: "danger",
         title: "Danger / خطا",
-        icon: <AlertOctagon className="size-3.5 text-red-500" />,
+        icon: <AlertOctagon className="text-red-500 size-3.5" />,
         description: "Insert a red Danger/Error callout",
         searchTerms: ["danger", "error", "critical", "stop", "khatar"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "26d4",
-              "data-background": "rgb(254, 226, 226)",
-            },
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "26d4",
+                "data-background": "rgb(254, 226, 226)",
+                "data-block-type": "callout-component",
+              },
+            })
+            .run();
         },
         section: "general",
         pushAfter: "warning",
@@ -623,19 +641,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "info",
         key: "info",
         title: "Info / اطلاعات",
-        icon: <Info className="size-3.5 text-blue-500" />,
+        icon: <Info className="text-blue-500 size-3.5" />,
         description: "Insert a blue Information callout",
         searchTerms: ["info", "information", "note", "rahnama"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "2139-fe0f",
-              "data-background": "rgb(239, 246, 255)",
-            },
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "2139-fe0f",
+                "data-background": "rgb(239, 246, 255)",
+                "data-block-type": "callout-component",
+              },
+            })
+            .run();
         },
         section: "general",
         pushAfter: "danger",
@@ -644,19 +668,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "note",
         key: "note",
         title: "Note / یادداشت",
-        icon: <StickyNote className="size-3.5 text-purple-500" />,
+        icon: <StickyNote className="text-purple-500 size-3.5" />,
         description: "Insert a purple Note callout",
         searchTerms: ["note", "memo", "yaddasht"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f4dd",
-              "data-background": "rgb(245, 243, 255)",
-            },
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f4dd",
+                "data-background": "rgb(245, 243, 255)",
+                "data-block-type": "callout-component",
+              },
+            })
+            .run();
         },
         section: "general",
         pushAfter: "info",
@@ -666,7 +696,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-red",
         key: "color-red",
         title: "Red Color",
-        icon: <Palette className="size-3.5 text-red-500" />,
+        icon: <Palette className="text-red-500 size-3.5" />,
         description: "Apply red text color",
         searchTerms: ["red", "color", "ghermez", "rang"],
         command: ({ editor, range }: CommandProps) => {
@@ -679,7 +709,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-green",
         key: "color-green",
         title: "Green Color",
-        icon: <Palette className="size-3.5 text-green-500" />,
+        icon: <Palette className="text-green-500 size-3.5" />,
         description: "Apply green text color",
         searchTerms: ["green", "color", "sabz"],
         command: ({ editor, range }: CommandProps) => {
@@ -692,7 +722,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-blue",
         key: "color-blue",
         title: "Blue Color",
-        icon: <Palette className="size-3.5 text-blue-500" />,
+        icon: <Palette className="text-blue-500 size-3.5" />,
         description: "Apply blue text color",
         searchTerms: ["blue", "color", "abi"],
         command: ({ editor, range }: CommandProps) => {
@@ -705,7 +735,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-yellow",
         key: "color-yellow",
         title: "Yellow / Peach Color",
-        icon: <Palette className="size-3.5 text-amber-500" />,
+        icon: <Palette className="text-amber-500 size-3.5" />,
         description: "Apply yellow text color",
         searchTerms: ["yellow", "peach", "color", "zard"],
         command: ({ editor, range }: CommandProps) => {
@@ -718,7 +748,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-purple",
         key: "color-purple",
         title: "Purple Color",
-        icon: <Palette className="size-3.5 text-purple-500" />,
+        icon: <Palette className="text-purple-500 size-3.5" />,
         description: "Apply purple text color",
         searchTerms: ["purple", "color", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
@@ -731,7 +761,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-orange",
         key: "color-orange",
         title: "Orange Color",
-        icon: <Palette className="size-3.5 text-orange-500" />,
+        icon: <Palette className="text-orange-500 size-3.5" />,
         description: "Apply orange text color",
         searchTerms: ["orange", "color", "narenji"],
         command: ({ editor, range }: CommandProps) => {
@@ -744,7 +774,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "color-gray",
         key: "color-gray",
         title: "Gray Color",
-        icon: <Palette className="size-3.5 text-gray-500" />,
+        icon: <Palette className="text-gray-500 size-3.5" />,
         description: "Apply gray text color",
         searchTerms: ["gray", "grey", "color", "toosi"],
         command: ({ editor, range }: CommandProps) => {
@@ -761,9 +791,60 @@ export const getSlashCommandFilteredSections =
         description: "View quick Markdown & editor keyboard shortcuts",
         searchTerms: ["shortcuts", "help", "guide", "hotkeys", "mianbor", "rahnama"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(
-            `> 💡 **راهنمای میانبرهای سریع مارک‌داون:**\n> * \`#\` برای تیتر ۱ | \`##\` برای تیتر ۲ | \`###\` برای تیتر ۳\n> * \`-\` یا \`*\` برای لیست نقطه‌ای | \`1.\` برای لیست عددی | \`[]\` برای چک‌لیست\n> * \`>\` برای نقل‌قول | \`\`\` برای کادر کد | \`/\` برای تمام دستورات اسلش\n`
-          ).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f4a1",
+                "data-background": "rgb(236, 253, 245)",
+                "data-block-type": "callout-component",
+              },
+              content: [
+                {
+                  type: CORE_EXTENSIONS.PARAGRAPH,
+                  content: [{ type: "text", marks: [{ type: "bold" }], text: "💡 راهنمای میانبرهای سریع:" }],
+                },
+                {
+                  type: CORE_EXTENSIONS.BULLET_LIST,
+                  content: [
+                    {
+                      type: CORE_EXTENSIONS.LIST_ITEM,
+                      content: [
+                        {
+                          type: CORE_EXTENSIONS.PARAGRAPH,
+                          content: [{ type: "text", text: "# برای تیتر ۱ | ## برای تیتر ۲ | ### برای تیتر ۳" }],
+                        },
+                      ],
+                    },
+                    {
+                      type: CORE_EXTENSIONS.LIST_ITEM,
+                      content: [
+                        {
+                          type: CORE_EXTENSIONS.PARAGRAPH,
+                          content: [
+                            { type: "text", text: "- یا * برای لیست نقطه‌ای | 1. برای لیست عددی | [] برای چک‌لیست" },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      type: CORE_EXTENSIONS.LIST_ITEM,
+                      content: [
+                        {
+                          type: CORE_EXTENSIONS.PARAGRAPH,
+                          content: [{ type: "text", text: "> برای نقل‌قول | ``` برای کادر کد | Cmd+D برای تکثیر بلوک" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "color-gray",
@@ -787,7 +868,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "youtube",
         key: "youtube",
         title: "YouTube Video",
-        icon: <Play className="size-3.5 text-red-500" />,
+        icon: <Play className="text-red-500 size-3.5" />,
         description: "Embed an interactive YouTube video player",
         searchTerms: ["youtube", "video", "yt", "stream"],
         command: ({ editor, range }: CommandProps) => {
@@ -801,7 +882,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "aparat",
         key: "aparat",
         title: "Aparat Video / آپارات",
-        icon: <Play className="size-3.5 text-pink-500" />,
+        icon: <Play className="text-pink-500 size-3.5" />,
         description: "Embed an Aparat video player",
         searchTerms: ["aparat", "video", "clip", "aparat video"],
         command: ({ editor, range }: CommandProps) => {
@@ -815,7 +896,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "figma",
         key: "figma",
         title: "Figma Prototype",
-        icon: <Figma className="size-3.5 text-purple-500" />,
+        icon: <Figma className="text-purple-500 size-3.5" />,
         description: "Embed a live Figma frame or prototype",
         searchTerms: ["figma", "design", "ui", "ux", "prototype"],
         command: ({ editor, range }: CommandProps) => {
@@ -829,7 +910,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "codepen",
         key: "codepen",
         title: "CodePen Snippet",
-        icon: <Code className="size-3.5 text-teal-500" />,
+        icon: <Code className="text-teal-500 size-3.5" />,
         description: "Embed an interactive CodePen demo",
         searchTerms: ["codepen", "code", "html", "css", "js", "demo"],
         command: ({ editor, range }: CommandProps) => {
@@ -857,7 +938,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "issue",
         key: "issue",
         title: "Work Item / کارت تسک",
-        icon: <Database className="size-3.5 text-blue-500" />,
+        icon: <Database className="text-blue-500 size-3.5" />,
         description: "Insert a live database work item card",
         searchTerms: ["issue", "work item", "task", "card", "kart"],
         command: ({ editor, range }: CommandProps) => {
@@ -871,18 +952,23 @@ export const getSlashCommandFilteredSections =
         commandKey: "mermaid",
         key: "mermaid",
         title: "Mermaid Diagram / فلوچارت",
-        icon: <GitFork className="size-3.5 text-indigo-500" />,
+        icon: <GitFork className="text-indigo-500 size-3.5" />,
         description: "Insert a Mermaid.js diagram or flowchart block",
         searchTerms: ["mermaid", "diagram", "flowchart", "chart", "graph", "nemoodar"],
         command: ({ editor, range }: CommandProps) => {
           const starterDiagram = `graph TD\n  A[شروع پروژه] --> B[طراحی و برنامه‌ریزی]\n  B --> C[پیاده‌سازی و توسعه]\n  C --> D[تست و انتشار نهایی]`;
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CODE_BLOCK,
-            attrs: {
-              language: "mermaid",
-            },
-            content: [{ type: "text", text: starterDiagram }],
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CODE_BLOCK,
+              attrs: {
+                language: "mermaid",
+              },
+              content: [{ type: "text", text: starterDiagram }],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "issue",
@@ -892,7 +978,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "spotify",
         key: "spotify",
         title: "Spotify Audio / پادکست",
-        icon: <Music className="size-3.5 text-green-500" />,
+        icon: <Music className="text-green-500 size-3.5" />,
         description: "Embed a Spotify track, album, or podcast",
         searchTerms: ["spotify", "music", "audio", "podcast", "song", "ahange"],
         command: ({ editor, range }: CommandProps) => {
@@ -906,7 +992,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "soundcloud",
         key: "soundcloud",
         title: "SoundCloud Audio",
-        icon: <Music className="size-3.5 text-orange-500" />,
+        icon: <Music className="text-orange-500 size-3.5" />,
         description: "Embed a SoundCloud audio track or playlist",
         searchTerms: ["soundcloud", "music", "audio", "track"],
         command: ({ editor, range }: CommandProps) => {
@@ -946,7 +1032,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-h1",
         key: "turn-h1",
         title: "Turn into Heading 1",
-        icon: <RefreshCw className="size-3.5 text-blue-500" />,
+        icon: <RefreshCw className="text-blue-500 size-3.5" />,
         description: "Transform current block into Heading 1",
         searchTerms: ["turn into heading 1", "turn h1", "convert h1", "tabdil"],
         command: ({ editor, range }: CommandProps) => {
@@ -959,7 +1045,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-h2",
         key: "turn-h2",
         title: "Turn into Heading 2",
-        icon: <RefreshCw className="size-3.5 text-blue-500" />,
+        icon: <RefreshCw className="text-blue-500 size-3.5" />,
         description: "Transform current block into Heading 2",
         searchTerms: ["turn into heading 2", "turn h2", "convert h2"],
         command: ({ editor, range }: CommandProps) => {
@@ -972,7 +1058,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-h3",
         key: "turn-h3",
         title: "Turn into Heading 3",
-        icon: <RefreshCw className="size-3.5 text-blue-500" />,
+        icon: <RefreshCw className="text-blue-500 size-3.5" />,
         description: "Transform current block into Heading 3",
         searchTerms: ["turn into heading 3", "turn h3", "convert h3"],
         command: ({ editor, range }: CommandProps) => {
@@ -985,7 +1071,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-quote",
         key: "turn-quote",
         title: "Turn into Quote",
-        icon: <RefreshCw className="size-3.5 text-amber-500" />,
+        icon: <RefreshCw className="text-amber-500 size-3.5" />,
         description: "Transform current block into Quote",
         searchTerms: ["turn into quote", "turn quote", "convert quote"],
         command: ({ editor, range }: CommandProps) => {
@@ -998,7 +1084,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-todo",
         key: "turn-todo",
         title: "Turn into To-do List",
-        icon: <RefreshCw className="size-3.5 text-emerald-500" />,
+        icon: <RefreshCw className="text-emerald-500 size-3.5" />,
         description: "Transform current block into To-do checklist",
         searchTerms: ["turn into todo", "turn todo", "convert todo", "checklist"],
         command: ({ editor, range }: CommandProps) => {
@@ -1011,7 +1097,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-bullet",
         key: "turn-bullet",
         title: "Turn into Bullet List",
-        icon: <RefreshCw className="size-3.5 text-purple-500" />,
+        icon: <RefreshCw className="text-purple-500 size-3.5" />,
         description: "Transform current block into Bullet list",
         searchTerms: ["turn into bullet", "turn bullet", "convert list"],
         command: ({ editor, range }: CommandProps) => {
@@ -1024,7 +1110,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-number",
         key: "turn-number",
         title: "Turn into Numbered List",
-        icon: <RefreshCw className="size-3.5 text-indigo-500" />,
+        icon: <RefreshCw className="text-indigo-500 size-3.5" />,
         description: "Transform current block into Numbered list",
         searchTerms: ["turn into numbered", "turn number", "convert number"],
         command: ({ editor, range }: CommandProps) => {
@@ -1037,7 +1123,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-code",
         key: "turn-code",
         title: "Turn into Code Block",
-        icon: <RefreshCw className="size-3.5 text-teal-500" />,
+        icon: <RefreshCw className="text-teal-500 size-3.5" />,
         description: "Transform current block into Code block",
         searchTerms: ["turn into code", "turn code", "convert code"],
         command: ({ editor, range }: CommandProps) => {
@@ -1050,7 +1136,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "turn-callout",
         key: "turn-callout",
         title: "Turn into Callout",
-        icon: <RefreshCw className="size-3.5 text-rose-500" />,
+        icon: <RefreshCw className="text-rose-500 size-3.5" />,
         description: "Transform current block into Callout box",
         searchTerms: ["turn into callout", "turn callout", "convert callout"],
         command: ({ editor, range }: CommandProps) => {
@@ -1064,7 +1150,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "toggle-h1",
         key: "toggle-h1",
         title: "Toggle Heading 1 / تیتر تاشو ۱",
-        icon: <ChevronRight className="size-3.5 text-blue-500" />,
+        icon: <ChevronRight className="text-blue-500 size-3.5" />,
         description: "Insert a collapsible Heading 1 section",
         searchTerms: ["toggle h1", "collapsible h1", "heading 1 toggle", "titr tasho"],
         command: ({ editor, range }: CommandProps) => {
@@ -1077,7 +1163,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "toggle-h2",
         key: "toggle-h2",
         title: "Toggle Heading 2 / تیتر تاشو ۲",
-        icon: <ChevronRight className="size-3.5 text-blue-500" />,
+        icon: <ChevronRight className="text-blue-500 size-3.5" />,
         description: "Insert a collapsible Heading 2 section",
         searchTerms: ["toggle h2", "collapsible h2", "heading 2 toggle"],
         command: ({ editor, range }: CommandProps) => {
@@ -1090,7 +1176,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "toggle-h3",
         key: "toggle-h3",
         title: "Toggle Heading 3 / تیتر تاشو ۳",
-        icon: <ChevronRight className="size-3.5 text-blue-500" />,
+        icon: <ChevronRight className="text-blue-500 size-3.5" />,
         description: "Insert a collapsible Heading 3 section",
         searchTerms: ["toggle h3", "collapsible h3", "heading 3 toggle"],
         command: ({ editor, range }: CommandProps) => {
@@ -1104,7 +1190,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "gist",
         key: "gist",
         title: "GitHub Gist",
-        icon: <Code className="size-3.5 text-slate-700" />,
+        icon: <Code className="text-slate-700 size-3.5" />,
         description: "Embed a GitHub Gist code snippet",
         searchTerms: ["gist", "github gist", "snippet", "code"],
         command: ({ editor, range }: CommandProps) => {
@@ -1118,7 +1204,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "github",
         key: "github",
         title: "GitHub Repository",
-        icon: <GitFork className="size-3.5 text-slate-700" />,
+        icon: <GitFork className="text-slate-700 size-3.5" />,
         description: "Embed a GitHub repository link or card",
         searchTerms: ["github", "repo", "repository", "git"],
         command: ({ editor, range }: CommandProps) => {
@@ -1133,34 +1219,40 @@ export const getSlashCommandFilteredSections =
         commandKey: "lock",
         key: "lock",
         title: "Lock Notice / قفل حفاظت سند",
-        icon: <Lock className="size-3.5 text-amber-500" />,
+        icon: <Lock className="text-amber-500 size-3.5" />,
         description: "Insert a locked document protection notice",
         searchTerms: ["lock", "protect", "read only", "ghofl", "mohafezat"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f512",
-              "data-background": "rgb(254, 243, 199)",
-            },
-            content: [
-              {
-                type: CORE_EXTENSIONS.PARAGRAPH,
-                content: [
-                  {
-                    type: "text",
-                    marks: [{ type: "bold" }],
-                    text: "🔒 این سند نهایی و قفل شده است: ",
-                  },
-                  {
-                    type: "text",
-                    text: "جهت حفظ یکپارچگی اطلاعات، لطفاً از ایجاد تغییرات ناخواسته خودداری فرمایید.",
-                  },
-                ],
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f512",
+                "data-background": "rgb(254, 243, 199)",
+                "data-block-type": "callout-component",
               },
-            ],
-          }).run();
+              content: [
+                {
+                  type: CORE_EXTENSIONS.PARAGRAPH,
+                  content: [
+                    {
+                      type: "text",
+                      marks: [{ type: "bold" }],
+                      text: "🔒 این سند نهایی و قفل شده است: ",
+                    },
+                    {
+                      type: "text",
+                      text: "جهت حفظ یکپارچگی اطلاعات، لطفاً از ایجاد تغییرات ناخواسته خودداری فرمایید.",
+                    },
+                  ],
+                },
+              ],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "github",
@@ -1170,7 +1262,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "badge-done",
         key: "badge-done",
         title: "Done Badge / بج انجام شد",
-        icon: <CheckCircle2 className="size-3.5 text-emerald-500" />,
+        icon: <CheckCircle2 className="text-emerald-500 size-3.5" />,
         description: "Insert a green Done status badge",
         searchTerms: ["done", "badge done", "complete", "anjam shod", "vaziat"],
         command: ({ editor, range }: CommandProps) => {
@@ -1183,7 +1275,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "badge-progress",
         key: "badge-progress",
         title: "In Progress Badge / بج در حال انجام",
-        icon: <Clock className="size-3.5 text-amber-500" />,
+        icon: <Clock className="text-amber-500 size-3.5" />,
         description: "Insert a yellow In Progress status badge",
         searchTerms: ["in progress", "progress", "doing", "dar hal anjam"],
         command: ({ editor, range }: CommandProps) => {
@@ -1196,7 +1288,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "badge-blocked",
         key: "badge-blocked",
         title: "Blocked Badge / بج متوقف شده",
-        icon: <AlertCircle className="size-3.5 text-red-500" />,
+        icon: <AlertCircle className="text-red-500 size-3.5" />,
         description: "Insert a red Blocked status badge",
         searchTerms: ["blocked", "stop", "khatar", "motevaghef"],
         command: ({ editor, range }: CommandProps) => {
@@ -1209,7 +1301,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "badge-review",
         key: "badge-review",
         title: "In Review Badge / بج در حال بررسی",
-        icon: <Eye className="size-3.5 text-blue-500" />,
+        icon: <Eye className="text-blue-500 size-3.5" />,
         description: "Insert a blue In Review status badge",
         searchTerms: ["in review", "review", "barrasi"],
         command: ({ editor, range }: CommandProps) => {
@@ -1222,7 +1314,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "badge-todo",
         key: "badge-todo",
         title: "To Do Badge / بج در انتظار",
-        icon: <Tag className="size-3.5 text-slate-500" />,
+        icon: <Tag className="text-slate-500 size-3.5" />,
         description: "Insert a gray To Do status badge",
         searchTerms: ["todo", "badge todo", "backlog", "entezar"],
         command: ({ editor, range }: CommandProps) => {
@@ -1236,7 +1328,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "tomorrow",
         key: "tomorrow",
         title: "Tomorrow / تاریخ فردا",
-        icon: <Calendar className="size-3.5 text-emerald-500" />,
+        icon: <Calendar className="text-emerald-500 size-3.5" />,
         description: "Insert tomorrow's formatted date",
         searchTerms: ["tomorrow", "farda", "date"],
         command: ({ editor, range }: CommandProps) => {
@@ -1252,7 +1344,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "yesterday",
         key: "yesterday",
         title: "Yesterday / تاریخ دیروز",
-        icon: <Calendar className="size-3.5 text-slate-500" />,
+        icon: <Calendar className="text-slate-500 size-3.5" />,
         description: "Insert yesterday's formatted date",
         searchTerms: ["yesterday", "dirooz", "date"],
         command: ({ editor, range }: CommandProps) => {
@@ -1269,13 +1361,88 @@ export const getSlashCommandFilteredSections =
         commandKey: "template-meeting",
         key: "template-meeting",
         title: "Meeting Notes Template / قالب جلسه",
-        icon: <Users className="size-3.5 text-blue-500" />,
+        icon: <Users className="text-blue-500 size-3.5" />,
         description: "Insert a structured meeting agenda & notes template",
         searchTerms: ["meeting", "agenda", "notes", "jalase", "ghaleb"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(
-            `### 📝 صورتجلسه و تصمیمات\n* **📅 تاریخ:** \n* **👥 حاضرین:** \n* **🎯 هدف جلسه:** \n\n#### 📌 مباحث مطرح‌شده\n1. \n2. \n\n#### ✅ اقدامات و تسک‌های بعدی (Action Items)\n* [ ] تسک ۱ (@مسئول)\n* [ ] تسک ۲ (@مسئول)\n`
-          ).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent([
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 3 },
+                content: [{ type: "text", text: "📝 صورتجلسه و تصمیمات" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BULLET_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", marks: [{ type: "bold" }], text: "📅 تاریخ: " }],
+                      },
+                    ],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", marks: [{ type: "bold" }], text: "👥 حاضرین: " }],
+                      },
+                    ],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", marks: [{ type: "bold" }], text: "🎯 هدف جلسه: " }],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "📌 مباحث مطرح‌شده" }],
+              },
+              {
+                type: CORE_EXTENSIONS.ORDERED_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [{ type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "مورد اول..." }] }],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "✅ اقدامات و تسک‌های بعدی (Action Items)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.TASK_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.TASK_ITEM,
+                    attrs: { checked: false },
+                    content: [{ type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "تسک ۱ (@مسئول)" }] }],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.TASK_ITEM,
+                    attrs: { checked: false },
+                    content: [{ type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "تسک ۲ (@مسئول)" }] }],
+                  },
+                ],
+              },
+            ])
+            .run();
         },
         section: "general",
         pushAfter: "yesterday",
@@ -1284,13 +1451,96 @@ export const getSlashCommandFilteredSections =
         commandKey: "template-bug",
         key: "template-bug",
         title: "Bug Report Template / قالب گزارش باگ",
-        icon: <Bug className="size-3.5 text-red-500" />,
+        icon: <Bug className="text-red-500 size-3.5" />,
         description: "Insert a structured bug report template",
         searchTerms: ["bug", "issue", "report", "khata", "gozaresh"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(
-            `### 🐛 گزارش باگ و خطا\n* **🔍 شرح مشکل:** \n* **⚡ اولویت:** 🔴 بالا\n\n#### 📋 مراحل بازتولید (Steps to Reproduce)\n1. وارد بخش ... شوید\n2. روی دکمه ... کلیک کنید\n3. خطای ... مشاهده می‌شود\n\n#### 🎯 رفتار مورد انتظار (Expected Behavior)\n> \n\n#### 💻 اطلاعات محیطی (Environment)\n* **مرورگر / نسخه:** \n* **سیستم‌عامل:** \n`
-          ).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent([
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 3 },
+                content: [{ type: "text", text: "🐛 گزارش باگ و خطا" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BULLET_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", marks: [{ type: "bold" }], text: "🔍 شرح مشکل: " }],
+                      },
+                    ],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [
+                          { type: "text", marks: [{ type: "bold" }], text: "⚡ اولویت: " },
+                          { type: "text", text: "🔴 بالا" },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "📋 مراحل بازتولید (Steps to Reproduce)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.ORDERED_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      { type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "۱. وارد بخش ... شوید" }] },
+                    ],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", text: "۲. روی دکمه ... کلیک کنید" }],
+                      },
+                    ],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", text: "۳. خطای ... مشاهده می‌شود" }],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "🎯 رفتار مورد انتظار (Expected Behavior)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BLOCKQUOTE,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.PARAGRAPH,
+                    content: [{ type: "text", text: "رفتار صحیح برنامه باید این‌گونه باشد..." }],
+                  },
+                ],
+              },
+            ])
+            .run();
         },
         section: "general",
         pushAfter: "template-meeting",
@@ -1299,13 +1549,67 @@ export const getSlashCommandFilteredSections =
         commandKey: "template-standup",
         key: "template-standup",
         title: "Daily Standup / استندآپ روزانه",
-        icon: <Flame className="size-3.5 text-amber-500" />,
+        icon: <Flame className="text-amber-500 size-3.5" />,
         description: "Insert a daily standup update template",
         searchTerms: ["standup", "daily", "update", "roozane"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(
-            `### ☀️ استندآپ روزانه\n#### ✅ کارهای انجام‌شده دیروز:\n* \n\n#### 🎯 برنامه‌های امروز:\n* [ ] \n* [ ] \n\n#### ⛔ موانع و چالش‌ها (Blockers):\n* ندارد\n`
-          ).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent([
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 3 },
+                content: [{ type: "text", text: "☀️ استندآپ روزانه" }],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "✅ کارهای انجام‌شده دیروز:" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BULLET_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [{ type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "تکمیل بخش..." }] }],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "🎯 برنامه‌های امروز:" }],
+              },
+              {
+                type: CORE_EXTENSIONS.TASK_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.TASK_ITEM,
+                    attrs: { checked: false },
+                    content: [
+                      { type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "پیاده‌سازی فیچر..." }] },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "⛔ موانع و چالش‌ها (Blockers):" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BULLET_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [{ type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "ندارد" }] }],
+                  },
+                ],
+              },
+            ])
+            .run();
         },
         section: "general",
         pushAfter: "template-bug",
@@ -1314,13 +1618,83 @@ export const getSlashCommandFilteredSections =
         commandKey: "template-rfc",
         key: "template-rfc",
         title: "RFC / Design Doc Template",
-        icon: <Code className="size-3.5 text-indigo-500" />,
+        icon: <Code className="text-indigo-500 size-3.5" />,
         description: "Insert a technical design document template",
         searchTerms: ["rfc", "design doc", "architecture", "memari"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(
-            `### 📐 سند طراحی فنی (RFC / Design Doc)\n* **نویسنده:** \n* **وضعیت:** 👀 در حال بررسی\n\n#### 1. خلاصه و صورت مسئله (Problem Statement)\n\n#### 2. معماری پیشنهادی (Proposed Architecture)\n\`\`\`mermaid\ngraph TD\n  Client --> Gateway\n  Gateway --> Service\n\`\`\`\n\n#### 3. راهکارهای جایگزین و ریسک‌ها (Trade-offs & Risks)\n* \n`
-          ).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent([
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 3 },
+                content: [{ type: "text", text: "📐 سند طراحی فنی (RFC / Design Doc)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BULLET_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [{ type: "text", marks: [{ type: "bold" }], text: "نویسنده: " }],
+                      },
+                    ],
+                  },
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      {
+                        type: CORE_EXTENSIONS.PARAGRAPH,
+                        content: [
+                          { type: "text", marks: [{ type: "bold" }], text: "وضعیت: " },
+                          { type: "text", text: "👀 در حال بررسی" },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "1. خلاصه و صورت مسئله (Problem Statement)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.PARAGRAPH,
+                content: [{ type: "text", text: "شرح خلاصه مسئله..." }],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "2. معماری پیشنهادی (Proposed Architecture)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.CODE_BLOCK,
+                attrs: { language: "mermaid" },
+                content: [{ type: "text", text: "graph TD\n  Client --> Gateway\n  Gateway --> Service" }],
+              },
+              {
+                type: CORE_EXTENSIONS.HEADING,
+                attrs: { level: 4 },
+                content: [{ type: "text", text: "3. راهکارهای جایگزین و ریسک‌ها (Trade-offs & Risks)" }],
+              },
+              {
+                type: CORE_EXTENSIONS.BULLET_LIST,
+                content: [
+                  {
+                    type: CORE_EXTENSIONS.LIST_ITEM,
+                    content: [
+                      { type: CORE_EXTENSIONS.PARAGRAPH, content: [{ type: "text", text: "ریسک شماره ۱..." }] },
+                    ],
+                  },
+                ],
+              },
+            ])
+            .run();
         },
         section: "general",
         pushAfter: "template-standup",
@@ -1330,7 +1704,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "stars",
         key: "stars",
         title: "Star Rating / امتیاز ستاره‌ای",
-        icon: <Star className="size-3.5 text-amber-400 fill-amber-400" />,
+        icon: <Star className="text-amber-400 fill-amber-400 size-3.5" />,
         description: "Insert 5 star rating (⭐⭐⭐⭐⭐)",
         searchTerms: ["star", "rating", "emtiaz", "setare"],
         command: ({ editor, range }: CommandProps) => {
@@ -1343,7 +1717,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "priority-high",
         key: "priority-high",
         title: "Priority: High / اولویت بالا",
-        icon: <Flame className="size-3.5 text-red-500" />,
+        icon: <Flame className="text-red-500 size-3.5" />,
         description: "Insert High Priority badge (🔴 اولویت بالا)",
         searchTerms: ["priority high", "high", "olaviat bala", "fori"],
         command: ({ editor, range }: CommandProps) => {
@@ -1356,7 +1730,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "priority-medium",
         key: "priority-medium",
         title: "Priority: Medium / اولویت متوسط",
-        icon: <Clock className="size-3.5 text-amber-500" />,
+        icon: <Clock className="text-amber-500 size-3.5" />,
         description: "Insert Medium Priority badge (🟡 اولویت متوسط)",
         searchTerms: ["priority medium", "medium", "olaviat motevaset"],
         command: ({ editor, range }: CommandProps) => {
@@ -1369,7 +1743,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "priority-low",
         key: "priority-low",
         title: "Priority: Low / اولویت پایین",
-        icon: <CheckCircle2 className="size-3.5 text-emerald-500" />,
+        icon: <CheckCircle2 className="text-emerald-500 size-3.5" />,
         description: "Insert Low Priority badge (🟢 اولویت پایین)",
         searchTerms: ["priority low", "low", "olaviat paeen"],
         command: ({ editor, range }: CommandProps) => {
@@ -1382,7 +1756,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "progress",
         key: "progress",
         title: "Progress Bar / نوار پیشرفت",
-        icon: <Tag className="size-3.5 text-blue-500" />,
+        icon: <Tag className="text-blue-500 size-3.5" />,
         description: "Insert a visual progress bar ([█████░░░░░] 50%)",
         searchTerms: ["progress", "bar", "pishraft", "darsad"],
         command: ({ editor, range }: CommandProps) => {
@@ -1396,19 +1770,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "callout-pink",
         key: "callout-pink",
         title: "Callout: Pink / صورتی",
-        icon: <Palette className="size-3.5 text-pink-500" />,
+        icon: <Palette className="text-pink-500 size-3.5" />,
         description: "Insert a pastel pink callout box",
         searchTerms: ["callout pink", "pink", "soorati"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f338",
-              "data-background": "rgb(253, 242, 248)",
-            },
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f338",
+                "data-background": "rgb(253, 242, 248)",
+                "data-block-type": "callout-component",
+              },
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "progress",
@@ -1417,19 +1797,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "callout-purple",
         key: "callout-purple",
         title: "Callout: Purple / بنفش",
-        icon: <Palette className="size-3.5 text-purple-500" />,
+        icon: <Palette className="text-purple-500 size-3.5" />,
         description: "Insert a pastel purple callout box",
         searchTerms: ["callout purple", "purple", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f52e",
-              "data-background": "rgb(245, 243, 255)",
-            },
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f52e",
+                "data-background": "rgb(245, 243, 255)",
+                "data-block-type": "callout-component",
+              },
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "callout-pink",
@@ -1438,19 +1824,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "callout-cyan",
         key: "callout-cyan",
         title: "Callout: Cyan / فیروزه‌ای",
-        icon: <Palette className="size-3.5 text-cyan-500" />,
+        icon: <Palette className="text-cyan-500 size-3.5" />,
         description: "Insert a pastel cyan/teal callout box",
         searchTerms: ["callout cyan", "cyan", "teal", "firoozei"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f48e",
-              "data-background": "rgb(236, 254, 255)",
-            },
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f48e",
+                "data-background": "rgb(236, 254, 255)",
+                "data-block-type": "callout-component",
+              },
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "callout-purple",
@@ -1459,19 +1851,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "callout-orange",
         key: "callout-orange",
         title: "Callout: Orange / نارنجی",
-        icon: <Palette className="size-3.5 text-orange-500" />,
+        icon: <Palette className="text-orange-500 size-3.5" />,
         description: "Insert a pastel orange callout box",
         searchTerms: ["callout orange", "orange", "narenji"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f34a",
-              "data-background": "rgb(255, 247, 237)",
-            },
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f34a",
+                "data-background": "rgb(255, 247, 237)",
+                "data-block-type": "callout-component",
+              },
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "callout-cyan",
@@ -1480,19 +1878,25 @@ export const getSlashCommandFilteredSections =
         commandKey: "callout-gray",
         key: "callout-gray",
         title: "Callout: Gray / خاکستری",
-        icon: <Palette className="size-3.5 text-gray-500" />,
+        icon: <Palette className="text-gray-500 size-3.5" />,
         description: "Insert a subtle gray callout box",
         searchTerms: ["callout gray", "gray", "toosi", "khakestari"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent({
-            type: CORE_EXTENSIONS.CALLOUT,
-            attrs: {
-              "data-logo-in-use": "emoji",
-              "data-emoji-unicode": "1f4cc",
-              "data-background": "rgb(243, 244, 246)",
-            },
-            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
-          }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CALLOUT,
+              attrs: {
+                "data-logo-in-use": "emoji",
+                "data-emoji-unicode": "1f4cc",
+                "data-background": "rgb(243, 244, 246)",
+                "data-block-type": "callout-component",
+              },
+              content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            })
+            .run();
         },
         section: "general",
         pushAfter: "callout-orange",
@@ -1502,7 +1906,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "highlight-yellow",
         key: "highlight-yellow",
         title: "Highlight: Yellow / هایلایت زرد",
-        icon: <Tag className="size-3.5 text-amber-500" />,
+        icon: <Tag className="text-amber-500 size-3.5" />,
         description: "Highlight text with yellow background",
         searchTerms: ["highlight yellow", "yellow bg", "zard", "majik"],
         command: ({ editor, range }: CommandProps) => {
@@ -1515,7 +1919,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "highlight-green",
         key: "highlight-green",
         title: "Highlight: Green / هایلایت سبز",
-        icon: <Tag className="size-3.5 text-emerald-500" />,
+        icon: <Tag className="text-emerald-500 size-3.5" />,
         description: "Highlight text with green background",
         searchTerms: ["highlight green", "green bg", "sabz"],
         command: ({ editor, range }: CommandProps) => {
@@ -1528,7 +1932,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "highlight-pink",
         key: "highlight-pink",
         title: "Highlight: Pink / هایلایت صورتی",
-        icon: <Tag className="size-3.5 text-pink-500" />,
+        icon: <Tag className="text-pink-500 size-3.5" />,
         description: "Highlight text with pink background",
         searchTerms: ["highlight pink", "pink bg", "soorati"],
         command: ({ editor, range }: CommandProps) => {
@@ -1541,11 +1945,16 @@ export const getSlashCommandFilteredSections =
         commandKey: "highlight-blue",
         key: "highlight-blue",
         title: "Highlight: Blue / هایلایت آبی",
-        icon: <Tag className="size-3.5 text-blue-500" />,
+        icon: <Tag className="text-blue-500 size-3.5" />,
         description: "Highlight text with blue background",
         searchTerms: ["highlight blue", "blue bg", "abi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-light-blue-background)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .setBackgroundColor("var(--editor-colors-light-blue-background)")
+            .run();
         },
         section: "general",
         pushAfter: "highlight-pink",
@@ -1554,7 +1963,7 @@ export const getSlashCommandFilteredSections =
         commandKey: "highlight-purple",
         key: "highlight-purple",
         title: "Highlight: Purple / هایلایت بنفش",
-        icon: <Tag className="size-3.5 text-purple-500" />,
+        icon: <Tag className="text-purple-500 size-3.5" />,
         description: "Highlight text with purple background",
         searchTerms: ["highlight purple", "purple bg", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
@@ -1591,7 +2000,7 @@ export const getSlashCommandFilteredSections =
           const lowercaseQuery = query.toLowerCase();
           return (
             item.title.toLowerCase().includes(lowercaseQuery) ||
-            item.description.toLowerCase().includes(lowercaseQuery) ||
+            item.description?.toLowerCase().includes(lowercaseQuery) ||
             item.searchTerms.some((t) => t.includes(lowercaseQuery))
           );
         }),

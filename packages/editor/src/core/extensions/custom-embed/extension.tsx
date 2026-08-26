@@ -13,23 +13,17 @@ import { CustomEmbedBlock, transformToEmbedUrl } from "./components/block";
 import type { CustomEmbedNodeViewProps } from "./components/block";
 import { CustomEmbedExtensionConfig } from "./extension-config";
 import { EEmbedAttributeNames } from "./types";
-import type {
-  CustomEmbedExtensionOptions,
-  CustomEmbedExtensionStorage,
-} from "./types";
+import type { CustomEmbedExtensionOptions, CustomEmbedExtensionStorage } from "./types";
 
 export function CustomEmbedExtension() {
-  return CustomEmbedExtensionConfig.extend<
-    CustomEmbedExtensionOptions,
-    CustomEmbedExtensionStorage
-  >({
+  return CustomEmbedExtensionConfig.extend<CustomEmbedExtensionOptions, CustomEmbedExtensionStorage>({
     addCommands() {
       return {
         insertEmbed:
           (options?: {
             src?: string;
             originalUrl?: string;
-            provider?: "youtube" | "aparat" | "figma" | "codepen" | "generic";
+            provider?: TEmbedAttributes[EEmbedAttributeNames.PROVIDER];
           }) =>
           ({ commands }) => {
             const embedId = uuidv4();
