@@ -1,0 +1,128 @@
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import React, { useCallback, useMemo } from "react";
+import { Download, ExternalLink } from "lucide-react";
+// plane imports
+import { cn } from "@plane/utils";
+// local imports
+import {
+  FILE_CATEGORY_META,
+  getFileCategory,
+  getFileExtension,
+} from "../../helpers/file-category";
+import { formatBytes, getAttachmentBlockId, isAttachmentDuplicating } from "../../utils";
+import type { CustomAttachmentNodeViewProps } from "../node-view";
+
+interface FileCardBlockProps extends CustomAttachmentNodeViewProps {
+  downloadSrc: string | undefined;
+}
+
+export function FileCardBlock(props: FileCardBlockProps) {
+  const { editor, getPos, node, selected, downloadSrc } = props;
+  const { id, originalName, size, status } = node.attrs;
+  const isDuplicating = isAttachmentDuplicating(status);
+
+  const category = useMemo(() => getFileCategory(originalName), [originalName]);
+  const extension = useMemo(() => getFileExtension(originalName).toUpperCase(), [originalName]);
+  const meta = useMemo(() => FILE_CATEGORY_META[category] || FILE_CATEGORY_META.generic, [category]);
+  const IconComponent = meta.icon;
+
+  const handleBlockClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (editor.isEditable && typeof getPos === "function") {
+        const pos = getPos();
+        if (pos !== undefined) {
+          editor.commands.setNodeSelection(pos);
+        }
+      }
+    },
+    [editor, getPos]
+  );
+
+  const handleDownload = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (downloadSrc) {
+        const a = document.createElement("a");
+        a.href = downloadSrc;
+        a.download = originalName || "file";
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    },
+    [downloadSrc, originalName]
+  );
+
+  return (
+    <div
+      id={getAttachmentBlockId(id ?? "")}
+      data-drag-handle
+      className={cn(
+        "group my-2 flex w-full max-w-md items-center justify-between rounded-xl border border-subtle bg-layer-2 p-3 transition-all cursor-pointer select-none",
+        {
+          "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+          "hover:border-strong hover:bg-layer-2-hover": !selected,
+          "opacity-50 pointer-events-none": isDuplicating,
+        }
+      )}
+      onClick={handleBlockClick}
+      onDoubleClick={handleDownload}
+    >
+      <div className="flex items-center gap-3 overflow-hidden">
+        {/* Category Icon Badge */}
+        <div
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-lg transition-transform group-hover:scale-105",
+            meta.badgeBg,
+            meta.iconColor
+          )}
+        >
+          <IconComponent className="h-5 w-5" />
+        </div>
+
+        {/* File Details */}
+        <div className="flex flex-col overflow-hidden">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-semibold text-primary">
+              {originalName || "Attachment"}
+            </span>
+            {extension ? (
+              <span
+                className={cn(
+                  "rounded px-1.5 py-0.2 text-[10px] font-bold uppercase",
+                  meta.badgeBg,
+                  meta.badgeText
+                )}
+              >
+                {extension}
+              </span>
+            ) : null}
+          </div>
+          <span className="text-xs text-tertiary">
+            {size ? formatBytes(size) : meta.label}
+          </span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1 pl-2">
+        {downloadSrc && (
+          <button
+            type="button"
+            className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+            onClick={handleDownload}
+            title="Download file"
+          >
+            <Download className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

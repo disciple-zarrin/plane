@@ -24,6 +24,9 @@ import {
   Table,
   TextQuote,
   FileIcon,
+  FileVideo,
+  FileAudio,
+  FileText,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -303,20 +306,64 @@ export const getSlashCommandFilteredSections =
       });
     }
 
-    internalAdditionalOptions.push({
-      commandKey: "file",
-      key: "file",
-      title: "File",
-      icon: <FileIcon className="size-3.5" />,
-      description: "Upload a file or attachment",
-      searchTerms: ["file", "attachment", "upload", "doc", "pdf"],
-      command: ({ editor, range }: CommandProps) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.commands.insertAttachmentComponent({ event: "insert" });
+    internalAdditionalOptions.push(
+      {
+        commandKey: "video",
+        key: "video",
+        title: "Video",
+        icon: <FileVideo className="size-3.5" />,
+        description: "Upload or embed a video",
+        searchTerms: ["video", "mp4", "movie", "clip", "media", "film"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertAttachmentComponent({ event: "insert" });
+        },
+        section: "general",
+        pushAfter: "image",
       },
-      section: "general",
-      pushAfter: "image",
-    });
+      {
+        commandKey: "audio",
+        key: "audio",
+        title: "Audio",
+        icon: <FileAudio className="size-3.5" />,
+        description: "Upload or embed an audio track",
+        searchTerms: ["audio", "music", "sound", "mp3", "voice", "recording"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertAttachmentComponent({ event: "insert" });
+        },
+        section: "general",
+        pushAfter: "video",
+      },
+      {
+        commandKey: "pdf",
+        key: "pdf",
+        title: "PDF Document",
+        icon: <FileText className="size-3.5" />,
+        description: "Upload a PDF document",
+        searchTerms: ["pdf", "document", "doc", "paper"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertAttachmentComponent({ event: "insert" });
+        },
+        section: "general",
+        pushAfter: "audio",
+      },
+      {
+        commandKey: "file",
+        key: "file",
+        title: "File",
+        icon: <FileIcon className="size-3.5" />,
+        description: "Upload any document or file",
+        searchTerms: ["file", "attachment", "upload", "doc", "zip", "archive"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertAttachmentComponent({ event: "insert" });
+        },
+        section: "general",
+        pushAfter: "pdf",
+      }
+    );
 
     [
       ...internalAdditionalOptions,

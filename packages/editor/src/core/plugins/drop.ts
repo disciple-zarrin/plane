@@ -32,17 +32,14 @@ export const DropHandlerPlugin = (props: Props): Plugin => {
         ) {
           event.preventDefault();
           const files = Array.from(event.clipboardData.files);
-          const acceptedFiles = files.filter(
-            (f) => ACCEPTED_IMAGE_MIME_TYPES.includes(f.type) || ACCEPTED_ATTACHMENT_MIME_TYPES.includes(f.type)
-          );
 
-          if (acceptedFiles.length) {
+          if (files.length) {
             const pos = view.state.selection.from;
             insertFilesSafely({
               disabledExtensions,
               flaggedExtensions,
               editor,
-              files: acceptedFiles,
+              files,
               initialPos: pos,
               event: "drop",
             });
@@ -61,11 +58,8 @@ export const DropHandlerPlugin = (props: Props): Plugin => {
         ) {
           event.preventDefault();
           const files = Array.from(event.dataTransfer.files);
-          const acceptedFiles = files.filter(
-            (f) => ACCEPTED_IMAGE_MIME_TYPES.includes(f.type) || ACCEPTED_ATTACHMENT_MIME_TYPES.includes(f.type)
-          );
 
-          if (acceptedFiles.length) {
+          if (files.length) {
             const coordinates = view.posAtCoords({
               left: event.clientX,
               top: event.clientY,
@@ -76,7 +70,7 @@ export const DropHandlerPlugin = (props: Props): Plugin => {
               insertFilesSafely({
                 disabledExtensions,
                 editor,
-                files: acceptedFiles,
+                files,
                 initialPos: pos,
                 event: "drop",
               });
@@ -116,8 +110,8 @@ export const insertFilesSafely = async (args: InsertFilesSafelyArgs) => {
         if (["image", "attachment"].includes(type)) fileType = type;
         else throw new Error("Wrong file type passed");
       } else {
-        if (ACCEPTED_IMAGE_MIME_TYPES.includes(file.type)) fileType = "image";
-        else if (ACCEPTED_ATTACHMENT_MIME_TYPES.includes(file.type)) fileType = "attachment";
+        if (file.type && ACCEPTED_IMAGE_MIME_TYPES.includes(file.type)) fileType = "image";
+        else fileType = "attachment";
       }
       // insert file depending on the type at the current position
       if (fileType === "image" && !disabledExtensions?.includes("image")) {
