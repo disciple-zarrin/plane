@@ -53,6 +53,10 @@ import {
   Copy,
   RefreshCw,
   Lock,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  Tag,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -1185,6 +1189,105 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "github",
+      },
+      // Status Badges
+      {
+        commandKey: "badge-done",
+        key: "badge-done",
+        title: "Done Badge / بج انجام شد",
+        icon: <CheckCircle2 className="size-3.5 text-emerald-500" />,
+        description: "Insert a green Done status badge",
+        searchTerms: ["done", "badge done", "complete", "anjam shod", "vaziat"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `✅ انجام شد` ").run();
+        },
+        section: "general",
+        pushAfter: "lock",
+      },
+      {
+        commandKey: "badge-progress",
+        key: "badge-progress",
+        title: "In Progress Badge / بج در حال انجام",
+        icon: <Clock className="size-3.5 text-amber-500" />,
+        description: "Insert a yellow In Progress status badge",
+        searchTerms: ["in progress", "progress", "doing", "dar hal anjam"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `🔄 در حال انجام` ").run();
+        },
+        section: "general",
+        pushAfter: "badge-done",
+      },
+      {
+        commandKey: "badge-blocked",
+        key: "badge-blocked",
+        title: "Blocked Badge / بج متوقف شده",
+        icon: <AlertCircle className="size-3.5 text-red-500" />,
+        description: "Insert a red Blocked status badge",
+        searchTerms: ["blocked", "stop", "khatar", "motevaghef"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `⛔ متوقف شده` ").run();
+        },
+        section: "general",
+        pushAfter: "badge-progress",
+      },
+      {
+        commandKey: "badge-review",
+        key: "badge-review",
+        title: "In Review Badge / بج در حال بررسی",
+        icon: <Eye className="size-3.5 text-blue-500" />,
+        description: "Insert a blue In Review status badge",
+        searchTerms: ["in review", "review", "barrasi"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `👀 در حال بررسی` ").run();
+        },
+        section: "general",
+        pushAfter: "badge-blocked",
+      },
+      {
+        commandKey: "badge-todo",
+        key: "badge-todo",
+        title: "To Do Badge / بج در انتظار",
+        icon: <Tag className="size-3.5 text-slate-500" />,
+        description: "Insert a gray To Do status badge",
+        searchTerms: ["todo", "badge todo", "backlog", "entezar"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `📋 در انتظار` ").run();
+        },
+        section: "general",
+        pushAfter: "badge-review",
+      },
+      // Smart Relative Dates
+      {
+        commandKey: "tomorrow",
+        key: "tomorrow",
+        title: "Tomorrow / تاریخ فردا",
+        icon: <Calendar className="size-3.5 text-emerald-500" />,
+        description: "Insert tomorrow's formatted date",
+        searchTerms: ["tomorrow", "farda", "date"],
+        command: ({ editor, range }: CommandProps) => {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const formatted = tomorrow.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
+          editor.chain().focus().deleteRange(range).insertContent(`📅 فردا (${formatted}) `).run();
+        },
+        section: "general",
+        pushAfter: "badge-todo",
+      },
+      {
+        commandKey: "yesterday",
+        key: "yesterday",
+        title: "Yesterday / تاریخ دیروز",
+        icon: <Calendar className="size-3.5 text-slate-500" />,
+        description: "Insert yesterday's formatted date",
+        searchTerms: ["yesterday", "dirooz", "date"],
+        command: ({ editor, range }: CommandProps) => {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const formatted = yesterday.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" });
+          editor.chain().focus().deleteRange(range).insertContent(`📅 دیروز (${formatted}) `).run();
+        },
+        section: "general",
+        pushAfter: "tomorrow",
       }
     );
 
