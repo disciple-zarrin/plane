@@ -76,20 +76,20 @@ export function CustomTableOfContentsBlock(props: CustomTableOfContentsNodeViewP
         className={cn(
           "flex w-full max-w-xl flex-col rounded-xl border border-subtle bg-layer-2 p-4 transition-all select-none",
           {
-            "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+            "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
             "hover:border-strong": !selected,
           }
         )}
       >
         {/* Header */}
-        <div className="flex items-center gap-2 border-b border-subtle pb-2.5 text-xs font-bold text-secondary uppercase tracking-wider">
+        <div className="text-xs tracking-wider flex items-center gap-2 border-b border-subtle pb-2.5 font-bold text-secondary uppercase">
           <ListTree className="h-4 w-4 text-accent-primary" />
           <span>فهرست مطالب (Table of Contents)</span>
         </div>
 
         {/* Headings List */}
         {headings.length === 0 ? (
-          <div className="py-4 text-center text-xs text-tertiary">
+          <div className="text-xs py-4 text-center text-tertiary">
             برای نمایش فهرست، سرفصل‌های (H1، H2، H3) را به صفحه اضافه کنید.
           </div>
         ) : (
@@ -97,10 +97,10 @@ export function CustomTableOfContentsBlock(props: CustomTableOfContentsNodeViewP
             {headings.map((item) => {
               const indentClass =
                 item.level === 1
-                  ? "pl-0 font-medium text-primary text-sm"
+                  ? "ps-0 font-medium text-primary text-sm"
                   : item.level === 2
-                  ? "pl-4 text-xs font-normal text-secondary"
-                  : "pl-8 text-xs font-normal text-tertiary";
+                    ? "ps-4 text-xs font-normal text-secondary"
+                    : "ps-8 text-xs font-normal text-tertiary";
 
               return (
                 <button
@@ -108,11 +108,11 @@ export function CustomTableOfContentsBlock(props: CustomTableOfContentsNodeViewP
                   type="button"
                   onClick={() => handleHeadingClick(item.pos)}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-layer-3 hover:text-primary",
+                    "flex items-center gap-1.5 rounded-md px-2 py-1 text-start transition-colors hover:bg-layer-3 hover:text-primary",
                     indentClass
                   )}
                 >
-                  <Hash className="h-3 w-3 opacity-40 shrink-0" />
+                  <Hash className="h-3 w-3 shrink-0 opacity-40" />
                   <span className="truncate">{item.text}</span>
                 </button>
               );

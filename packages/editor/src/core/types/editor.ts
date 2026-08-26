@@ -65,6 +65,7 @@ export type TEditorCommands =
   | "toggle"
   | "table-of-contents"
   | "math"
+  | "inline-math"
   | "2columns"
   | "3columns"
   | "breadcrumb"
