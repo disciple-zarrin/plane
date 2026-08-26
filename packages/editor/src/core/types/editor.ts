@@ -64,6 +64,7 @@ export type TEditorCommands =
   | "bookmark"
   | "toggle"
   | "table-of-contents"
+  | "math"
   | "divider"
   | "link"
   | "issue-embed"

@@ -30,6 +30,7 @@ import {
   Bookmark,
   ChevronRight,
   ListTree,
+  Sigma,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -407,6 +408,20 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "toggle",
+      },
+      {
+        commandKey: "math",
+        key: "math",
+        title: "Math / Equation",
+        icon: <Sigma className="size-3.5" />,
+        description: "Insert a LaTeX mathematical equation block",
+        searchTerms: ["math", "equation", "latex", "formula", "algebra", "calculate"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertMath({ latex: "E = mc^2" });
+        },
+        section: "general",
+        pushAfter: "table-of-contents",
       }
     );
 
