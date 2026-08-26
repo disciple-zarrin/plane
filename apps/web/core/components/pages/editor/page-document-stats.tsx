@@ -18,33 +18,21 @@ export const PageDocumentStats: React.FC<Props> = ({ editorRef, className }) => 
   const [stats, setStats] = useState({ words: 0, characters: 0, readingTime: 1 });
 
   useEffect(() => {
-    const updateStats = () => {
-      const editor = editorRef.current?.editor;
-      if (!editor) return;
-
-      const words = editor.storage?.characterCount?.words?.() ?? 0;
-      const characters = editor.storage?.characterCount?.characters?.() ?? 0;
+    const handleInfoChange = (info: { words: number; characters: number }) => {
+      const words = info?.words ?? 0;
+      const characters = info?.characters ?? 0;
       const readingTime = Math.max(1, Math.ceil(words / 200));
-
       setStats({ words, characters, readingTime });
     };
 
-    updateStats();
-
-    const editor = editorRef.current?.editor;
-    if (editor) {
-      editor.on("update", updateStats);
-      editor.on("selectionUpdate", updateStats);
+    if (editorRef.current?.getDocumentInfo) {
+      handleInfoChange(editorRef.current.getDocumentInfo());
     }
 
-    const interval = setInterval(updateStats, 2000);
+    const unsubscribe = editorRef.current?.onDocumentInfoChange?.(handleInfoChange);
 
     return () => {
-      if (editor) {
-        editor.off("update", updateStats);
-        editor.off("selectionUpdate", updateStats);
-      }
-      clearInterval(interval);
+      unsubscribe?.();
     };
   }, [editorRef]);
 
@@ -53,7 +41,7 @@ export const PageDocumentStats: React.FC<Props> = ({ editorRef, className }) => 
   return (
     <div
       className={cn(
-        "flex select-none items-center justify-center gap-4 py-6 text-xs text-tertiary transition-opacity duration-200 hover:text-secondary",
+        "text-xs flex items-center justify-center gap-4 py-6 text-tertiary transition-opacity duration-200 select-none hover:text-secondary",
         className
       )}
     >
