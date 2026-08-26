@@ -45,6 +45,7 @@ import { PageContentLoader } from "../loaders/page-content-loader";
 import { PageEditorHeaderRoot } from "./header";
 import { PageContentBrowser } from "./summary";
 import { EditorAIMenu } from "./ai/menu";
+import { PageDocumentStats } from "./page-document-stats";
 
 export type TEditorBodyConfig = {
   fileHandler: TFileHandler;
@@ -306,6 +307,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
               extendedEditorProps={extendedEditorProps}
               isFetchingFallbackBinary={isFetchingFallbackBinary}
             />
+            <PageDocumentStats editorRef={editorForwardRef} />
           </div>
         </div>
       </div>
