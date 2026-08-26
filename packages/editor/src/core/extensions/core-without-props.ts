@@ -21,6 +21,11 @@ import { CustomBookmarkExtensionConfig } from "./custom-bookmark/extension-confi
 import { CustomToggleExtensionConfig } from "./custom-toggle/extension-config";
 import { CustomTableOfContentsExtensionConfig } from "./custom-table-of-contents/extension-config";
 import { CustomMathExtensionConfig } from "./custom-math/extension-config";
+import {
+  CustomColumnsExtensionConfig,
+  CustomColumnExtensionConfig,
+} from "./custom-columns/extension-config";
+import { CustomBreadcrumbExtensionConfig } from "./custom-breadcrumb/extension-config";
 import { CustomLinkExtension } from "./custom-link";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
@@ -48,6 +53,9 @@ export const CoreEditorExtensionsWithoutProps = [
   CustomToggleExtensionConfig,
   CustomTableOfContentsExtensionConfig,
   CustomMathExtensionConfig,
+  CustomColumnsExtensionConfig,
+  CustomColumnExtensionConfig,
+  CustomBreadcrumbExtensionConfig,
   Underline,
   TextStyle,
   TaskList.configure({

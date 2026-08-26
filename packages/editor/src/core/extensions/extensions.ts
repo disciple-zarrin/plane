@@ -45,6 +45,8 @@ import { CustomBookmarkExtension } from "./custom-bookmark/extension";
 import { CustomToggleExtension } from "./custom-toggle/extension";
 import { CustomTableOfContentsExtension } from "./custom-table-of-contents/extension";
 import { CustomMathExtension } from "./custom-math/extension";
+import { CustomColumnsExtension, CustomColumnExtension } from "./custom-columns/extension";
+import { CustomBreadcrumbExtension } from "./custom-breadcrumb/extension";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomPlaceholderExtension } from "./placeholder";
 import { CustomStarterKitExtension } from "./starter-kit";
@@ -132,6 +134,9 @@ export const CoreEditorExtensions = (args: TArguments): Extensions => {
     CustomToggleExtension(),
     CustomTableOfContentsExtension(),
     CustomMathExtension(),
+    CustomColumnsExtension(),
+    CustomColumnExtension(),
+    CustomBreadcrumbExtension(),
     UtilityExtension({
       disabledExtensions,
       flaggedExtensions,
