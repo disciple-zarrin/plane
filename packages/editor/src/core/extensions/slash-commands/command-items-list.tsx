@@ -28,6 +28,7 @@ import {
   FileAudio,
   FileText,
   Bookmark,
+  ChevronRight,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -377,6 +378,20 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "file",
+      },
+      {
+        commandKey: "toggle",
+        key: "toggle",
+        title: "Toggle List",
+        icon: <ChevronRight className="size-3.5" />,
+        description: "Toggles can show and hide content",
+        searchTerms: ["toggle", "collapsible", "dropdown", "accordion", "hide", "show"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertToggle();
+        },
+        section: "general",
+        pushAfter: "bookmark",
       }
     );
 
