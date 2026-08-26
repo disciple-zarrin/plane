@@ -57,6 +57,10 @@ import {
   AlertCircle,
   Eye,
   Tag,
+  Users,
+  Bug,
+  Star,
+  Flame,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -1288,6 +1292,133 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "tomorrow",
+      },
+      // Document Templates
+      {
+        commandKey: "template-meeting",
+        key: "template-meeting",
+        title: "Meeting Notes Template / قالب جلسه",
+        icon: <Users className="size-3.5 text-blue-500" />,
+        description: "Insert a structured meeting agenda & notes template",
+        searchTerms: ["meeting", "agenda", "notes", "jalase", "ghaleb"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(
+            `### 📝 صورتجلسه و تصمیمات\n* **📅 تاریخ:** \n* **👥 حاضرین:** \n* **🎯 هدف جلسه:** \n\n#### 📌 مباحث مطرح‌شده\n1. \n2. \n\n#### ✅ اقدامات و تسک‌های بعدی (Action Items)\n* [ ] تسک ۱ (@مسئول)\n* [ ] تسک ۲ (@مسئول)\n`
+          ).run();
+        },
+        section: "general",
+        pushAfter: "yesterday",
+      },
+      {
+        commandKey: "template-bug",
+        key: "template-bug",
+        title: "Bug Report Template / قالب گزارش باگ",
+        icon: <Bug className="size-3.5 text-red-500" />,
+        description: "Insert a structured bug report template",
+        searchTerms: ["bug", "issue", "report", "khata", "gozaresh"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(
+            `### 🐛 گزارش باگ و خطا\n* **🔍 شرح مشکل:** \n* **⚡ اولویت:** 🔴 بالا\n\n#### 📋 مراحل بازتولید (Steps to Reproduce)\n1. وارد بخش ... شوید\n2. روی دکمه ... کلیک کنید\n3. خطای ... مشاهده می‌شود\n\n#### 🎯 رفتار مورد انتظار (Expected Behavior)\n> \n\n#### 💻 اطلاعات محیطی (Environment)\n* **مرورگر / نسخه:** \n* **سیستم‌عامل:** \n`
+          ).run();
+        },
+        section: "general",
+        pushAfter: "template-meeting",
+      },
+      {
+        commandKey: "template-standup",
+        key: "template-standup",
+        title: "Daily Standup / استندآپ روزانه",
+        icon: <Flame className="size-3.5 text-amber-500" />,
+        description: "Insert a daily standup update template",
+        searchTerms: ["standup", "daily", "update", "roozane"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(
+            `### ☀️ استندآپ روزانه\n#### ✅ کارهای انجام‌شده دیروز:\n* \n\n#### 🎯 برنامه‌های امروز:\n* [ ] \n* [ ] \n\n#### ⛔ موانع و چالش‌ها (Blockers):\n* ندارد\n`
+          ).run();
+        },
+        section: "general",
+        pushAfter: "template-bug",
+      },
+      {
+        commandKey: "template-rfc",
+        key: "template-rfc",
+        title: "RFC / Design Doc Template",
+        icon: <Code className="size-3.5 text-indigo-500" />,
+        description: "Insert a technical design document template",
+        searchTerms: ["rfc", "design doc", "architecture", "memari"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(
+            `### 📐 سند طراحی فنی (RFC / Design Doc)\n* **نویسنده:** \n* **وضعیت:** 👀 در حال بررسی\n\n#### 1. خلاصه و صورت مسئله (Problem Statement)\n\n#### 2. معماری پیشنهادی (Proposed Architecture)\n\`\`\`mermaid\ngraph TD\n  Client --> Gateway\n  Gateway --> Service\n\`\`\`\n\n#### 3. راهکارهای جایگزین و ریسک‌ها (Trade-offs & Risks)\n* \n`
+          ).run();
+        },
+        section: "general",
+        pushAfter: "template-standup",
+      },
+      // Priority & Ratings
+      {
+        commandKey: "stars",
+        key: "stars",
+        title: "Star Rating / امتیاز ستاره‌ای",
+        icon: <Star className="size-3.5 text-amber-400 fill-amber-400" />,
+        description: "Insert 5 star rating (⭐⭐⭐⭐⭐)",
+        searchTerms: ["star", "rating", "emtiaz", "setare"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent("⭐⭐⭐⭐⭐ ").run();
+        },
+        section: "general",
+        pushAfter: "template-rfc",
+      },
+      {
+        commandKey: "priority-high",
+        key: "priority-high",
+        title: "Priority: High / اولویت بالا",
+        icon: <Flame className="size-3.5 text-red-500" />,
+        description: "Insert High Priority badge (🔴 اولویت بالا)",
+        searchTerms: ["priority high", "high", "olaviat bala", "fori"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `🔴 اولویت بالا` ").run();
+        },
+        section: "general",
+        pushAfter: "stars",
+      },
+      {
+        commandKey: "priority-medium",
+        key: "priority-medium",
+        title: "Priority: Medium / اولویت متوسط",
+        icon: <Clock className="size-3.5 text-amber-500" />,
+        description: "Insert Medium Priority badge (🟡 اولویت متوسط)",
+        searchTerms: ["priority medium", "medium", "olaviat motevaset"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `🟡 اولویت متوسط` ").run();
+        },
+        section: "general",
+        pushAfter: "priority-high",
+      },
+      {
+        commandKey: "priority-low",
+        key: "priority-low",
+        title: "Priority: Low / اولویت پایین",
+        icon: <CheckCircle2 className="size-3.5 text-emerald-500" />,
+        description: "Insert Low Priority badge (🟢 اولویت پایین)",
+        searchTerms: ["priority low", "low", "olaviat paeen"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `🟢 اولویت پایین` ").run();
+        },
+        section: "general",
+        pushAfter: "priority-medium",
+      },
+      {
+        commandKey: "progress",
+        key: "progress",
+        title: "Progress Bar / نوار پیشرفت",
+        icon: <Tag className="size-3.5 text-blue-500" />,
+        description: "Insert a visual progress bar ([█████░░░░░] 50%)",
+        searchTerms: ["progress", "bar", "pishraft", "darsad"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(" `[█████░░░░░] 50%` ").run();
+        },
+        section: "general",
+        pushAfter: "priority-low",
       }
     );
 
