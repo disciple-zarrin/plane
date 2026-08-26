@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import React, { useCallback, useMemo } from "react";
-import { Download, ExternalLink } from "lucide-react";
+import React, { useState, useCallback, useMemo } from "react";
+import { Download, ExternalLink, Copy, Check } from "lucide-react";
 // plane imports
 import { cn } from "@plane/utils";
 // local imports
@@ -25,6 +25,7 @@ export function FileCardBlock(props: FileCardBlockProps) {
   const { editor, getPos, node, selected, downloadSrc } = props;
   const { id, originalName, size, status } = node.attrs;
   const isDuplicating = isAttachmentDuplicating(status);
+  const [copied, setCopied] = useState(false);
 
   const category = useMemo(() => getFileCategory(originalName), [originalName]);
   const extension = useMemo(() => getFileExtension(originalName).toUpperCase(), [originalName]);
@@ -41,6 +42,18 @@ export function FileCardBlock(props: FileCardBlockProps) {
       }
     },
     [editor, getPos]
+  );
+
+  const handleCopy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (downloadSrc) {
+        navigator.clipboard.writeText(downloadSrc);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    },
+    [downloadSrc]
   );
 
   const handleDownload = useCallback(
@@ -113,14 +126,24 @@ export function FileCardBlock(props: FileCardBlockProps) {
       {/* Actions */}
       <div className="flex items-center gap-1 pl-2">
         {downloadSrc && (
-          <button
-            type="button"
-            className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
-            onClick={handleDownload}
-            title="Download file"
-          >
-            <Download className="h-4 w-4" />
-          </button>
+          <>
+            <button
+              type="button"
+              className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+              onClick={handleCopy}
+              title="کپی لینک"
+            >
+              {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+              onClick={handleDownload}
+              title="دانلود فایل"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+          </>
         )}
       </div>
     </div>
