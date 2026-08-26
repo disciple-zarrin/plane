@@ -64,6 +64,7 @@ import {
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
+import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers
 import {
   insertTableCommand,
@@ -666,13 +667,10 @@ export const getSlashCommandFilteredSections =
         key: "color-red",
         title: "Red Color",
         icon: <Palette className="size-3.5 text-red-500" />,
-        description: "Apply red text/background color",
+        description: "Apply red text color",
         searchTerms: ["red", "color", "ghermez", "rang"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-pink-text)",
-            backgroundColor: "var(--editor-colors-pink-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-pink-text)").run();
         },
         section: "general",
         pushAfter: "note",
@@ -682,13 +680,10 @@ export const getSlashCommandFilteredSections =
         key: "color-green",
         title: "Green Color",
         icon: <Palette className="size-3.5 text-green-500" />,
-        description: "Apply green text/background color",
+        description: "Apply green text color",
         searchTerms: ["green", "color", "sabz"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-green-text)",
-            backgroundColor: "var(--editor-colors-green-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-green-text)").run();
         },
         section: "general",
         pushAfter: "color-red",
@@ -698,13 +693,10 @@ export const getSlashCommandFilteredSections =
         key: "color-blue",
         title: "Blue Color",
         icon: <Palette className="size-3.5 text-blue-500" />,
-        description: "Apply blue text/background color",
+        description: "Apply blue text color",
         searchTerms: ["blue", "color", "abi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-light-blue-text)",
-            backgroundColor: "var(--editor-colors-light-blue-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-light-blue-text)").run();
         },
         section: "general",
         pushAfter: "color-green",
@@ -714,13 +706,10 @@ export const getSlashCommandFilteredSections =
         key: "color-yellow",
         title: "Yellow / Peach Color",
         icon: <Palette className="size-3.5 text-amber-500" />,
-        description: "Apply yellow text/background color",
+        description: "Apply yellow text color",
         searchTerms: ["yellow", "peach", "color", "zard"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-peach-text)",
-            backgroundColor: "var(--editor-colors-peach-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-peach-text)").run();
         },
         section: "general",
         pushAfter: "color-blue",
@@ -730,13 +719,10 @@ export const getSlashCommandFilteredSections =
         key: "color-purple",
         title: "Purple Color",
         icon: <Palette className="size-3.5 text-purple-500" />,
-        description: "Apply purple text/background color",
+        description: "Apply purple text color",
         searchTerms: ["purple", "color", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-purple-text)",
-            backgroundColor: "var(--editor-colors-purple-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-purple-text)").run();
         },
         section: "general",
         pushAfter: "color-yellow",
@@ -746,13 +732,10 @@ export const getSlashCommandFilteredSections =
         key: "color-orange",
         title: "Orange Color",
         icon: <Palette className="size-3.5 text-orange-500" />,
-        description: "Apply orange text/background color",
+        description: "Apply orange text color",
         searchTerms: ["orange", "color", "narenji"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-orange-text)",
-            backgroundColor: "var(--editor-colors-orange-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-orange-text)").run();
         },
         section: "general",
         pushAfter: "color-purple",
@@ -762,13 +745,10 @@ export const getSlashCommandFilteredSections =
         key: "color-gray",
         title: "Gray Color",
         icon: <Palette className="size-3.5 text-gray-500" />,
-        description: "Apply gray text/background color",
+        description: "Apply gray text color",
         searchTerms: ["gray", "grey", "color", "toosi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "var(--editor-colors-gray-text)",
-            backgroundColor: "var(--editor-colors-gray-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-gray-text)").run();
         },
         section: "general",
         pushAfter: "color-orange",
@@ -1074,7 +1054,7 @@ export const getSlashCommandFilteredSections =
         description: "Transform current block into Callout box",
         searchTerms: ["turn into callout", "turn callout", "convert callout"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCallout().run();
+          editor.chain().focus().deleteRange(range).insertCallout().run();
         },
         section: "general",
         pushAfter: "turn-code",
@@ -1088,10 +1068,7 @@ export const getSlashCommandFilteredSections =
         description: "Insert a collapsible Heading 1 section",
         searchTerms: ["toggle h1", "collapsible h1", "heading 1 toggle", "titr tasho"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertToggle({
-            title: "تیتر ۱ (قابل جمع‌شدن)",
-          });
+          editor.chain().focus().deleteRange(range).insertToggle().run();
         },
         section: "general",
         pushAfter: "turn-callout",
@@ -1104,10 +1081,7 @@ export const getSlashCommandFilteredSections =
         description: "Insert a collapsible Heading 2 section",
         searchTerms: ["toggle h2", "collapsible h2", "heading 2 toggle"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertToggle({
-            title: "تیتر ۲ (قابل جمع‌شدن)",
-          });
+          editor.chain().focus().deleteRange(range).insertToggle().run();
         },
         section: "general",
         pushAfter: "toggle-h1",
@@ -1120,10 +1094,7 @@ export const getSlashCommandFilteredSections =
         description: "Insert a collapsible Heading 3 section",
         searchTerms: ["toggle h3", "collapsible h3", "heading 3 toggle"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertToggle({
-            title: "تیتر ۳ (قابل جمع‌شدن)",
-          });
+          editor.chain().focus().deleteRange(range).insertToggle().run();
         },
         section: "general",
         pushAfter: "toggle-h2",
@@ -1535,10 +1506,7 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with yellow background",
         searchTerms: ["highlight yellow", "yellow bg", "zard", "majik"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "inherit",
-            backgroundColor: "var(--editor-colors-peach-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-peach-background)").run();
         },
         section: "general",
         pushAfter: "callout-gray",
@@ -1551,10 +1519,7 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with green background",
         searchTerms: ["highlight green", "green bg", "sabz"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "inherit",
-            backgroundColor: "var(--editor-colors-green-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-green-background)").run();
         },
         section: "general",
         pushAfter: "highlight-yellow",
@@ -1567,10 +1532,7 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with pink background",
         searchTerms: ["highlight pink", "pink bg", "soorati"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "inherit",
-            backgroundColor: "var(--editor-colors-pink-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-pink-background)").run();
         },
         section: "general",
         pushAfter: "highlight-green",
@@ -1583,10 +1545,7 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with blue background",
         searchTerms: ["highlight blue", "blue bg", "abi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "inherit",
-            backgroundColor: "var(--editor-colors-light-blue-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-light-blue-background)").run();
         },
         section: "general",
         pushAfter: "highlight-pink",
@@ -1599,10 +1558,7 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with purple background",
         searchTerms: ["highlight purple", "purple bg", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setCustomColor({
-            textColor: "inherit",
-            backgroundColor: "var(--editor-colors-purple-background)",
-          }).run();
+          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-purple-background)").run();
         },
         section: "general",
         pushAfter: "highlight-blue",
