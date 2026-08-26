@@ -31,6 +31,9 @@ import {
   ChevronRight,
   ListTree,
   Sigma,
+  Columns2,
+  Columns3,
+  FolderTree,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -422,6 +425,48 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "table-of-contents",
+      },
+      {
+        commandKey: "2columns",
+        key: "2columns",
+        title: "2 Columns",
+        icon: <Columns2 className="size-3.5" />,
+        description: "Split layout into 2 side-by-side columns",
+        searchTerms: ["columns", "2 columns", "split", "grid", "side by side", "two"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertColumns({ count: 2 });
+        },
+        section: "general",
+        pushAfter: "math",
+      },
+      {
+        commandKey: "3columns",
+        key: "3columns",
+        title: "3 Columns",
+        icon: <Columns3 className="size-3.5" />,
+        description: "Split layout into 3 side-by-side columns",
+        searchTerms: ["columns", "3 columns", "split", "grid", "three"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertColumns({ count: 3 });
+        },
+        section: "general",
+        pushAfter: "2columns",
+      },
+      {
+        commandKey: "breadcrumb",
+        key: "breadcrumb",
+        title: "Breadcrumbs",
+        icon: <FolderTree className="size-3.5" />,
+        description: "Insert a document hierarchy breadcrumb path",
+        searchTerms: ["breadcrumb", "path", "hierarchy", "navigation", "trail"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertBreadcrumb();
+        },
+        section: "general",
+        pushAfter: "3columns",
       }
     );
 
@@ -442,19 +487,20 @@ export const getSlashCommandFilteredSections =
       }
     });
 
-    const filteredSlashSections = SLASH_COMMAND_SECTIONS.map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (typeof query !== "string") return;
+    const filteredSlashSections = SLASH_COMMAND_SECTIONS.map((section) =>
+      Object.assign({}, section, {
+        items: section.items.filter((item) => {
+          if (typeof query !== "string") return;
 
-        const lowercaseQuery = query.toLowerCase();
-        return (
-          item.title.toLowerCase().includes(lowercaseQuery) ||
-          item.description.toLowerCase().includes(lowercaseQuery) ||
-          item.searchTerms.some((t) => t.includes(lowercaseQuery))
-        );
-      }),
-    }));
+          const lowercaseQuery = query.toLowerCase();
+          return (
+            item.title.toLowerCase().includes(lowercaseQuery) ||
+            item.description.toLowerCase().includes(lowercaseQuery) ||
+            item.searchTerms.some((t) => t.includes(lowercaseQuery))
+          );
+        }),
+      })
+    );
 
     return filteredSlashSections.filter((s) => s.items.length !== 0);
   };
