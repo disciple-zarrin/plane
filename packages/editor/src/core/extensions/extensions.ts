@@ -47,6 +47,7 @@ import { CustomMathExtension } from "./custom-math/extension";
 import { CustomColumnsExtension, CustomColumnExtension } from "./custom-columns/extension";
 import { CustomBreadcrumbExtension } from "./custom-breadcrumb/extension";
 import { CustomPageLinkExtension } from "./custom-page-link/extension";
+import { CustomEmbedExtension } from "./custom-embed/extension";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomPlaceholderExtension } from "./placeholder";
 import { CustomStarterKitExtension } from "./starter-kit";
@@ -137,6 +138,7 @@ export const CoreEditorExtensions = (args: TArguments): Extensions => {
     CustomColumnExtension(),
     CustomBreadcrumbExtension(),
     CustomPageLinkExtension(),
+    CustomEmbedExtension(),
     UtilityExtension({
       disabledExtensions,
       flaggedExtensions,

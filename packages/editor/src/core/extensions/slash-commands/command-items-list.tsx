@@ -43,6 +43,10 @@ import {
   StickyNote,
   Palette,
   HelpCircle,
+  Globe,
+  Play,
+  Figma,
+  Code,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -769,6 +773,77 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "color-gray",
+      },
+      // Interactive Embeds
+      {
+        commandKey: "embed",
+        key: "embed",
+        title: "Web Embed / جاسازی وب",
+        icon: <Globe className="size-3.5 text-accent-primary" />,
+        description: "Embed interactive website, form, or web app via iframe",
+        searchTerms: ["embed", "iframe", "web", "jasazi", "site"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "generic" });
+        },
+        section: "general",
+        pushAfter: "shortcuts",
+      },
+      {
+        commandKey: "youtube",
+        key: "youtube",
+        title: "YouTube Video",
+        icon: <Play className="size-3.5 text-red-500" />,
+        description: "Embed an interactive YouTube video player",
+        searchTerms: ["youtube", "video", "yt", "stream"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "youtube" });
+        },
+        section: "general",
+        pushAfter: "embed",
+      },
+      {
+        commandKey: "aparat",
+        key: "aparat",
+        title: "Aparat Video / آپارات",
+        icon: <Play className="size-3.5 text-pink-500" />,
+        description: "Embed an Aparat video player",
+        searchTerms: ["aparat", "video", "clip", "aparat video"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "aparat" });
+        },
+        section: "general",
+        pushAfter: "youtube",
+      },
+      {
+        commandKey: "figma",
+        key: "figma",
+        title: "Figma Prototype",
+        icon: <Figma className="size-3.5 text-purple-500" />,
+        description: "Embed a live Figma frame or prototype",
+        searchTerms: ["figma", "design", "ui", "ux", "prototype"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "figma" });
+        },
+        section: "general",
+        pushAfter: "aparat",
+      },
+      {
+        commandKey: "codepen",
+        key: "codepen",
+        title: "CodePen Snippet",
+        icon: <Code className="size-3.5 text-teal-500" />,
+        description: "Embed an interactive CodePen demo",
+        searchTerms: ["codepen", "code", "html", "css", "js", "demo"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "codepen" });
+        },
+        section: "general",
+        pushAfter: "figma",
       }
     );
 
