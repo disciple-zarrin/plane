@@ -26,6 +26,7 @@ import {
   CustomColumnExtensionConfig,
 } from "./custom-columns/extension-config";
 import { CustomBreadcrumbExtensionConfig } from "./custom-breadcrumb/extension-config";
+import { CustomPageLinkExtensionConfig } from "./custom-page-link/extension-config";
 import { CustomLinkExtension } from "./custom-link";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
@@ -56,6 +57,7 @@ export const CoreEditorExtensionsWithoutProps = [
   CustomColumnsExtensionConfig,
   CustomColumnExtensionConfig,
   CustomBreadcrumbExtensionConfig,
+  CustomPageLinkExtensionConfig,
   Underline,
   TextStyle,
   TaskList.configure({
