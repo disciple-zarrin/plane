@@ -17,7 +17,7 @@ declare module "@tiptap/core" {
       insertEmbed: (options?: {
         src?: string;
         originalUrl?: string;
-        provider?: "youtube" | "aparat" | "figma" | "codepen" | "generic";
+        provider?: TEmbedAttributes[EEmbedAttributeNames.PROVIDER];
       }) => ReturnType;
     };
   }
