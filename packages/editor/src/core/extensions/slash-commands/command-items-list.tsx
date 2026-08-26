@@ -34,6 +34,8 @@ import {
   Columns2,
   Columns3,
   FolderTree,
+  Calendar,
+  Clock,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -467,6 +469,65 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "3columns",
+      },
+      {
+        commandKey: "page-link",
+        key: "page-link",
+        title: "Link to Page",
+        icon: <FileText className="size-3.5" />,
+        description: "Insert a stylized link card to another page",
+        searchTerms: ["page", "link", "subpage", "document", "navigate"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertPageLink({});
+        },
+        section: "general",
+        pushAfter: "breadcrumb",
+      },
+      {
+        commandKey: "today",
+        key: "today",
+        title: "Today's Date",
+        icon: <Calendar className="size-3.5" />,
+        description: "Insert today's date badge",
+        searchTerms: ["today", "date", "calendar", "emrooz"],
+        command: ({ editor, range }: CommandProps) => {
+          const now = new Date();
+          const formatted = now.toLocaleDateString("fa-IR");
+          editor.chain().focus().deleteRange(range).insertContent(`📅 ${formatted} `).run();
+        },
+        section: "general",
+        pushAfter: "page-link",
+      },
+      {
+        commandKey: "now",
+        key: "now",
+        title: "Current Date & Time",
+        icon: <Clock className="size-3.5" />,
+        description: "Insert current date and time",
+        searchTerms: ["now", "time", "clock", "alan", "saat"],
+        command: ({ editor, range }: CommandProps) => {
+          const now = new Date();
+          const formatted = `${now.toLocaleDateString("fa-IR")} - ${now.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}`;
+          editor.chain().focus().deleteRange(range).insertContent(`🕒 ${formatted} `).run();
+        },
+        section: "general",
+        pushAfter: "today",
+      },
+      {
+        commandKey: "date",
+        key: "date",
+        title: "Date (English)",
+        icon: <Calendar className="size-3.5" />,
+        description: "Insert English formatted date",
+        searchTerms: ["date", "english date", "en"],
+        command: ({ editor, range }: CommandProps) => {
+          const now = new Date();
+          const formatted = now.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+          editor.chain().focus().deleteRange(range).insertContent(`📅 ${formatted} `).run();
+        },
+        section: "general",
+        pushAfter: "now",
       }
     );
 
