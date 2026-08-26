@@ -36,6 +36,13 @@ import {
   FolderTree,
   Calendar,
   Clock,
+  Lightbulb,
+  AlertTriangle,
+  AlertOctagon,
+  Info,
+  StickyNote,
+  Palette,
+  HelpCircle,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -528,6 +535,240 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "now",
+      },
+      // Callout Presets
+      {
+        commandKey: "tip",
+        key: "tip",
+        title: "Tip / نکته",
+        icon: <Lightbulb className="size-3.5 text-emerald-500" />,
+        description: "Insert a green Tip callout with lightbulb",
+        searchTerms: ["tip", "hint", "idea", "lightbulb", "nokteh"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f4a1",
+              "data-background": "rgb(236, 253, 245)",
+            },
+          }).run();
+        },
+        section: "general",
+        pushAfter: "date",
+      },
+      {
+        commandKey: "warning",
+        key: "warning",
+        title: "Warning / هشدار",
+        icon: <AlertTriangle className="size-3.5 text-amber-500" />,
+        description: "Insert a yellow Warning callout",
+        searchTerms: ["warning", "alert", "caution", "heed", "tahzir", "hoshdar"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "26a0-fe0f",
+              "data-background": "rgb(254, 243, 199)",
+            },
+          }).run();
+        },
+        section: "general",
+        pushAfter: "tip",
+      },
+      {
+        commandKey: "danger",
+        key: "danger",
+        title: "Danger / خطا",
+        icon: <AlertOctagon className="size-3.5 text-red-500" />,
+        description: "Insert a red Danger/Error callout",
+        searchTerms: ["danger", "error", "critical", "stop", "khatar"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "26d4",
+              "data-background": "rgb(254, 226, 226)",
+            },
+          }).run();
+        },
+        section: "general",
+        pushAfter: "warning",
+      },
+      {
+        commandKey: "info",
+        key: "info",
+        title: "Info / اطلاعات",
+        icon: <Info className="size-3.5 text-blue-500" />,
+        description: "Insert a blue Information callout",
+        searchTerms: ["info", "information", "note", "rahnama"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "2139-fe0f",
+              "data-background": "rgb(239, 246, 255)",
+            },
+          }).run();
+        },
+        section: "general",
+        pushAfter: "danger",
+      },
+      {
+        commandKey: "note",
+        key: "note",
+        title: "Note / یادداشت",
+        icon: <StickyNote className="size-3.5 text-purple-500" />,
+        description: "Insert a purple Note callout",
+        searchTerms: ["note", "memo", "yaddasht"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f4dd",
+              "data-background": "rgb(245, 243, 255)",
+            },
+          }).run();
+        },
+        section: "general",
+        pushAfter: "info",
+      },
+      // Colors
+      {
+        commandKey: "color-red",
+        key: "color-red",
+        title: "Red Color",
+        icon: <Palette className="size-3.5 text-red-500" />,
+        description: "Apply red text/background color",
+        searchTerms: ["red", "color", "ghermez", "rang"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-pink-text)",
+            backgroundColor: "var(--editor-colors-pink-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "note",
+      },
+      {
+        commandKey: "color-green",
+        key: "color-green",
+        title: "Green Color",
+        icon: <Palette className="size-3.5 text-green-500" />,
+        description: "Apply green text/background color",
+        searchTerms: ["green", "color", "sabz"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-green-text)",
+            backgroundColor: "var(--editor-colors-green-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "color-red",
+      },
+      {
+        commandKey: "color-blue",
+        key: "color-blue",
+        title: "Blue Color",
+        icon: <Palette className="size-3.5 text-blue-500" />,
+        description: "Apply blue text/background color",
+        searchTerms: ["blue", "color", "abi"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-light-blue-text)",
+            backgroundColor: "var(--editor-colors-light-blue-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "color-green",
+      },
+      {
+        commandKey: "color-yellow",
+        key: "color-yellow",
+        title: "Yellow / Peach Color",
+        icon: <Palette className="size-3.5 text-amber-500" />,
+        description: "Apply yellow text/background color",
+        searchTerms: ["yellow", "peach", "color", "zard"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-peach-text)",
+            backgroundColor: "var(--editor-colors-peach-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "color-blue",
+      },
+      {
+        commandKey: "color-purple",
+        key: "color-purple",
+        title: "Purple Color",
+        icon: <Palette className="size-3.5 text-purple-500" />,
+        description: "Apply purple text/background color",
+        searchTerms: ["purple", "color", "banafshe"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-purple-text)",
+            backgroundColor: "var(--editor-colors-purple-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "color-yellow",
+      },
+      {
+        commandKey: "color-orange",
+        key: "color-orange",
+        title: "Orange Color",
+        icon: <Palette className="size-3.5 text-orange-500" />,
+        description: "Apply orange text/background color",
+        searchTerms: ["orange", "color", "narenji"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-orange-text)",
+            backgroundColor: "var(--editor-colors-orange-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "color-purple",
+      },
+      {
+        commandKey: "color-gray",
+        key: "color-gray",
+        title: "Gray Color",
+        icon: <Palette className="size-3.5 text-gray-500" />,
+        description: "Apply gray text/background color",
+        searchTerms: ["gray", "grey", "color", "toosi"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "var(--editor-colors-gray-text)",
+            backgroundColor: "var(--editor-colors-gray-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "color-orange",
+      },
+      {
+        commandKey: "shortcuts",
+        key: "shortcuts",
+        title: "Shortcuts / راهنمای میانبرها",
+        icon: <HelpCircle className="size-3.5 text-accent-primary" />,
+        description: "View quick Markdown & editor keyboard shortcuts",
+        searchTerms: ["shortcuts", "help", "guide", "hotkeys", "mianbor", "rahnama"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent(
+            `> 💡 **راهنمای میانبرهای سریع مارک‌داون:**\n> * \`#\` برای تیتر ۱ | \`##\` برای تیتر ۲ | \`###\` برای تیتر ۳\n> * \`-\` یا \`*\` برای لیست نقطه‌ای | \`1.\` برای لیست عددی | \`[]\` برای چک‌لیست\n> * \`>\` برای نقل‌قول | \`\`\` برای کادر کد | \`/\` برای تمام دستورات اسلش\n`
+          ).run();
+        },
+        section: "general",
+        pushAfter: "color-gray",
       }
     );
 
