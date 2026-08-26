@@ -52,6 +52,7 @@ import {
   Music,
   Copy,
   RefreshCw,
+  Lock,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -1069,6 +1070,121 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "turn-code",
+      },
+      // Toggle Headings
+      {
+        commandKey: "toggle-h1",
+        key: "toggle-h1",
+        title: "Toggle Heading 1 / تیتر تاشو ۱",
+        icon: <ChevronRight className="size-3.5 text-blue-500" />,
+        description: "Insert a collapsible Heading 1 section",
+        searchTerms: ["toggle h1", "collapsible h1", "heading 1 toggle", "titr tasho"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertToggle({
+            title: "تیتر ۱ (قابل جمع‌شدن)",
+          });
+        },
+        section: "general",
+        pushAfter: "turn-callout",
+      },
+      {
+        commandKey: "toggle-h2",
+        key: "toggle-h2",
+        title: "Toggle Heading 2 / تیتر تاشو ۲",
+        icon: <ChevronRight className="size-3.5 text-blue-500" />,
+        description: "Insert a collapsible Heading 2 section",
+        searchTerms: ["toggle h2", "collapsible h2", "heading 2 toggle"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertToggle({
+            title: "تیتر ۲ (قابل جمع‌شدن)",
+          });
+        },
+        section: "general",
+        pushAfter: "toggle-h1",
+      },
+      {
+        commandKey: "toggle-h3",
+        key: "toggle-h3",
+        title: "Toggle Heading 3 / تیتر تاشو ۳",
+        icon: <ChevronRight className="size-3.5 text-blue-500" />,
+        description: "Insert a collapsible Heading 3 section",
+        searchTerms: ["toggle h3", "collapsible h3", "heading 3 toggle"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertToggle({
+            title: "تیتر ۳ (قابل جمع‌شدن)",
+          });
+        },
+        section: "general",
+        pushAfter: "toggle-h2",
+      },
+      // GitHub & Gist Embeds
+      {
+        commandKey: "gist",
+        key: "gist",
+        title: "GitHub Gist",
+        icon: <Code className="size-3.5 text-slate-700" />,
+        description: "Embed a GitHub Gist code snippet",
+        searchTerms: ["gist", "github gist", "snippet", "code"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "gist" });
+        },
+        section: "general",
+        pushAfter: "toggle-h3",
+      },
+      {
+        commandKey: "github",
+        key: "github",
+        title: "GitHub Repository",
+        icon: <GitFork className="size-3.5 text-slate-700" />,
+        description: "Embed a GitHub repository link or card",
+        searchTerms: ["github", "repo", "repository", "git"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "github" });
+        },
+        section: "general",
+        pushAfter: "gist",
+      },
+      // Lock Mode Callout / Badge
+      {
+        commandKey: "lock",
+        key: "lock",
+        title: "Lock Notice / قفل حفاظت سند",
+        icon: <Lock className="size-3.5 text-amber-500" />,
+        description: "Insert a locked document protection notice",
+        searchTerms: ["lock", "protect", "read only", "ghofl", "mohafezat"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f512",
+              "data-background": "rgb(254, 243, 199)",
+            },
+            content: [
+              {
+                type: CORE_EXTENSIONS.PARAGRAPH,
+                content: [
+                  {
+                    type: "text",
+                    marks: [{ type: "bold" }],
+                    text: "🔒 این سند نهایی و قفل شده است: ",
+                  },
+                  {
+                    type: "text",
+                    text: "جهت حفظ یکپارچگی اطلاعات، لطفاً از ایجاد تغییرات ناخواسته خودداری فرمایید.",
+                  },
+                ],
+              },
+            ],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "github",
       }
     );
 

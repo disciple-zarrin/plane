@@ -88,6 +88,22 @@ export const transformToEmbedUrl = (
     };
   }
 
+  // GitHub Gist
+  if (url.includes("gist.github.com")) {
+    return {
+      embedUrl: `${url}.pibb`,
+      provider: "gist",
+    };
+  }
+
+  // GitHub Repo
+  if (url.includes("github.com")) {
+    return {
+      embedUrl: url,
+      provider: "github",
+    };
+  }
+
   const provider = (preferredProvider as TEmbedAttributes[EEmbedAttributeNames.PROVIDER]) || "generic";
   return { embedUrl: url, provider };
 };
@@ -126,6 +142,8 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
     codepen: "CodePen",
     spotify: "Spotify Audio",
     soundcloud: "SoundCloud Audio",
+    github: "GitHub Repository",
+    gist: "GitHub Gist",
     generic: "Web Embed",
   }[provider] || "Web Embed";
 

@@ -24,6 +24,8 @@ export type TEmbedAttributes = {
     | "codepen"
     | "spotify"
     | "soundcloud"
+    | "github"
+    | "gist"
     | "generic";
 };
 
