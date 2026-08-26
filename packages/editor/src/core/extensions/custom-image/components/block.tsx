@@ -15,6 +15,7 @@ import { ensurePixelString, getImageBlockId, isImageDuplicating } from "../utils
 import type { CustomImageNodeViewProps } from "./node-view";
 import { ImageToolbarRoot } from "./toolbar";
 import { ImageUploadStatus } from "./upload-status";
+import { ImageFullScreenModal } from "./toolbar/full-screen/modal";
 
 const MIN_SIZE = 100;
 
@@ -59,6 +60,7 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
   });
   const [isResizing, setIsResizing] = useState(false);
   const [initialResizeComplete, setInitialResizeComplete] = useState(false);
+  const [isDoubleClickFullScreenEnabled, setIsDoubleClickFullScreenEnabled] = useState(false);
   // refs
   const containerRef = useRef<HTMLDivElement>(null);
   const containerRect = useRef<DOMRect | null>(null);
@@ -289,8 +291,14 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
               }
             })()
           }
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            if (resolvedImageSrc) {
+              setIsDoubleClickFullScreenEnabled(true);
+            }
+          }}
           width={size.width}
-          className={cn("image-component block rounded-md", {
+          className={cn("image-component block rounded-md cursor-pointer", {
             // hide the image while the background calculations of the image loader are in progress (to avoid flickering) and show the loader until then
             hidden: showImageLoader,
             "read-only-image": !editor.isEditable,
@@ -301,6 +309,17 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
             ...(size.aspectRatio && { aspectRatio: size.aspectRatio }),
           }}
         />
+        {resolvedImageSrc && (
+          <ImageFullScreenModal
+            aspectRatio={size.aspectRatio === null ? 1 : size.aspectRatio}
+            downloadSrc={resolvedDownloadSrc ?? resolvedImageSrc}
+            isFullScreenEnabled={isDoubleClickFullScreenEnabled}
+            isTouchDevice={isTouchDevice}
+            src={resolvedImageSrc}
+            width={ensurePixelString(size.width, "100%") ?? "100%"}
+            toggleFullScreenMode={setIsDoubleClickFullScreenEnabled}
+          />
+        )}
         {showUploadStatus && node.attrs[ECustomImageAttributeNames.ID] && (
           <ImageUploadStatus editor={editor} nodeId={node.attrs[ECustomImageAttributeNames.ID]} />
         )}

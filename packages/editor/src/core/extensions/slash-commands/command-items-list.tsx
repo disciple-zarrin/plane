@@ -27,6 +27,7 @@ import {
   FileVideo,
   FileAudio,
   FileText,
+  Bookmark,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -362,6 +363,20 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "pdf",
+      },
+      {
+        commandKey: "bookmark",
+        key: "bookmark",
+        title: "Web Bookmark",
+        icon: <Bookmark className="size-3.5" />,
+        description: "Insert a Notion-style web bookmark card",
+        searchTerms: ["bookmark", "link", "url", "web", "preview"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertBookmarkComponent({});
+        },
+        section: "general",
+        pushAfter: "file",
       }
     );
 
