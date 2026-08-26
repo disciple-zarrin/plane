@@ -121,6 +121,7 @@ export type TEditorCommands =
   | "badge-todo"
   | "tomorrow"
   | "yesterday"
+  | "persian-date"
   | "template-meeting"
   | "template-bug"
   | "template-standup"
