@@ -17,7 +17,14 @@ export type TEmbedAttributes = {
   [EEmbedAttributeNames.ID]: string;
   [EEmbedAttributeNames.SRC]: string;
   [EEmbedAttributeNames.ORIGINAL_URL]: string;
-  [EEmbedAttributeNames.PROVIDER]: "youtube" | "aparat" | "figma" | "codepen" | "generic";
+  [EEmbedAttributeNames.PROVIDER]:
+    | "youtube"
+    | "aparat"
+    | "figma"
+    | "codepen"
+    | "spotify"
+    | "soundcloud"
+    | "generic";
 };
 
 export type CustomEmbedExtensionOptions = Record<string, unknown>;

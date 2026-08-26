@@ -71,6 +71,23 @@ export const transformToEmbedUrl = (
     };
   }
 
+  // Spotify
+  if (url.includes("open.spotify.com")) {
+    const embedUrl = url.replace("open.spotify.com/", "open.spotify.com/embed/");
+    return {
+      embedUrl,
+      provider: "spotify",
+    };
+  }
+
+  // SoundCloud
+  if (url.includes("soundcloud.com")) {
+    return {
+      embedUrl: `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=true`,
+      provider: "soundcloud",
+    };
+  }
+
   const provider = (preferredProvider as TEmbedAttributes[EEmbedAttributeNames.PROVIDER]) || "generic";
   return { embedUrl: url, provider };
 };
@@ -107,6 +124,8 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
     aparat: "Aparat Video",
     figma: "Figma Prototype",
     codepen: "CodePen",
+    spotify: "Spotify Audio",
+    soundcloud: "SoundCloud Audio",
     generic: "Web Embed",
   }[provider] || "Web Embed";
 

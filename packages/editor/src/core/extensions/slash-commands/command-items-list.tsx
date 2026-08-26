@@ -47,6 +47,9 @@ import {
   Play,
   Figma,
   Code,
+  Database,
+  GitFork,
+  Music,
 } from "lucide-react";
 // constants
 import { COLORS_LIST } from "@/constants/common";
@@ -844,6 +847,83 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "figma",
+      },
+      // Database & Work Items
+      {
+        commandKey: "database",
+        key: "database",
+        title: "Database / پایگاه داده",
+        icon: <Database className="size-3.5 text-accent-primary" />,
+        description: "Embed or link a database work item card",
+        searchTerms: ["database", "table", "data", "dastebandi", "record"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent("@").run();
+        },
+        section: "general",
+        pushAfter: "codepen",
+      },
+      {
+        commandKey: "issue",
+        key: "issue",
+        title: "Work Item / کارت تسک",
+        icon: <Database className="size-3.5 text-blue-500" />,
+        description: "Insert a live database work item card",
+        searchTerms: ["issue", "work item", "task", "card", "kart"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent("@").run();
+        },
+        section: "general",
+        pushAfter: "database",
+      },
+      // Mermaid Diagrams & Flowcharts
+      {
+        commandKey: "mermaid",
+        key: "mermaid",
+        title: "Mermaid Diagram / فلوچارت",
+        icon: <GitFork className="size-3.5 text-indigo-500" />,
+        description: "Insert a Mermaid.js diagram or flowchart block",
+        searchTerms: ["mermaid", "diagram", "flowchart", "chart", "graph", "nemoodar"],
+        command: ({ editor, range }: CommandProps) => {
+          const starterDiagram = `graph TD\n  A[شروع پروژه] --> B[طراحی و برنامه‌ریزی]\n  B --> C[پیاده‌سازی و توسعه]\n  C --> D[تست و انتشار نهایی]`;
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CODE_BLOCK,
+            attrs: {
+              language: "mermaid",
+            },
+            content: [{ type: "text", text: starterDiagram }],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "issue",
+      },
+      // Audio Streaming
+      {
+        commandKey: "spotify",
+        key: "spotify",
+        title: "Spotify Audio / پادکست",
+        icon: <Music className="size-3.5 text-green-500" />,
+        description: "Embed a Spotify track, album, or podcast",
+        searchTerms: ["spotify", "music", "audio", "podcast", "song", "ahange"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "spotify" });
+        },
+        section: "general",
+        pushAfter: "mermaid",
+      },
+      {
+        commandKey: "soundcloud",
+        key: "soundcloud",
+        title: "SoundCloud Audio",
+        icon: <Music className="size-3.5 text-orange-500" />,
+        description: "Embed a SoundCloud audio track or playlist",
+        searchTerms: ["soundcloud", "music", "audio", "track"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "soundcloud" });
+        },
+        section: "general",
+        pushAfter: "spotify",
       }
     );
 
