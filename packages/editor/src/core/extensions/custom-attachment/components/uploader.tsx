@@ -176,15 +176,15 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
     }
 
     if (isUploading) {
-      return "Uploading...";
+      return node.attrs.originalName ? `Uploading ${node.attrs.originalName}...` : "Uploading...";
     }
 
     if (draggedInside && editor.isEditable) {
-      return "Drop file here";
+      return "Drop file or media here";
     }
 
-    return "Add a file";
-  }, [draggedInside, editor.isEditable, isErrorState, isUploading]);
+    return "Add a file or media";
+  }, [draggedInside, editor.isEditable, isErrorState, isUploading, node.attrs.originalName]);
 
   const handleRetryClick = useCallback(
     (e: React.MouseEvent) => {
