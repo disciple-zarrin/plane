@@ -22,7 +22,7 @@ export type CustomToggleNodeViewProps = NodeViewProps & {
 };
 
 export function CustomToggleBlock(props: CustomToggleNodeViewProps) {
-  const { node, updateAttributes, editor } = props;
+  const { node, updateAttributes } = props;
   const isOpen = node.attrs[EToggleAttributeNames.IS_OPEN] ?? true;
 
   const handleToggle = useCallback(
@@ -48,7 +48,7 @@ export function CustomToggleBlock(props: CustomToggleNodeViewProps) {
           onClick={handleToggle}
           contentEditable={false}
           className={cn(
-            "grid h-6 w-6 shrink-0 place-items-center rounded text-tertiary transition-all duration-150 hover:bg-layer-3 hover:text-primary mt-0.5",
+            "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded text-tertiary transition-all duration-150 hover:bg-layer-3 hover:text-primary",
             "cursor-pointer select-none"
           )}
           title={isOpen ? "بستن بخش (Collapse)" : "باز کردن بخش (Expand)"}
@@ -62,12 +62,12 @@ export function CustomToggleBlock(props: CustomToggleNodeViewProps) {
         </button>
 
         {/* Content Container */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <NodeViewContent
             as="div"
             className={cn(
               "w-full break-words transition-all duration-200",
-              !isOpen && "hidden"
+              !isOpen && "[&>*:not(:first-child)]:hidden"
             )}
           />
         </div>

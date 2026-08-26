@@ -143,7 +143,11 @@ export type TEditorCommands =
   | "link"
   | "issue-embed"
   | "text-color"
+  | "text-color-default"
+  | `text-color-${string}`
   | "background-color"
+  | "background-color-default"
+  | `background-color-${string}`
   | "text-align"
   | "text-direction"
   | "callout"

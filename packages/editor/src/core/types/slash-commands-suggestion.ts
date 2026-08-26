@@ -13,7 +13,16 @@ export type CommandProps = {
   range: Range;
 };
 
-export type TSlashCommandSectionKeys = "general" | "text-colors" | "background-colors";
+export type TSlashCommandSectionKeys =
+  | "general"
+  | "media"
+  | "embeds"
+  | "structure"
+  | "templates"
+  | "badges"
+  | "highlights"
+  | "text-colors"
+  | "background-colors";
 
 export type ISlashCommandItem = {
   commandKey: TEditorCommands;

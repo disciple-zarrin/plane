@@ -14,7 +14,7 @@ import type { CustomToggleExtensionType, TToggleBlockAttributes } from "./types"
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     [CORE_EXTENSIONS.CUSTOM_TOGGLE]: {
-      insertToggle: () => ReturnType;
+      insertToggle: (options?: { headingLevel?: 1 | 2 | 3 }) => ReturnType;
     };
   }
 }
