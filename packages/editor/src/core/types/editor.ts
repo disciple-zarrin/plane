@@ -70,6 +70,7 @@ export type TEditorCommands =
   | "3columns"
   | "breadcrumb"
   | "page-link"
+  | "synced-block"
   | "today"
   | "now"
   | "date"

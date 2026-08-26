@@ -43,6 +43,7 @@ import {
   StickyNote,
   Palette,
   HelpCircle,
+  Repeat,
   Globe,
   Play,
   Figma,
@@ -555,6 +556,20 @@ export const getSlashCommandFilteredSections =
         pushAfter: "breadcrumb",
       },
       {
+        commandKey: "synced-block",
+        key: "synced-block",
+        title: "Synced Block / بلوک همگام",
+        icon: <Repeat className="text-red-500 size-3.5" />,
+        description: "Insert a synced content block across pages",
+        searchTerms: ["synced", "sync", "block", "hamgam", "notion"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertSyncedBlock();
+        },
+        section: "structure",
+        pushAfter: "page-link",
+      },
+      {
         commandKey: "today",
         key: "today",
         title: "Today's Date / تاریخ امروز",
@@ -567,7 +582,7 @@ export const getSlashCommandFilteredSections =
           editor.chain().focus().deleteRange(range).insertContent(`📅 ${formatted} `).run();
         },
         section: "templates",
-        pushAfter: "page-link",
+        pushAfter: "synced-block",
       },
       {
         commandKey: "tomorrow",
