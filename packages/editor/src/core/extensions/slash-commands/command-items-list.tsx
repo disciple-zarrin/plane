@@ -1419,6 +1419,193 @@ export const getSlashCommandFilteredSections =
         },
         section: "general",
         pushAfter: "priority-low",
+      },
+      // Callout Color Themes
+      {
+        commandKey: "callout-pink",
+        key: "callout-pink",
+        title: "Callout: Pink / صورتی",
+        icon: <Palette className="size-3.5 text-pink-500" />,
+        description: "Insert a pastel pink callout box",
+        searchTerms: ["callout pink", "pink", "soorati"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f338",
+              "data-background": "rgb(253, 242, 248)",
+            },
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "progress",
+      },
+      {
+        commandKey: "callout-purple",
+        key: "callout-purple",
+        title: "Callout: Purple / بنفش",
+        icon: <Palette className="size-3.5 text-purple-500" />,
+        description: "Insert a pastel purple callout box",
+        searchTerms: ["callout purple", "purple", "banafshe"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f52e",
+              "data-background": "rgb(245, 243, 255)",
+            },
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "callout-pink",
+      },
+      {
+        commandKey: "callout-cyan",
+        key: "callout-cyan",
+        title: "Callout: Cyan / فیروزه‌ای",
+        icon: <Palette className="size-3.5 text-cyan-500" />,
+        description: "Insert a pastel cyan/teal callout box",
+        searchTerms: ["callout cyan", "cyan", "teal", "firoozei"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f48e",
+              "data-background": "rgb(236, 254, 255)",
+            },
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "callout-purple",
+      },
+      {
+        commandKey: "callout-orange",
+        key: "callout-orange",
+        title: "Callout: Orange / نارنجی",
+        icon: <Palette className="size-3.5 text-orange-500" />,
+        description: "Insert a pastel orange callout box",
+        searchTerms: ["callout orange", "orange", "narenji"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f34a",
+              "data-background": "rgb(255, 247, 237)",
+            },
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "callout-cyan",
+      },
+      {
+        commandKey: "callout-gray",
+        key: "callout-gray",
+        title: "Callout: Gray / خاکستری",
+        icon: <Palette className="size-3.5 text-gray-500" />,
+        description: "Insert a subtle gray callout box",
+        searchTerms: ["callout gray", "gray", "toosi", "khakestari"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).insertContent({
+            type: CORE_EXTENSIONS.CALLOUT,
+            attrs: {
+              "data-logo-in-use": "emoji",
+              "data-emoji-unicode": "1f4cc",
+              "data-background": "rgb(243, 244, 246)",
+            },
+            content: [{ type: CORE_EXTENSIONS.PARAGRAPH }],
+          }).run();
+        },
+        section: "general",
+        pushAfter: "callout-orange",
+      },
+      // Highlighter Pen Tools
+      {
+        commandKey: "highlight-yellow",
+        key: "highlight-yellow",
+        title: "Highlight: Yellow / هایلایت زرد",
+        icon: <Tag className="size-3.5 text-amber-500" />,
+        description: "Highlight text with yellow background",
+        searchTerms: ["highlight yellow", "yellow bg", "zard", "majik"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "inherit",
+            backgroundColor: "var(--editor-colors-peach-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "callout-gray",
+      },
+      {
+        commandKey: "highlight-green",
+        key: "highlight-green",
+        title: "Highlight: Green / هایلایت سبز",
+        icon: <Tag className="size-3.5 text-emerald-500" />,
+        description: "Highlight text with green background",
+        searchTerms: ["highlight green", "green bg", "sabz"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "inherit",
+            backgroundColor: "var(--editor-colors-green-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "highlight-yellow",
+      },
+      {
+        commandKey: "highlight-pink",
+        key: "highlight-pink",
+        title: "Highlight: Pink / هایلایت صورتی",
+        icon: <Tag className="size-3.5 text-pink-500" />,
+        description: "Highlight text with pink background",
+        searchTerms: ["highlight pink", "pink bg", "soorati"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "inherit",
+            backgroundColor: "var(--editor-colors-pink-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "highlight-green",
+      },
+      {
+        commandKey: "highlight-blue",
+        key: "highlight-blue",
+        title: "Highlight: Blue / هایلایت آبی",
+        icon: <Tag className="size-3.5 text-blue-500" />,
+        description: "Highlight text with blue background",
+        searchTerms: ["highlight blue", "blue bg", "abi"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "inherit",
+            backgroundColor: "var(--editor-colors-light-blue-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "highlight-pink",
+      },
+      {
+        commandKey: "highlight-purple",
+        key: "highlight-purple",
+        title: "Highlight: Purple / هایلایت بنفش",
+        icon: <Tag className="size-3.5 text-purple-500" />,
+        description: "Highlight text with purple background",
+        searchTerms: ["highlight purple", "purple bg", "banafshe"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).setCustomColor({
+            textColor: "inherit",
+            backgroundColor: "var(--editor-colors-purple-background)",
+          }).run();
+        },
+        section: "general",
+        pushAfter: "highlight-blue",
       }
     );
 
