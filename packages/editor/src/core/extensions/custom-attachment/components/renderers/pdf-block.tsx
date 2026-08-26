@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import React, { useCallback } from "react";
-import { Download, ExternalLink, FileText } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { Download, ExternalLink, FileText, LayoutList, Maximize2, Copy, Check } from "lucide-react";
 // plane imports
 import { cn } from "@plane/utils";
 // local imports
@@ -20,6 +20,9 @@ export function PDFBlock(props: PDFBlockProps) {
   const { editor, getPos, node, selected, downloadSrc } = props;
   const { id, originalName, size, status } = node.attrs;
   const isDuplicating = isAttachmentDuplicating(status);
+
+  const [isEmbedView, setIsEmbedView] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleBlockClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -38,6 +41,18 @@ export function PDFBlock(props: PDFBlockProps) {
       e.stopPropagation();
       if (downloadSrc) {
         window.open(downloadSrc, "_blank");
+      }
+    },
+    [downloadSrc]
+  );
+
+  const handleCopy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (downloadSrc) {
+        navigator.clipboard.writeText(downloadSrc);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
       }
     },
     [downloadSrc]
@@ -64,7 +79,8 @@ export function PDFBlock(props: PDFBlockProps) {
       id={getAttachmentBlockId(id ?? "")}
       data-drag-handle
       className={cn(
-        "group my-2 flex w-full max-w-lg items-center justify-between rounded-xl border border-subtle bg-layer-2 p-3 transition-all cursor-pointer select-none",
+        "group my-2 flex w-full flex-col overflow-hidden rounded-xl border border-subtle bg-layer-2 transition-all cursor-pointer select-none",
+        isEmbedView ? "max-w-3xl" : "max-w-lg",
         {
           "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
           "hover:border-strong hover:bg-layer-2-hover": !selected,
@@ -74,52 +90,89 @@ export function PDFBlock(props: PDFBlockProps) {
       onClick={handleBlockClick}
       onDoubleClick={handleOpenPreview}
     >
-      <div className="flex items-center gap-3 overflow-hidden">
-        {/* Red PDF Icon Badge */}
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-red-500/10 text-red-600 dark:bg-red-400/10 dark:text-red-400">
-          <FileText className="h-5 w-5" />
-        </div>
+      {/* Header bar */}
+      <div className="flex items-center justify-between p-3">
+        <div className="flex items-center gap-3 overflow-hidden">
+          {/* Red PDF Icon Badge */}
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-red-500/10 text-red-600 dark:bg-red-400/10 dark:text-red-400">
+            <FileText className="h-5 w-5" />
+          </div>
 
-        {/* Info */}
-        <div className="flex flex-col overflow-hidden">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-semibold text-primary">
-              {originalName || "Document.pdf"}
-            </span>
-            <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
-              PDF
+          {/* Info */}
+          <div className="flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2">
+              <span className="truncate text-sm font-semibold text-primary">
+                {originalName || "Document.pdf"}
+              </span>
+              <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
+                PDF
+              </span>
+            </div>
+            <span className="text-xs text-tertiary">
+              {size ? formatBytes(size) : "PDF Document"}
             </span>
           </div>
-          <span className="text-xs text-tertiary">
-            {size ? formatBytes(size) : "PDF Document"}
-          </span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1 pl-2">
+          {downloadSrc && (
+            <>
+              {/* Embed view toggle */}
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEmbedView((prev) => !prev);
+                }}
+                title={isEmbedView ? "نمایش کارتی" : "نمایش در صفحه"}
+              >
+                {isEmbedView ? <LayoutList className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">{isEmbedView ? "کارت" : "نمایش"}</span>
+              </button>
+
+              <button
+                type="button"
+                className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onClick={handleCopy}
+                title="کپی لینک فایل"
+              >
+                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+              </button>
+
+              <button
+                type="button"
+                className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onClick={handleOpenPreview}
+                title="باز کردن در تب جدید"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </button>
+
+              <button
+                type="button"
+                className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onClick={handleDownload}
+                title="دانلود فایل"
+              >
+                <Download className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 pl-2">
-        {downloadSrc && (
-          <>
-            <button
-              type="button"
-              className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
-              onClick={handleOpenPreview}
-              title="Preview / Open PDF"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">پیش‌نمایش</span>
-            </button>
-            <button
-              type="button"
-              className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
-              onClick={handleDownload}
-              title="Download PDF"
-            >
-              <Download className="h-4 w-4" />
-            </button>
-          </>
-        )}
-      </div>
+      {/* Inline Embedded PDF Viewer */}
+      {isEmbedView && downloadSrc && (
+        <div className="border-t border-subtle bg-layer-1 p-1">
+          <iframe
+            src={`${downloadSrc}#toolbar=0`}
+            title={originalName || "PDF Viewer"}
+            className="h-[520px] w-full rounded-lg bg-white"
+          />
+        </div>
+      )}
     </div>
   );
 }

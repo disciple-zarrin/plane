@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import React, { useCallback, useRef } from "react";
-import { Download, ExternalLink, FileVideo } from "lucide-react";
+import React, { useState, useCallback, useRef } from "react";
+import { Download, ExternalLink, FileVideo, Copy, Check } from "lucide-react";
 // plane imports
 import { cn } from "@plane/utils";
 // local imports
@@ -21,6 +21,7 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
   const { id, originalName, size, status } = node.attrs;
   const videoRef = useRef<HTMLVideoElement>(null);
   const isDuplicating = isAttachmentDuplicating(status);
+  const [copied, setCopied] = useState(false);
 
   const handleBlockClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -32,6 +33,18 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
       }
     },
     [editor, getPos]
+  );
+
+  const handleCopy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (downloadSrc) {
+        navigator.clipboard.writeText(downloadSrc);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    },
+    [downloadSrc]
   );
 
   const handleDownload = useCallback(
@@ -80,8 +93,16 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
               <button
                 type="button"
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onClick={handleCopy}
+                title="کپی لینک ویدیو"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                type="button"
+                className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
                 onClick={handleDownload}
-                title="Download video"
+                title="دانلود ویدیو"
               >
                 <Download className="h-3.5 w-3.5" />
               </button>
@@ -89,7 +110,7 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
                 type="button"
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
                 onClick={handleDownload}
-                title="Open in new tab"
+                title="باز کردن در تب جدید"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
               </button>
@@ -111,7 +132,7 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-tertiary text-xs">
-            Loading video player...
+            در حال آماده‌سازی پلیر...
           </div>
         )}
       </div>
