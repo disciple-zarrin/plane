@@ -544,10 +544,22 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "page-link",
         key: "page-link",
-        title: "Link to Page",
+        title: "Link to Page / پیوند به صفحه",
         icon: <FileText className="size-3.5" />,
-        description: "Insert a stylized link card to another page",
-        searchTerms: ["page", "link", "subpage", "document", "navigate"],
+        description: "Insert a link card or mention another page / درج کارت پیوند یا منشن به صفحات",
+        searchTerms: [
+          "page",
+          "link",
+          "link to page",
+          "link-to-page",
+          "subpage",
+          "document",
+          "navigate",
+          "mention",
+          "peyvand",
+          "safhe",
+          "menat",
+        ],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertPageLink({});
