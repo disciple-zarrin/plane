@@ -19,24 +19,24 @@ export function CustomBreadcrumbBlock(props: NodeViewProps) {
       <div
         contentEditable={false}
         className={cn(
-          "flex items-center gap-1.5 rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 text-xs text-tertiary transition-all",
+          "text-xs flex items-center gap-1.5 rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 text-tertiary transition-all",
           {
-            "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+            "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
             "hover:border-strong": !selected,
           }
         )}
       >
-        <span className="flex items-center gap-1 font-medium text-secondary hover:text-primary transition-colors cursor-pointer">
+        <span className="flex cursor-pointer items-center gap-1 font-medium text-secondary transition-colors hover:text-primary">
           <Folder className="h-3.5 w-3.5 text-accent-primary" />
           <span>پروژه</span>
         </span>
         <ChevronRight className="h-3 w-3 opacity-40 rtl:rotate-180" />
-        <span className="flex items-center gap-1 font-medium text-secondary hover:text-primary transition-colors cursor-pointer">
+        <span className="flex cursor-pointer items-center gap-1 font-medium text-secondary transition-colors hover:text-primary">
           <span>داکیومنت‌ها</span>
         </span>
         <ChevronRight className="h-3 w-3 opacity-40 rtl:rotate-180" />
         <span className="flex items-center gap-1 font-semibold text-primary">
-          <FileText className="h-3.5 w-3.5 text-indigo-500" />
+          <FileText className="text-indigo-500 h-3.5 w-3.5" />
           <span>صفحه فعلی</span>
         </span>
       </div>

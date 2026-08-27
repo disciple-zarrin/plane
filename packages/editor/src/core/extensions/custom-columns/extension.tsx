@@ -11,21 +11,12 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 // local components
 import { CustomColumnsBlock, CustomColumnBlock } from "./components/block";
 import type { CustomColumnsNodeViewProps } from "./components/block";
-import {
-  CustomColumnsExtensionConfig,
-  CustomColumnExtensionConfig,
-} from "./extension-config";
+import { CustomColumnsExtensionConfig, CustomColumnExtensionConfig } from "./extension-config";
 import { EColumnsAttributeNames } from "./types";
-import type {
-  CustomColumnsExtensionOptions,
-  CustomColumnsExtensionStorage,
-} from "./types";
+import type { CustomColumnsExtensionOptions, CustomColumnsExtensionStorage } from "./types";
 
 export function CustomColumnsExtension() {
-  return CustomColumnsExtensionConfig.extend<
-    CustomColumnsExtensionOptions,
-    CustomColumnsExtensionStorage
-  >({
+  return CustomColumnsExtensionConfig.extend<CustomColumnsExtensionOptions, CustomColumnsExtensionStorage>({
     addCommands() {
       return {
         insertColumns:

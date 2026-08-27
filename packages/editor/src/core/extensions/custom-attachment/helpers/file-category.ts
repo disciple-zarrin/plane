@@ -145,13 +145,10 @@ const MIME_CATEGORY_PREFIX_MAP: Record<string, TFileCategory> = {
 export const getFileExtension = (filename?: string | null): string => {
   if (!filename) return "";
   const parts = filename.split(".");
-  return parts.length > 1 ? parts.pop()?.toLowerCase() ?? "" : "";
+  return parts.length > 1 ? (parts.pop()?.toLowerCase() ?? "") : "";
 };
 
-export const getFileCategory = (
-  filename?: string | null,
-  mimeType?: string | null
-): TFileCategory => {
+export const getFileCategory = (filename?: string | null, mimeType?: string | null): TFileCategory => {
   // Check extension first
   const ext = getFileExtension(filename);
   if (ext && EXTENSION_CATEGORY_MAP[ext]) {

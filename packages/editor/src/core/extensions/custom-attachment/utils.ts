@@ -24,7 +24,8 @@ export const getAttachmentComponentFileMap = (editor: Editor) =>
 
 export const getAttachmentBlockId = (id: string) => `editor-attachment-block-${id}`;
 
-export const isAttachmentDuplicating = (status: ECustomAttachmentStatus) => status === ECustomAttachmentStatus.DUPLICATING;
+export const isAttachmentDuplicating = (status: ECustomAttachmentStatus) =>
+  status === ECustomAttachmentStatus.DUPLICATING;
 
 export const isAttachmentDuplicationComplete = (status: ECustomAttachmentStatus) =>
   status === ECustomAttachmentStatus.UPLOADED || status === ECustomAttachmentStatus.DUPLICATION_FAILED;
@@ -33,10 +34,10 @@ export const hasAttachmentDuplicationFailed = (status: ECustomAttachmentStatus) 
   status === ECustomAttachmentStatus.DUPLICATION_FAILED;
 
 export const formatBytes = (bytes: number, decimals = 2) => {
-  if (!+bytes) return '0 Bytes'
-  const k = 1024
-  const dm = decimals < 0 ? 0 : decimals
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+  if (!+bytes) return "0 Bytes";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };

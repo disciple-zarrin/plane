@@ -9,4 +9,3 @@ import { observer } from "mobx-react";
 export const HelpMenuRoot = observer(function HelpMenuRoot() {
   return null;
 });
-

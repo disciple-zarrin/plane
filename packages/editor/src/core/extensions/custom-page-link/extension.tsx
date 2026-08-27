@@ -13,16 +13,10 @@ import { CustomPageLinkBlock } from "./components/block";
 import type { CustomPageLinkNodeViewProps } from "./components/block";
 import { CustomPageLinkExtensionConfig } from "./extension-config";
 import { EPageLinkAttributeNames } from "./types";
-import type {
-  CustomPageLinkExtensionOptions,
-  CustomPageLinkExtensionStorage,
-} from "./types";
+import type { CustomPageLinkExtensionOptions, CustomPageLinkExtensionStorage } from "./types";
 
 export function CustomPageLinkExtension() {
-  return CustomPageLinkExtensionConfig.extend<
-    CustomPageLinkExtensionOptions,
-    CustomPageLinkExtensionStorage
-  >({
+  return CustomPageLinkExtensionConfig.extend<CustomPageLinkExtensionOptions, CustomPageLinkExtensionStorage>({
     addCommands() {
       return {
         insertPageLink:
@@ -43,9 +37,7 @@ export function CustomPageLinkExtension() {
 
     addNodeView() {
       return ReactNodeViewRenderer((pageLinkProps) => (
-        <CustomPageLinkBlock
-          {...(pageLinkProps as unknown as CustomPageLinkNodeViewProps)}
-        />
+        <CustomPageLinkBlock {...(pageLinkProps as unknown as CustomPageLinkNodeViewProps)} />
       ));
     },
   });

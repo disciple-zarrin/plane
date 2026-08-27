@@ -21,7 +21,4 @@ export type TPageLinkAttributes = {
 export type CustomPageLinkExtensionOptions = Record<string, unknown>;
 export type CustomPageLinkExtensionStorage = Record<string, unknown>;
 
-export type CustomPageLinkExtensionType = Node<
-  CustomPageLinkExtensionOptions,
-  CustomPageLinkExtensionStorage
->;
+export type CustomPageLinkExtensionType = Node<CustomPageLinkExtensionOptions, CustomPageLinkExtensionStorage>;

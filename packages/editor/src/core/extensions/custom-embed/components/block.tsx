@@ -54,6 +54,44 @@ export const transformToEmbedUrl = (
     }
   }
 
+  // Loom
+  if (url.includes("loom.com/share/")) {
+    const videoId = url.split("loom.com/share/")[1]?.split("?")[0] ?? "";
+    if (videoId) {
+      return {
+        embedUrl: `https://www.loom.com/embed/${videoId}`,
+        provider: "loom",
+      };
+    }
+  }
+
+  // Vimeo
+  if (url.includes("vimeo.com/")) {
+    const videoId = url.split("vimeo.com/")[1]?.split(/[?#/]/)[0] ?? "";
+    if (videoId && !isNaN(Number(videoId))) {
+      return {
+        embedUrl: `https://player.vimeo.com/video/${videoId}`,
+        provider: "vimeo",
+      };
+    }
+  }
+
+  // Direct Video files (.mp4, .webm, .mov)
+  if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url)) {
+    return {
+      embedUrl: url,
+      provider: "video",
+    };
+  }
+
+  // Direct Audio files (.mp3, .wav, .ogg, .aac)
+  if (/\.(mp3|wav|ogg|aac)(\?.*)?$/i.test(url)) {
+    return {
+      embedUrl: url,
+      provider: "audio",
+    };
+  }
+
   // Figma
   if (url.includes("figma.com")) {
     return {
@@ -139,6 +177,10 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
     {
       youtube: "YouTube Video",
       aparat: "Aparat Video",
+      loom: "Loom Video",
+      vimeo: "Vimeo Video",
+      video: "Direct Video Player",
+      audio: "Direct Audio Player",
       figma: "Figma Prototype",
       codepen: "CodePen",
       spotify: "Spotify Audio",
@@ -159,7 +201,8 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
       ? (originalUrl.split("gist.github.com/")[1]?.split(/[?#]/)[0] ?? originalUrl)
       : originalUrl;
 
-  const isAudio = provider === "spotify" || provider === "soundcloud";
+  const isAudio = provider === "spotify" || provider === "soundcloud" || provider === "audio";
+  const isDirectVideo = provider === "video";
   const isGithubCard = provider === "github" || provider === "gist";
 
   return (
@@ -179,7 +222,11 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
             {/* Top Toolbar */}
             <div className="text-xs flex items-center justify-between border-b border-subtle bg-layer-2 px-3 py-1.5 text-tertiary">
               <div className="flex items-center gap-2 font-medium text-secondary">
-                {provider === "youtube" || provider === "aparat" ? (
+                {provider === "youtube" ||
+                provider === "aparat" ||
+                provider === "loom" ||
+                provider === "vimeo" ||
+                provider === "video" ? (
                   <Video className="text-red-500 h-3.5 w-3.5" />
                 ) : isAudio ? (
                   <Music className="text-green-500 h-3.5 w-3.5" />
@@ -245,6 +292,14 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
+            ) : isDirectVideo ? (
+              <div className="relative aspect-video w-full bg-black">
+                <video src={src} controls playsInline preload="metadata" className="size-full object-contain" />
+              </div>
+            ) : provider === "audio" ? (
+              <div className="flex w-full items-center bg-layer-1 p-3">
+                <audio src={src} controls className="w-full" />
+              </div>
             ) : isAudio ? (
               <div className="relative h-40 w-full bg-black/5">
                 <iframe
@@ -285,7 +340,7 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSave();
                 }}
-                placeholder="آدرس یوتیوب، آپارات، فیگما، کدپن یا لینک وبسایت..."
+                placeholder="آدرس یوتیوب، آپارات، لوم، ویمو، فیگما، کدپن یا لینک مستقیم ویدیو/صوت..."
                 className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-1.5 text-primary placeholder:text-tertiary focus:outline-none"
               />
               <button

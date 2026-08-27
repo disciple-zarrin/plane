@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { FileIcon, RotateCcw } from "lucide-react";
+import { FileIcon, RotateCcw, Upload, Link2, Loader2, ArrowRight } from "lucide-react";
 import type { ChangeEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 // plane imports
 import { cn } from "@plane/utils";
 // constants
@@ -18,7 +18,7 @@ import type { EFileError } from "@/helpers/file";
 import { useUploader, useDropZone, uploadFirstFileAndInsertRemaining } from "@/hooks/use-file-upload";
 // local imports
 import { ECustomAttachmentStatus } from "../types";
-import { getAttachmentComponentFileMap } from "../utils";
+import { formatBytes, getAttachmentComponentFileMap } from "../utils";
 import type { CustomAttachmentNodeViewProps } from "./node-view";
 
 type CustomAttachmentUploaderProps = CustomAttachmentNodeViewProps & {
@@ -41,22 +41,29 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
     updateAttributes,
     hasDuplicationFailed,
   } = props;
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasTriggeredFilePickerRef = useRef(false);
   const hasTriedUploadingOnMountRef = useRef(false);
   const { id: attachmentEntityId } = node.attrs;
-  
+
+  const [activeTab, setActiveTab] = useState<"upload" | "embed">("upload");
+  const [embedUrl, setEmbedUrl] = useState("");
+  const [uploadPercent, setUploadPercent] = useState(0);
+
   const attachmentComponentFileMap = useMemo(() => getAttachmentComponentFileMap(editor), [editor]);
-  const isTouchDevice = !!editor.storage.utility.isTouchDevice;
+  const isTouchDevice = !editor.storage.utility.isTouchDevice;
 
   const onUpload = useCallback(
-    (url: string) => {
+    (url: string, file?: File) => {
       if (url) {
         if (!attachmentEntityId) return;
+        setUploadPercent(100);
         setIsUploaded(true);
         updateAttributes({
           src: url,
+          originalName: file?.name ?? node.attrs.originalName ?? "File",
+          size: file?.size ?? node.attrs.size ?? 0,
           status: ECustomAttachmentStatus.UPLOADED,
         });
         attachmentComponentFileMap?.delete(attachmentEntityId);
@@ -81,17 +88,48 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
         }
       }
     },
-    [attachmentComponentFileMap, attachmentEntityId, updateAttributes, getPos, editor, node.type.name]
+    [
+      attachmentComponentFileMap,
+      attachmentEntityId,
+      updateAttributes,
+      getPos,
+      editor,
+      node.type.name,
+      node.attrs.originalName,
+      node.attrs.size,
+      setIsUploaded,
+    ]
   );
 
   const uploadAttachmentEditorCommand = useCallback(
     async (file: File) => {
-      updateAttributes({ 
+      setUploadPercent(10);
+      updateAttributes({
         status: ECustomAttachmentStatus.UPLOADING,
         originalName: file.name,
-        size: file.size
+        size: file.size,
       });
-      return await extension.options.uploadAttachment?.(attachmentEntityId ?? "", file);
+
+      // Simulate smooth progress bar updates
+      const progressInterval = setInterval(() => {
+        setUploadPercent((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 15;
+        });
+      }, 150);
+
+      try {
+        const res = await extension.options.uploadAttachment?.(attachmentEntityId ?? "", file);
+        clearInterval(progressInterval);
+        setUploadPercent(100);
+        return res;
+      } catch (err) {
+        clearInterval(progressInterval);
+        throw err;
+      }
     },
     [extension.options, attachmentEntityId, updateAttributes]
   );
@@ -163,28 +201,29 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
     [uploadFile, editor, getPos]
   );
 
+  const handleEmbedSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (!embedUrl.trim()) return;
+
+      const trimmed = embedUrl.trim();
+      const filename = trimmed.split("/").pop()?.split("?")[0] || "Embedded Media";
+      setIsUploaded(true);
+      updateAttributes({
+        src: trimmed,
+        originalName: filename,
+        status: ECustomAttachmentStatus.UPLOADED,
+      });
+    },
+    [embedUrl, setIsUploaded, updateAttributes]
+  );
+
   const isErrorState = failedToLoadAttachment || hasDuplicationFailed;
 
   const borderColor =
     selected && editor.isEditable && !isErrorState
       ? "color-mix(in srgb, var(--border-color-accent-strong) 20%, transparent)"
       : undefined;
-
-  const getDisplayMessage = useCallback(() => {
-    if (isErrorState) {
-      return "Error loading attachment";
-    }
-
-    if (isUploading) {
-      return node.attrs.originalName ? `Uploading ${node.attrs.originalName}...` : "Uploading...";
-    }
-
-    if (draggedInside && editor.isEditable) {
-      return "Drop file or media here";
-    }
-
-    return "Add a file or media";
-  }, [draggedInside, editor.isEditable, isErrorState, isUploading, node.attrs.originalName]);
 
   const handleRetryClick = useCallback(
     (e: React.MouseEvent) => {
@@ -199,53 +238,144 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
   return (
     <div
       className={cn(
-        "flex cursor-default items-center justify-start gap-2 rounded-lg border border-dashed bg-layer-3 px-2 py-3 text-tertiary transition-all duration-200 ease-in-out",
+        "my-3 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl border bg-layer-1 text-tertiary transition-all duration-200 ease-in-out",
         {
           "border-subtle": !(selected && editor.isEditable && !isErrorState),
-          "cursor-pointer hover:bg-layer-3-hover hover:text-secondary": editor.isEditable && !isErrorState,
-          "bg-layer-3-hover text-secondary": draggedInside && editor.isEditable && !isErrorState,
-          "bg-accent-primary/10 text-accent-secondary hover:bg-accent-primary/10 hover:text-accent-secondary":
-            selected && editor.isEditable && !isErrorState,
-          "border-danger-primary bg-danger-primary/10 text-danger-primary hover:bg-danger-primary/10 hover:text-danger-primary":
-            isErrorState,
+          "ring-accent-primary border-transparent ring-2": selected && editor.isEditable && !isErrorState,
+          "border-danger-primary bg-danger-primary/5 text-danger-primary": isErrorState,
         }
       )}
-      style={{
-        borderColor,
-      }}
-      onClick={() => {
-        if (!isTouchDevice && editor.isEditable && !isErrorState && !isUploading) {
-          fileInputRef.current?.click();
-        }
-      }}
-      onDragEnter={onDragEnter}
-      onDragLeave={onDragLeave}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onDrop={onDrop}
+      style={{ borderColor }}
     >
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        className="hidden"
-        accept={ACCEPTED_ATTACHMENT_MIME_TYPES.join(",")}
-        onChange={onFileChange}
-      />
+      {/* Tab Navigation */}
+      {!isUploading && !isErrorState && (
+        <div className="text-xs flex items-center border-b border-subtle bg-layer-2 px-3 py-1.5 select-none">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab("upload")}
+              className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
+                "shadow-sm bg-layer-1 text-primary": activeTab === "upload",
+                "text-tertiary hover:text-secondary": activeTab !== "upload",
+              })}
+            >
+              <Upload className="size-3.5" />
+              <span>بارگذاری فایل (Upload)</span>
+            </button>
 
-      <span className="flex-shrink-0 grid place-items-center h-6 w-6">
-        {hasDuplicationFailed ? (
-          <button type="button" onClick={handleRetryClick} className="grid place-items-center rounded bg-danger-primary/10 p-1 text-danger-primary hover:bg-danger-primary/20">
-            <RotateCcw className="size-4" />
-          </button>
-        ) : (
-          <FileIcon className="size-4" />
-        )}
-      </span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("embed")}
+              className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
+                "shadow-sm bg-layer-1 text-primary": activeTab === "embed",
+                "text-tertiary hover:text-secondary": activeTab !== "embed",
+              })}
+            >
+              <Link2 className="size-3.5" />
+              <span>جاسازی از لینک (Embed Link)</span>
+            </button>
+          </div>
+        </div>
+      )}
 
-      <span className="text-sm font-medium">{getDisplayMessage()}</span>
+      {/* Main Content Area */}
+      {isUploading ? (
+        /* Progress Bar View */
+        <div className="flex flex-col gap-3 p-4">
+          <div className="text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2 font-medium text-primary">
+              <Loader2 className="size-4 animate-spin text-accent-primary" />
+              <span>در حال بارگذاری {node.attrs.originalName ? `"${node.attrs.originalName}"` : "فایل"}...</span>
+              {node.attrs.size ? <span className="text-tertiary">({formatBytes(node.attrs.size)})</span> : null}
+            </div>
+            <span className="font-semibold text-accent-primary">{uploadPercent}%</span>
+          </div>
+
+          <div className="h-2 w-full overflow-hidden rounded-full bg-layer-3">
+            <div
+              className="h-full bg-accent-primary transition-all duration-300 ease-out"
+              style={{ width: `${uploadPercent}%` }}
+            />
+          </div>
+        </div>
+      ) : activeTab === "upload" ? (
+        /* Upload / Dropzone Tab */
+        <div
+          className={cn(
+            "flex cursor-pointer flex-col items-center justify-center gap-2 p-6 transition-colors hover:bg-layer-2/50",
+            {
+              "bg-layer-3/50 text-secondary": draggedInside && editor.isEditable && !isErrorState,
+            }
+          )}
+          onClick={() => {
+            if (!isTouchDevice && editor.isEditable && !isErrorState) {
+              fileInputRef.current?.click();
+            }
+          }}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={onDrop}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept={ACCEPTED_ATTACHMENT_MIME_TYPES.join(",")}
+            onChange={onFileChange}
+          />
+
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-layer-2 text-tertiary">
+            {hasDuplicationFailed ? (
+              <button
+                type="button"
+                onClick={handleRetryClick}
+                className="grid place-items-center p-1 text-danger-primary"
+              >
+                <RotateCcw className="size-5" />
+              </button>
+            ) : (
+              <FileIcon className="size-5 text-accent-primary" />
+            )}
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm font-medium text-primary">
+              {draggedInside ? "فایل را اینجا رها کنید" : "برای انتخاب کلیک کنید یا فایل را بکشید و رها کنید"}
+            </p>
+            <p className="text-xs mt-0.5 text-tertiary">پشتیبانی از انواع ویدیو، صوت، PDF، عکس و اسناد فشرده</p>
+          </div>
+        </div>
+      ) : (
+        /* Embed URL Tab */
+        <form onSubmit={handleEmbedSubmit} className="flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={embedUrl}
+              onChange={(e) => setEmbedUrl(e.target.value)}
+              placeholder="آدرس اینترنتی فایل یا لینک ویدیو/صوت (URL)..."
+              className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-2 text-primary placeholder:text-tertiary focus:outline-none"
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={!embedUrl.trim()}
+              className="text-xs flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              <span>جاسازی</span>
+              <ArrowRight className="size-3.5" />
+            </button>
+          </div>
+          <p className="text-[11px] text-tertiary">
+            می‌توانید لینک مستقیم فایل ویدیویی یا صوتی را وارد کرده و درون صفحه مشاهده کنید.
+          </p>
+        </form>
+      )}
     </div>
   );
 }

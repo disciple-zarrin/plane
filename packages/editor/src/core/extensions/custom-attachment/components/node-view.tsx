@@ -64,7 +64,11 @@ export function CustomAttachmentNodeView(props: CustomAttachmentNodeViewProps) {
 
   useEffect(() => {
     const handleDuplication = async () => {
-      if (status !== ECustomAttachmentStatus.DUPLICATING || !extension.options.duplicateAttachment || !attachmentNodeSrc) {
+      if (
+        status !== ECustomAttachmentStatus.DUPLICATING ||
+        !extension.options.duplicateAttachment ||
+        !attachmentNodeSrc
+      ) {
         return;
       }
 
@@ -115,10 +119,7 @@ export function CustomAttachmentNodeView(props: CustomAttachmentNodeViewProps) {
     <NodeViewWrapper key={node.attrs[ECustomAttachmentAttributeNames.ID]}>
       <div className="mx-0 my-2 p-0" data-drag-handle>
         {shouldShowBlock && !hasDuplicationFailed ? (
-          <CustomAttachmentBlock
-            downloadSrc={resolvedDownloadSrc}
-            {...props}
-          />
+          <CustomAttachmentBlock downloadSrc={resolvedDownloadSrc} {...props} />
         ) : (
           <CustomAttachmentUploader
             failedToLoadAttachment={failedToLoadAttachment}

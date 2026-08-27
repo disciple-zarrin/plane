@@ -1036,6 +1036,34 @@ export const getSlashCommandFilteredSections =
         section: "embeds",
         pushAfter: "figma",
       },
+      {
+        commandKey: "loom",
+        key: "loom",
+        title: "Loom Video",
+        icon: <Play className="text-amber-500 size-3.5" />,
+        description: "Embed an interactive Loom screen recording",
+        searchTerms: ["loom", "screen recording", "video", "loom video"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "loom" });
+        },
+        section: "embeds",
+        pushAfter: "codepen",
+      },
+      {
+        commandKey: "vimeo",
+        key: "vimeo",
+        title: "Vimeo Video",
+        icon: <Play className="text-cyan-500 size-3.5" />,
+        description: "Embed a Vimeo video player",
+        searchTerms: ["vimeo", "video", "hd video", "vimeo player"],
+        command: ({ editor, range }: CommandProps) => {
+          editor.chain().focus().deleteRange(range).run();
+          editor.commands.insertEmbed({ provider: "vimeo" });
+        },
+        section: "embeds",
+        pushAfter: "loom",
+      },
       // Database & Work Items
       {
         commandKey: "database",

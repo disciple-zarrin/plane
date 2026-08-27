@@ -24,6 +24,10 @@ export type TEmbedAttributes = {
     | "codepen"
     | "spotify"
     | "soundcloud"
+    | "loom"
+    | "vimeo"
+    | "video"
+    | "audio"
     | "github"
     | "gist"
     | "generic";
@@ -32,7 +36,4 @@ export type TEmbedAttributes = {
 export type CustomEmbedExtensionOptions = Record<string, unknown>;
 export type CustomEmbedExtensionStorage = Record<string, unknown>;
 
-export type CustomEmbedExtensionType = Node<
-  CustomEmbedExtensionOptions,
-  CustomEmbedExtensionStorage
->;
+export type CustomEmbedExtensionType = Node<CustomEmbedExtensionOptions, CustomEmbedExtensionStorage>;

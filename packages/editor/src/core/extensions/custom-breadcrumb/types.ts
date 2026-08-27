@@ -17,7 +17,4 @@ export type TBreadcrumbAttributes = {
 export type CustomBreadcrumbExtensionOptions = Record<string, unknown>;
 export type CustomBreadcrumbExtensionStorage = Record<string, unknown>;
 
-export type CustomBreadcrumbExtensionType = Node<
-  CustomBreadcrumbExtensionOptions,
-  CustomBreadcrumbExtensionStorage
->;
+export type CustomBreadcrumbExtensionType = Node<CustomBreadcrumbExtensionOptions, CustomBreadcrumbExtensionStorage>;
