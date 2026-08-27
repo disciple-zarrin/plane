@@ -63,6 +63,7 @@ import {
   Star,
   Flame,
 } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 // constants
 import { COLORS_LIST } from "@/constants/common";
 import { CORE_EXTENSIONS } from "@/constants/extension";
@@ -1048,8 +1049,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed interactive website, form, or web app via iframe",
         searchTerms: ["embed", "iframe", "web", "jasazi", "site"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "generic" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "generic",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "shortcuts",
@@ -1062,8 +1075,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed an interactive YouTube video player",
         searchTerms: ["youtube", "video", "yt", "stream"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "youtube" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "youtube",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "embed",
@@ -1076,8 +1101,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed an Aparat video player",
         searchTerms: ["aparat", "video", "clip", "aparat video"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "aparat" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "aparat",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "youtube",
@@ -1090,8 +1127,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed a live Figma frame or prototype",
         searchTerms: ["figma", "design", "ui", "ux", "prototype"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "figma" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "figma",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "aparat",
@@ -1104,8 +1153,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed an interactive CodePen demo",
         searchTerms: ["codepen", "code", "html", "css", "js", "demo"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "codepen" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "codepen",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "figma",
@@ -1118,8 +1179,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed an interactive Loom screen recording",
         searchTerms: ["loom", "screen recording", "video", "loom video"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "loom" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "loom",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "codepen",
@@ -1132,8 +1205,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed a Vimeo video player",
         searchTerms: ["vimeo", "video", "hd video", "vimeo player"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "vimeo" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "vimeo",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "loom",
@@ -1200,8 +1285,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed a Spotify track, album, or podcast",
         searchTerms: ["spotify", "music", "audio", "podcast", "song", "ahange"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "spotify" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "spotify",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "mermaid",
@@ -1214,8 +1311,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed a SoundCloud audio track or playlist",
         searchTerms: ["soundcloud", "music", "audio", "track"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "soundcloud" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "soundcloud",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "spotify",
@@ -1420,8 +1529,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed a GitHub Gist code snippet",
         searchTerms: ["gist", "github gist", "snippet", "code"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "gist" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "gist",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "toggle-h3",
@@ -1434,8 +1555,20 @@ export const getSlashCommandFilteredSections =
         description: "Embed a GitHub repository link or card",
         searchTerms: ["github", "repo", "repository", "git"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).run();
-          editor.commands.insertEmbed({ provider: "github" });
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: CORE_EXTENSIONS.CUSTOM_EMBED,
+              attrs: {
+                id: uuidv4(),
+                src: "",
+                originalUrl: "",
+                provider: "github",
+              },
+            })
+            .run();
         },
         section: "embeds",
         pushAfter: "gist",
