@@ -240,10 +240,7 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => setActiveTab("upload")}
               className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
                 "shadow-sm bg-layer-1 text-primary": activeTab === "upload",
@@ -256,10 +253,7 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
 
             <button
               type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => setActiveTab("embed")}
               className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
                 "shadow-sm bg-layer-1 text-primary": activeTab === "embed",

@@ -25,15 +25,35 @@ export const transformToEmbedUrl = (
   rawUrl: string,
   preferredProvider?: string
 ): { embedUrl: string; provider: TEmbedAttributes[EEmbedAttributeNames.PROVIDER] } => {
-  const url = rawUrl.trim();
+  let url = rawUrl.trim();
+  if (!url)
+    return {
+      embedUrl: "",
+      provider: (preferredProvider as TEmbedAttributes[EEmbedAttributeNames.PROVIDER]) || "generic",
+    };
+
+  // Prepend https:// if protocol is missing and not a blob: or data: url
+  if (
+    !url.startsWith("http://") &&
+    !url.startsWith("https://") &&
+    !url.startsWith("blob:") &&
+    !url.startsWith("data:")
+  ) {
+    url = `https://${url}`;
+  }
 
   // YouTube
-  if (url.includes("youtube.com/watch") || url.includes("youtu.be")) {
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
     let videoId = "";
     if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1]?.split("?")[0] ?? "";
-    } else if (url.includes("v=")) {
-      videoId = url.split("v=")[1]?.split("&")[0] ?? "";
+      videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0] ?? "";
+    } else if (url.includes("watch?v=") || url.includes("&v=")) {
+      const match = url.match(/[?&]v=([^&?#]+)/);
+      videoId = match?.[1] ?? "";
+    } else if (url.includes("embed/")) {
+      videoId = url.split("embed/")[1]?.split(/[?#]/)[0] ?? "";
+    } else if (url.includes("shorts/")) {
+      videoId = url.split("shorts/")[1]?.split(/[?#]/)[0] ?? "";
     }
     if (videoId) {
       return {
@@ -44,8 +64,13 @@ export const transformToEmbedUrl = (
   }
 
   // Aparat
-  if (url.includes("aparat.com/v/")) {
-    const videoHash = url.split("aparat.com/v/")[1]?.split("/")[0]?.split("?")[0] ?? "";
+  if (url.includes("aparat.com")) {
+    let videoHash = "";
+    if (url.includes("/v/")) {
+      videoHash = url.split("/v/")[1]?.split(/[/?#]/)[0] ?? "";
+    } else if (url.includes("videohash/")) {
+      videoHash = url.split("videohash/")[1]?.split(/[/?#]/)[0] ?? "";
+    }
     if (videoHash) {
       return {
         embedUrl: `https://www.aparat.com/video/video/embed/videohash/${videoHash}/vt/frame`,
@@ -55,8 +80,13 @@ export const transformToEmbedUrl = (
   }
 
   // Loom
-  if (url.includes("loom.com/share/")) {
-    const videoId = url.split("loom.com/share/")[1]?.split("?")[0] ?? "";
+  if (url.includes("loom.com")) {
+    let videoId = "";
+    if (url.includes("/share/")) {
+      videoId = url.split("/share/")[1]?.split(/[?#]/)[0] ?? "";
+    } else if (url.includes("/embed/")) {
+      videoId = url.split("/embed/")[1]?.split(/[?#]/)[0] ?? "";
+    }
     if (videoId) {
       return {
         embedUrl: `https://www.loom.com/embed/${videoId}`,
@@ -66,11 +96,11 @@ export const transformToEmbedUrl = (
   }
 
   // Vimeo
-  if (url.includes("vimeo.com/")) {
-    const videoId = url.split("vimeo.com/")[1]?.split(/[?#/]/)[0] ?? "";
-    if (videoId && !isNaN(Number(videoId))) {
+  if (url.includes("vimeo.com")) {
+    const match = url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+    if (match?.[1]) {
       return {
-        embedUrl: `https://player.vimeo.com/video/${videoId}`,
+        embedUrl: `https://player.vimeo.com/video/${match[1]}`,
         provider: "vimeo",
       };
     }
@@ -162,6 +192,12 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    if (originalUrl || src) {
+      setInputUrl(originalUrl || src);
+    }
+  }, [originalUrl, src]);
+
   const handleSave = useCallback(() => {
     if (!inputUrl.trim()) return;
     const { embedUrl, provider: detectedProvider } = transformToEmbedUrl(inputUrl, provider);
@@ -206,7 +242,12 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
   const isGithubCard = provider === "github" || provider === "gist";
 
   return (
-    <NodeViewWrapper className="editor-embed-component my-4">
+    <NodeViewWrapper
+      className="editor-embed-component my-4"
+      contentEditable={false}
+      onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+    >
       <div
         contentEditable={false}
         className={cn(
@@ -243,10 +284,7 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                 {editor.isEditable && (
                   <button
                     type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsEditing(true);
@@ -337,14 +375,34 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
           </>
         ) : (
           /* Edit / Input Mode */
-          <div
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSave();
+            }}
             className="flex w-full flex-col gap-2.5 bg-layer-2 p-4"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-xs flex items-center gap-2 font-semibold text-primary">
-              <Globe className="h-4 w-4 text-accent-primary" />
-              <span>جاسازی تعاملی (Embed Web Content / Video)</span>
+            <div className="text-xs flex items-center justify-between font-semibold text-primary">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-accent-primary" />
+                <span>{provider === "generic" ? "جاسازی وب (Web Embed)" : `جاسازی ${providerTitle}`}</span>
+              </div>
+              {src && (
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(false);
+                  }}
+                  className="text-xs text-tertiary hover:text-primary"
+                >
+                  انصراف
+                </button>
+              )}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
@@ -355,24 +413,24 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   e.stopPropagation();
-                  if (e.key === "Enter") handleSave();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSave();
+                  }
                 }}
-                placeholder="آدرس یوتیوب، آپارات، لوم، ویمو، فیگما، کدپن یا لینک مستقیم ویدیو/صوت..."
-                className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-1.5 text-primary placeholder:text-tertiary focus:outline-none"
+                placeholder="آدرس یوتیوب، آپارات، لوم، ویمو، فیگما، کدپن، گیت‌هاب یا هر وب‌سایتی..."
+                className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-2 text-primary placeholder:text-tertiary focus:outline-none"
               />
               <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onClick={handleSave}
-                className="text-xs shadow shrink-0 rounded-lg bg-accent-primary px-4 py-1.5 font-medium text-white transition hover:bg-accent-primary/90"
+                type="submit"
+                onMouseDown={(e) => e.stopPropagation()}
+                className="text-xs shadow shrink-0 rounded-lg bg-accent-primary px-4 py-2 font-medium text-white transition hover:bg-accent-primary/90 disabled:opacity-50"
+                disabled={!inputUrl.trim()}
               >
                 جاسازی
               </button>
             </div>
-          </div>
+          </form>
         )}
       </div>
     </NodeViewWrapper>
