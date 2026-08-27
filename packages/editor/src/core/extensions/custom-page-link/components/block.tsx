@@ -34,7 +34,14 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
   const [suggestions, setSuggestions] = useState<TMentionSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const searchCallback = (
+    extension?.options as
+      | { mentionHandler?: { searchCallback?: (query: string) => Promise<TMentionSection[]> } }
+      | undefined
+  )?.mentionHandler?.searchCallback;
 
   useEffect(() => {
     setTempTitle(title);
@@ -42,16 +49,14 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
   }, [title, url]);
 
   useEffect(() => {
-    if (isEditing && titleInputRef.current) {
-      titleInputRef.current.focus();
+    if (isEditing) {
+      if (searchCallback && searchInputRef.current) {
+        searchInputRef.current.focus();
+      } else if (titleInputRef.current) {
+        titleInputRef.current.focus();
+      }
     }
-  }, [isEditing]);
-
-  const searchCallback = (
-    extension?.options as
-      | { mentionHandler?: { searchCallback?: (query: string) => Promise<TMentionSection[]> } }
-      | undefined
-  )?.mentionHandler?.searchCallback;
+  }, [isEditing, searchCallback]);
 
   // Query suggestions when editing and searchCallback is available
   useEffect(() => {
@@ -198,11 +203,12 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
             </div>
 
             {/* Quick Page Search / Mention */}
-            {extension?.options?.mentionHandler?.searchCallback && (
+            {searchCallback && (
               <div className="flex flex-col gap-1.5">
                 <div className="relative flex items-center">
                   <Search className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-tertiary" />
                   <input
+                    ref={searchInputRef}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
