@@ -243,7 +243,14 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                 {editor.isEditable && (
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditing(true);
+                    }}
                     className="grid h-6 w-6 place-items-center rounded text-tertiary transition hover:bg-layer-3 hover:text-primary"
                     title="ویرایش آدرس"
                   >
@@ -255,6 +262,8 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                     href={originalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                     className="grid h-6 w-6 place-items-center rounded text-tertiary transition hover:bg-layer-3 hover:text-primary"
                     title="باز کردن در تب جدید"
                   >
@@ -286,6 +295,8 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                   href={originalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   className="text-xs flex shrink-0 items-center gap-1.5 rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 font-medium text-secondary transition hover:bg-layer-3 hover:text-primary"
                 >
                   <span>مشاهده در GitHub</span>

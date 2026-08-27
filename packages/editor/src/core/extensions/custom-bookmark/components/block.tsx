@@ -134,9 +134,11 @@ export function CustomBookmarkBlock(props: CustomBookmarkNodeViewProps) {
   return (
     <NodeViewWrapper>
       <div
-        data-drag-handle
+        contentEditable={false}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
-          "group my-2 flex w-full max-w-2xl items-stretch justify-between overflow-hidden rounded-xl border border-subtle bg-layer-2 transition-all select-none",
+          "group my-2 flex w-full max-w-2xl items-stretch justify-between overflow-hidden rounded-xl border border-subtle bg-layer-2 transition-all",
           {
             "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
             "hover:border-strong hover:bg-layer-2-hover": !selected,
@@ -177,6 +179,10 @@ export function CustomBookmarkBlock(props: CustomBookmarkNodeViewProps) {
             <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleCopy}
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
                 title="Copy link"
@@ -185,6 +191,10 @@ export function CustomBookmarkBlock(props: CustomBookmarkNodeViewProps) {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleOpenLink}
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
                 title="Open in new tab"

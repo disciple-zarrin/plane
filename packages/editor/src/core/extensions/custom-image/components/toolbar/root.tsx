@@ -36,6 +36,9 @@ export function ImageToolbarRoot(props: Props) {
   return (
     <>
       <div
+        contentEditable={false}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           "pointer-events-none absolute top-1 right-1 z-20 flex h-7 items-center gap-2 rounded-sm bg-black/80 px-2 opacity-0 transition-opacity group-hover/image-component:pointer-events-auto group-hover/image-component:opacity-100",
           {

@@ -73,13 +73,12 @@ export function CustomTableOfContentsBlock(props: CustomTableOfContentsNodeViewP
     <NodeViewWrapper className="editor-toc-component my-3">
       <div
         contentEditable={false}
-        className={cn(
-          "flex w-full max-w-xl flex-col rounded-xl border border-subtle bg-layer-2 p-4 transition-all select-none",
-          {
-            "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
-            "hover:border-strong": !selected,
-          }
-        )}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        className={cn("flex w-full max-w-xl flex-col rounded-xl border border-subtle bg-layer-2 p-4 transition-all", {
+          "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
+          "hover:border-strong": !selected,
+        })}
       >
         {/* Header */}
         <div className="text-xs tracking-wider flex items-center gap-2 border-b border-subtle pb-2.5 font-bold text-secondary uppercase">
@@ -106,6 +105,10 @@ export function CustomTableOfContentsBlock(props: CustomTableOfContentsNodeViewP
                 <button
                   key={item.id}
                   type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   onClick={() => handleHeadingClick(item.pos)}
                   className={cn(
                     "flex items-center gap-1.5 rounded-md px-2 py-1 text-start transition-colors hover:bg-layer-3 hover:text-primary",

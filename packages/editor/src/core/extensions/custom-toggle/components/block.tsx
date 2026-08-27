@@ -45,6 +45,10 @@ export function CustomToggleBlock(props: CustomToggleNodeViewProps) {
         {/* Toggle Chevron Button */}
         <button
           type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onClick={handleToggle}
           contentEditable={false}
           className={cn(

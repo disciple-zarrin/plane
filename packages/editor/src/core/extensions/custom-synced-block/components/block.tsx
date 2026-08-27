@@ -17,6 +17,7 @@ export const CustomSyncedBlockComponent: React.FC<NodeViewProps> = (props) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopySyncId = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (typeof navigator !== "undefined") {
       navigator.clipboard.writeText(`plane://synced-block/${syncId}`);
@@ -31,7 +32,12 @@ export const CustomSyncedBlockComponent: React.FC<NodeViewProps> = (props) => {
       data-sync-id={syncId}
     >
       {/* Top Controls Bar */}
-      <div className="border-red-500/20 text-xs text-red-600 dark:text-red-400 mb-2 flex items-center justify-between border-b pb-1.5 select-none">
+      <div
+        contentEditable={false}
+        className="border-red-500/20 text-xs text-red-600 dark:text-red-400 mb-2 flex items-center justify-between border-b pb-1.5 select-none"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-1.5 font-medium">
           <Repeat className="size-3.5 animate-pulse" />
           <span>بلوک همگام‌سازی‌شده (Synced Block)</span>
@@ -40,6 +46,10 @@ export const CustomSyncedBlockComponent: React.FC<NodeViewProps> = (props) => {
         <div className="flex items-center gap-1 opacity-80 transition-opacity group-hover/synced-block:opacity-100">
           <button
             type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onClick={handleCopySyncId}
             className="hover:bg-red-500/10 flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium transition-colors"
             title="کپی شناسه همگام‌سازی"
@@ -50,7 +60,15 @@ export const CustomSyncedBlockComponent: React.FC<NodeViewProps> = (props) => {
 
           <button
             type="button"
-            onClick={() => deleteNode()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              deleteNode();
+            }}
             className="hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium transition-colors"
             title="حذف این بلوک"
           >

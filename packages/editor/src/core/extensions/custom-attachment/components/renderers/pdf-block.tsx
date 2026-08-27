@@ -85,7 +85,7 @@ export function PDFBlock(props: PDFBlockProps) {
   return (
     <div
       id={getAttachmentBlockId(id ?? "")}
-      data-drag-handle
+      contentEditable={false}
       className={cn(
         "group my-2 flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-subtle bg-layer-2 transition-all select-none",
         isEmbedView ? "max-w-3xl" : "max-w-lg",
@@ -126,6 +126,10 @@ export function PDFBlock(props: PDFBlockProps) {
               <button
                 type="button"
                 className="text-xs flex items-center gap-1 rounded-md px-2 py-1 font-medium text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEmbedView((prev) => !prev);
@@ -139,6 +143,10 @@ export function PDFBlock(props: PDFBlockProps) {
               <button
                 type="button"
                 className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleCopy}
                 title="کپی لینک فایل"
               >
@@ -148,6 +156,10 @@ export function PDFBlock(props: PDFBlockProps) {
               <button
                 type="button"
                 className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleOpenPreview}
                 title="باز کردن در تب جدید"
               >
@@ -157,6 +169,10 @@ export function PDFBlock(props: PDFBlockProps) {
               <button
                 type="button"
                 className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleDownload}
                 title="دانلود فایل"
               >

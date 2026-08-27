@@ -84,7 +84,7 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
   return (
     <div
       id={getAttachmentBlockId(id ?? "")}
-      data-drag-handle
+      contentEditable={false}
       className={cn(
         "group my-2 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-subtle bg-layer-1 transition-all",
         {
@@ -111,6 +111,10 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
               <button
                 type="button"
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleCopy}
                 title="کپی لینک ویدیو"
               >
@@ -119,6 +123,10 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
               <button
                 type="button"
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleDownload}
                 title="دانلود / باز کردن ویدیو"
               >
@@ -127,6 +135,10 @@ export function VideoPlayerBlock(props: VideoPlayerBlockProps) {
               <button
                 type="button"
                 className="grid h-7 w-7 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleDownload}
                 title="باز کردن در تب جدید"
               >

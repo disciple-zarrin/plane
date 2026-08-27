@@ -49,6 +49,7 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
   }, [tempLatex, updateAttributes]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
       handleSave();
@@ -59,6 +60,7 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
   };
 
   const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     navigator.clipboard.writeText(latex);
     setCopied(true);
@@ -66,10 +68,12 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
   };
 
   return (
-    <NodeViewWrapper className="editor-math-component my-3 select-none">
+    <NodeViewWrapper className="editor-math-component my-3">
       <div
         contentEditable={false}
-        onClick={() => {
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
           if (editor.isEditable && !isEditing) {
             setIsEditing(true);
           }
@@ -88,6 +92,10 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
           <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <button
               type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={handleCopy}
               className="grid h-7 w-7 place-items-center rounded-md text-tertiary transition hover:bg-layer-3 hover:text-primary"
               title="کپی فرمول LaTeX"
@@ -97,6 +105,10 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
             {editor.isEditable && (
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEditing(true);
@@ -123,7 +135,11 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
           </div>
         ) : (
           /* Formula Editing Form */
-          <div className="flex w-full max-w-md flex-col gap-3 py-1" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex w-full max-w-md flex-col gap-3 py-1"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-xs flex items-center gap-2 font-semibold text-primary">
               <Sigma className="h-4 w-4 text-accent-primary" />
               <span>فرمول ریاضی (LaTeX Equation)</span>
@@ -135,11 +151,16 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
                 value={tempLatex}
                 onChange={(e) => setTempLatex(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
                 placeholder="مثال: \int_{0}^{\infty} e^{-x^2} dx یا E = mc^2"
                 className="font-mono text-sm focus:border-accent-primary w-full rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 text-primary placeholder:text-tertiary focus:outline-none"
               />
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleSave}
                 className="text-xs shadow shrink-0 rounded-lg bg-accent-primary px-3 py-1.5 font-medium text-white transition hover:bg-accent-primary/90"
               >

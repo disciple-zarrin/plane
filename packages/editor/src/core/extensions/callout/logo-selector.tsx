@@ -37,7 +37,7 @@ export function CalloutBlockLogoSelector(props: Props) {
   };
 
   return (
-    <div contentEditable={false}>
+    <div contentEditable={false} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
       <EmojiPicker
         closeOnSelect={true}
         isOpen={isOpen}
