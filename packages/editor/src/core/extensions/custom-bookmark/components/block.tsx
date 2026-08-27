@@ -111,12 +111,17 @@ export function CustomBookmarkBlock(props: CustomBookmarkNodeViewProps) {
               placeholder="Paste web link (e.g. https://github.com)..."
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
               className="text-sm flex-1 bg-transparent text-primary placeholder:text-tertiary focus:outline-none"
             />
             <button
               type="submit"
               disabled={!inputUrl.trim()}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               className="text-xs flex items-center gap-1 rounded-lg bg-accent-primary px-3 py-1 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               <span>Bookmark</span>
