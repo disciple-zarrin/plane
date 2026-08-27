@@ -79,7 +79,7 @@ export function FileCardBlock(props: FileCardBlockProps) {
   return (
     <div
       id={getAttachmentBlockId(id ?? "")}
-      data-drag-handle
+      contentEditable={false}
       className={cn(
         "group my-2 flex w-full max-w-md cursor-pointer items-center justify-between rounded-xl border border-subtle bg-layer-2 p-3 transition-all select-none",
         {
@@ -126,6 +126,10 @@ export function FileCardBlock(props: FileCardBlockProps) {
             <button
               type="button"
               className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={handleCopy}
               title="کپی لینک"
             >
@@ -134,6 +138,10 @@ export function FileCardBlock(props: FileCardBlockProps) {
             <button
               type="button"
               className="grid h-8 w-8 place-items-center rounded-md text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={handleDownload}
               title="دانلود فایل"
             >

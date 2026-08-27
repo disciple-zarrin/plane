@@ -37,9 +37,13 @@ export function CalloutBlockColorSelector(props: Props) {
       <div className="relative">
         <button
           type="button"
-          onClick={(e) => {
-            toggleDropdown();
+          onMouseDown={(e) => {
+            e.preventDefault();
             e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleDropdown();
           }}
           className={cn(
             "flex h-full items-center gap-1 rounded-sm px-2.5 py-1 text-13 font-medium whitespace-nowrap text-tertiary transition-colors hover:bg-layer-1-hover active:bg-layer-1-active",
@@ -53,12 +57,20 @@ export function CalloutBlockColorSelector(props: Props) {
           <ChevronDownIcon className="size-3 flex-shrink-0" />
         </button>
         {isOpen && (
-          <section className="animate-in fade-in slide-in-from-top-1 absolute top-full right-0 z-10 mt-1 rounded-md border-[0.5px] border-strong bg-surface-1 p-2 shadow-raised-200">
+          <section
+            className="animate-in fade-in slide-in-from-top-1 absolute top-full right-0 z-10 mt-1 rounded-md border-[0.5px] border-strong bg-surface-1 p-2 shadow-raised-200"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-2">
               {COLORS_LIST.map((color) => (
                 <button
                   key={color.key}
                   type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   className="size-6 flex-shrink-0 rounded-sm border-[0.5px] border-strong-1 transition-opacity hover:opacity-60"
                   style={{
                     backgroundColor: color.backgroundColor,
@@ -68,6 +80,10 @@ export function CalloutBlockColorSelector(props: Props) {
               ))}
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 className="grid size-6 flex-shrink-0 place-items-center rounded-sm border-[0.5px] border-strong-1 text-tertiary transition-colors hover:bg-layer-1-hover"
                 onClick={() => handleColorSelect(null)}
               >

@@ -240,6 +240,10 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
           <div className="flex items-center gap-1">
             <button
               type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={() => setActiveTab("upload")}
               className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
                 "shadow-sm bg-layer-1 text-primary": activeTab === "upload",
@@ -252,6 +256,10 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
 
             <button
               type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={() => setActiveTab("embed")}
               className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
                 "shadow-sm bg-layer-1 text-primary": activeTab === "embed",
@@ -344,12 +352,15 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
               type="text"
               value={embedUrl}
               onChange={(e) => setEmbedUrl(e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
               placeholder="آدرس اینترنتی تصویر (Image URL)..."
               className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-2 text-primary placeholder:text-tertiary focus:outline-none"
             />
             <button
               type="submit"
               disabled={!embedUrl.trim()}
+              onMouseDown={(e) => e.stopPropagation()}
               className="text-xs flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <span>جاسازی</span>

@@ -67,7 +67,7 @@ export function AudioPlayerBlock(props: AudioPlayerBlockProps) {
   return (
     <div
       id={getAttachmentBlockId(id ?? "")}
-      data-drag-handle
+      contentEditable={false}
       className={cn(
         "group my-2 flex w-full max-w-xl flex-col gap-2 rounded-xl border border-subtle bg-layer-2 p-3 transition-all",
         {
@@ -95,6 +95,10 @@ export function AudioPlayerBlock(props: AudioPlayerBlockProps) {
             <button
               type="button"
               className="grid h-7 w-7 shrink-0 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={handleCopy}
               title="کپی لینک فایل صوتی"
             >
@@ -103,6 +107,10 @@ export function AudioPlayerBlock(props: AudioPlayerBlockProps) {
             <button
               type="button"
               className="grid h-7 w-7 shrink-0 place-items-center rounded text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={handleDownload}
               title="دانلود فایل صوتی"
             >
