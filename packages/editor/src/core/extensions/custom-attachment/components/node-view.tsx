@@ -117,7 +117,12 @@ export function CustomAttachmentNodeView(props: CustomAttachmentNodeViewProps) {
 
   return (
     <NodeViewWrapper key={node.attrs[ECustomAttachmentAttributeNames.ID]}>
-      <div className="mx-0 my-2 p-0" data-drag-handle>
+      <div
+        className="mx-0 my-2 p-0"
+        data-drag-handle
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         {shouldShowBlock && !hasDuplicationFailed ? (
           <CustomAttachmentBlock downloadSrc={resolvedDownloadSrc} {...props} />
         ) : (

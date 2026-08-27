@@ -138,7 +138,13 @@ export function CustomImageNodeView(props: CustomImageNodeViewProps) {
 
   return (
     <NodeViewWrapper key={node.attrs[ECustomImageAttributeNames.ID]}>
-      <div className="mx-0 my-2 p-0" data-drag-handle ref={imageComponentRef}>
+      <div
+        className="mx-0 my-2 p-0"
+        data-drag-handle
+        ref={imageComponentRef}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         {shouldShowBlock && !hasDuplicationFailed ? (
           <CustomImageBlock
             editorContainer={editorContainer}
