@@ -301,7 +301,11 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
               "bg-layer-3/50 text-secondary": draggedInside && editor.isEditable && !isErrorState,
             }
           )}
-          onClick={() => {
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
             if (!isTouchDevice && editor.isEditable && !isErrorState) {
               fileInputRef.current?.click();
             }
@@ -327,6 +331,10 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
             {hasDuplicationFailed ? (
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleRetryClick}
                 className="grid place-items-center p-1 text-danger-primary"
               >
@@ -346,7 +354,7 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
         </div>
       ) : (
         /* Embed URL Tab */
-        <form onSubmit={handleEmbedSubmit} className="flex flex-col gap-3 p-4">
+        <form onSubmit={handleEmbedSubmit} className="flex flex-col gap-3 p-4" onMouseDown={(e) => e.stopPropagation()}>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="text"
@@ -360,7 +368,9 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
             <button
               type="submit"
               disabled={!embedUrl.trim()}
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
               className="text-xs flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <span>جاسازی</span>

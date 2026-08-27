@@ -149,6 +149,7 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
               href={url || "#"}
               target={url.startsWith("http") ? "_blank" : undefined}
               rel="noopener noreferrer"
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 if (!url) e.preventDefault();
               }}
@@ -169,6 +170,10 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
               {editor.isEditable && (
                 <button
                   type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsEditing(true);
@@ -193,6 +198,10 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
               {(title || url) && (
                 <button
                   type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   onClick={handleCancel}
                   className="text-tertiary hover:text-primary"
                   title="انصراف"
@@ -212,6 +221,7 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onMouseDown={(e) => e.stopPropagation()}
                     placeholder="جستجو و انتخاب از صفحات پروژه (@)..."
                     className="text-xs focus:border-accent-primary w-full rounded-lg border border-subtle bg-layer-1 py-1.5 ps-8 pe-3 text-primary placeholder:text-tertiary focus:outline-none"
                     onKeyDown={(e) => {
@@ -230,6 +240,10 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
                       <button
                         key={item.id || item.entity_identifier}
                         type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
                         onClick={() => handleSelectSuggestion(item)}
                         className="text-xs flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-secondary transition-colors hover:bg-layer-2 hover:text-primary"
                       >
@@ -252,6 +266,7 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
                 type="text"
                 value={tempTitle}
                 onChange={(e) => setTempTitle(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
                 placeholder="عنوان صفحه..."
                 className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-2 text-primary placeholder:text-tertiary focus:outline-none"
                 onKeyDown={(e) => {
@@ -263,6 +278,7 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
                 type="text"
                 value={tempUrl}
                 onChange={(e) => setTempUrl(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
                 placeholder="آدرس صفحه (URL)..."
                 className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-2 text-primary placeholder:text-tertiary focus:outline-none"
                 onKeyDown={(e) => {
@@ -272,6 +288,10 @@ export function CustomPageLinkBlock(props: CustomPageLinkNodeViewProps) {
               />
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleSave}
                 className="text-xs shadow flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 py-2 font-medium text-white transition hover:bg-accent-primary/90"
               >
