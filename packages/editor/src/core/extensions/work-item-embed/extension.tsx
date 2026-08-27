@@ -30,11 +30,18 @@ export function WorkItemEmbedExtension(props: Props) {
         const attrs = issueProps.node.attrs as TWorkItemEmbedAttributes;
         return (
           <NodeViewWrapper key={attrs[EWorkItemEmbedAttributeNames.ID]}>
-            {props.widgetCallback({
-              issueId: attrs[EWorkItemEmbedAttributeNames.ENTITY_IDENTIFIER] ?? "",
-              projectId: attrs[EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER],
-              workspaceSlug: attrs[EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER],
-            })}
+            <div
+              contentEditable={false}
+              className="w-fit"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {props.widgetCallback({
+                issueId: attrs[EWorkItemEmbedAttributeNames.ENTITY_IDENTIFIER] ?? "",
+                projectId: attrs[EWorkItemEmbedAttributeNames.PROJECT_IDENTIFIER],
+                workspaceSlug: attrs[EWorkItemEmbedAttributeNames.WORKSPACE_IDENTIFIER],
+              })}
+            </div>
           </NodeViewWrapper>
         );
       });

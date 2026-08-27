@@ -85,12 +85,20 @@ export function CodeBlockComponent(props: NodeViewProps) {
   return (
     <NodeViewWrapper key={attrs[ECodeBlockAttributeNames.ID]} className="code-block group/code relative my-3">
       {/* Header bar / Actions */}
-      <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover/code:opacity-100 focus-within:opacity-100">
+      <div
+        contentEditable={false}
+        className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover/code:opacity-100 focus-within:opacity-100"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Language Selector Dropdown */}
         <div ref={dropdownRef} className="relative">
           <button
             type="button"
-            contentEditable={false}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onClick={() => editor.isEditable && setIsLangOpen((prev) => !prev)}
             disabled={!editor.isEditable}
             className={cn(
@@ -104,13 +112,17 @@ export function CodeBlockComponent(props: NodeViewProps) {
 
           {isLangOpen && (
             <div
-              contentEditable={false}
               className="shadow-lg absolute top-8 right-0 z-50 max-h-56 w-36 overflow-y-auto rounded-lg border border-subtle bg-layer-1 p-1 ring-1 ring-black/5 dark:ring-white/10"
+              onMouseDown={(e) => e.stopPropagation()}
             >
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.value}
                   type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   onClick={() => handleSelectLanguage(lang.value)}
                   className={cn(
                     "text-xs flex w-full items-center justify-between rounded px-2 py-1 text-left transition hover:bg-layer-2",
@@ -133,7 +145,10 @@ export function CodeBlockComponent(props: NodeViewProps) {
         <Tooltip tooltipContent="Copy code">
           <button
             type="button"
-            contentEditable={false}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className={cn(
               "shadow-sm flex h-7 w-7 items-center justify-center rounded-md border border-subtle bg-layer-1 text-tertiary transition hover:bg-layer-2 hover:text-primary",
               {

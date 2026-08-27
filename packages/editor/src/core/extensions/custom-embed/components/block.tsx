@@ -206,7 +206,7 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
   const isGithubCard = provider === "github" || provider === "gist";
 
   return (
-    <NodeViewWrapper className="editor-embed-component my-4 select-none">
+    <NodeViewWrapper className="editor-embed-component my-4">
       <div
         contentEditable={false}
         className={cn(
@@ -352,6 +352,7 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                 type="text"
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   e.stopPropagation();
                   if (e.key === "Enter") handleSave();
@@ -361,6 +362,10 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
               />
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={handleSave}
                 className="text-xs shadow shrink-0 rounded-lg bg-accent-primary px-4 py-1.5 font-medium text-white transition hover:bg-accent-primary/90"
               >
