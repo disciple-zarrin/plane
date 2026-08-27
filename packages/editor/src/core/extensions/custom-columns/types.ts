@@ -19,7 +19,4 @@ export type TColumnsAttributes = {
 export type CustomColumnsExtensionOptions = Record<string, unknown>;
 export type CustomColumnsExtensionStorage = Record<string, unknown>;
 
-export type CustomColumnsExtensionType = Node<
-  CustomColumnsExtensionOptions,
-  CustomColumnsExtensionStorage
->;
+export type CustomColumnsExtensionType = Node<CustomColumnsExtensionOptions, CustomColumnsExtensionStorage>;

@@ -47,7 +47,10 @@ export const CustomAttachmentExtensionConfig: CustomAttachmentExtensionType = No
           };
           return acc;
         },
-        {} as Record<ECustomAttachmentAttributeNames, { default: TCustomAttachmentAttributes[ECustomAttachmentAttributeNames] }>
+        {} as Record<
+          ECustomAttachmentAttributeNames,
+          { default: TCustomAttachmentAttributes[ECustomAttachmentAttributeNames] }
+        >
       ),
     };
 

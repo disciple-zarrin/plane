@@ -298,7 +298,7 @@ export function CustomImageBlock(props: CustomImageBlockProps) {
             }
           }}
           width={size.width}
-          className={cn("image-component block rounded-md cursor-pointer", {
+          className={cn("image-component block cursor-pointer rounded-md", {
             // hide the image while the background calculations of the image loader are in progress (to avoid flickering) and show the loader until then
             hidden: showImageLoader,
             "read-only-image": !editor.isEditable,

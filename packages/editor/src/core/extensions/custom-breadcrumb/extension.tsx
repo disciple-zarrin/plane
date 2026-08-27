@@ -12,16 +12,10 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 import { CustomBreadcrumbBlock } from "./components/block";
 import { CustomBreadcrumbExtensionConfig } from "./extension-config";
 import { EBreadcrumbAttributeNames } from "./types";
-import type {
-  CustomBreadcrumbExtensionOptions,
-  CustomBreadcrumbExtensionStorage,
-} from "./types";
+import type { CustomBreadcrumbExtensionOptions, CustomBreadcrumbExtensionStorage } from "./types";
 
 export function CustomBreadcrumbExtension() {
-  return CustomBreadcrumbExtensionConfig.extend<
-    CustomBreadcrumbExtensionOptions,
-    CustomBreadcrumbExtensionStorage
-  >({
+  return CustomBreadcrumbExtensionConfig.extend<CustomBreadcrumbExtensionOptions, CustomBreadcrumbExtensionStorage>({
     addCommands() {
       return {
         insertBreadcrumb:

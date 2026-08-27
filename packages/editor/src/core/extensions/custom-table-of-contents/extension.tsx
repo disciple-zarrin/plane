@@ -12,10 +12,7 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 import { CustomTableOfContentsBlock } from "./components/block";
 import { CustomTableOfContentsExtensionConfig } from "./extension-config";
 import { ETableOfContentsAttributeNames } from "./types";
-import type {
-  CustomTableOfContentsExtensionOptions,
-  CustomTableOfContentsExtensionStorage,
-} from "./types";
+import type { CustomTableOfContentsExtensionOptions, CustomTableOfContentsExtensionStorage } from "./types";
 
 export function CustomTableOfContentsExtension() {
   return CustomTableOfContentsExtensionConfig.extend<
@@ -39,9 +36,7 @@ export function CustomTableOfContentsExtension() {
     },
 
     addNodeView() {
-      return ReactNodeViewRenderer((tocProps) => (
-        <CustomTableOfContentsBlock {...tocProps} />
-      ));
+      return ReactNodeViewRenderer((tocProps) => <CustomTableOfContentsBlock {...tocProps} />);
     },
   });
 }

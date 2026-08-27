@@ -114,6 +114,8 @@ export type TEditorCommands =
   | "toggle-h3"
   | "gist"
   | "github"
+  | "loom"
+  | "vimeo"
   | "lock"
   | "badge-done"
   | "badge-progress"

@@ -9,11 +9,7 @@ import { Download, ExternalLink, Copy, Check } from "lucide-react";
 // plane imports
 import { cn } from "@plane/utils";
 // local imports
-import {
-  FILE_CATEGORY_META,
-  getFileCategory,
-  getFileExtension,
-} from "../../helpers/file-category";
+import { FILE_CATEGORY_META, getFileCategory, getFileExtension } from "../../helpers/file-category";
 import { formatBytes, getAttachmentBlockId, isAttachmentDuplicating } from "../../utils";
 import type { CustomAttachmentNodeViewProps } from "../node-view";
 
@@ -23,9 +19,17 @@ interface FileCardBlockProps extends CustomAttachmentNodeViewProps {
 
 export function FileCardBlock(props: FileCardBlockProps) {
   const { editor, getPos, node, selected, downloadSrc } = props;
-  const { id, originalName, size, status } = node.attrs;
+  const { id, originalName, size, status, src } = node.attrs;
   const isDuplicating = isAttachmentDuplicating(status);
   const [copied, setCopied] = useState(false);
+
+  const effectiveSrc = useMemo(() => {
+    if (downloadSrc) return downloadSrc;
+    if (src && (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("blob:"))) {
+      return src;
+    }
+    return undefined;
+  }, [downloadSrc, src]);
 
   const category = useMemo(() => getFileCategory(originalName), [originalName]);
   const extension = useMemo(() => getFileExtension(originalName).toUpperCase(), [originalName]);
@@ -47,21 +51,21 @@ export function FileCardBlock(props: FileCardBlockProps) {
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (downloadSrc) {
-        navigator.clipboard.writeText(downloadSrc);
+      if (effectiveSrc) {
+        navigator.clipboard.writeText(effectiveSrc);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
     },
-    [downloadSrc]
+    [effectiveSrc]
   );
 
   const handleDownload = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (downloadSrc) {
+      if (effectiveSrc) {
         const a = document.createElement("a");
-        a.href = downloadSrc;
+        a.href = effectiveSrc;
         a.download = originalName || "file";
         a.target = "_blank";
         document.body.appendChild(a);
@@ -69,7 +73,7 @@ export function FileCardBlock(props: FileCardBlockProps) {
         document.body.removeChild(a);
       }
     },
-    [downloadSrc, originalName]
+    [effectiveSrc, originalName]
   );
 
   return (
@@ -77,11 +81,11 @@ export function FileCardBlock(props: FileCardBlockProps) {
       id={getAttachmentBlockId(id ?? "")}
       data-drag-handle
       className={cn(
-        "group my-2 flex w-full max-w-md items-center justify-between rounded-xl border border-subtle bg-layer-2 p-3 transition-all cursor-pointer select-none",
+        "group my-2 flex w-full max-w-md cursor-pointer items-center justify-between rounded-xl border border-subtle bg-layer-2 p-3 transition-all select-none",
         {
-          "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+          "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
           "hover:border-strong hover:bg-layer-2-hover": !selected,
-          "opacity-50 pointer-events-none": isDuplicating,
+          "pointer-events-none opacity-50": isDuplicating,
         }
       )}
       onClick={handleBlockClick}
@@ -102,30 +106,22 @@ export function FileCardBlock(props: FileCardBlockProps) {
         {/* File Details */}
         <div className="flex flex-col overflow-hidden">
           <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-semibold text-primary">
-              {originalName || "Attachment"}
-            </span>
+            <span className="text-sm truncate font-semibold text-primary">{originalName || "Attachment"}</span>
             {extension ? (
               <span
-                className={cn(
-                  "rounded px-1.5 py-0.2 text-[10px] font-bold uppercase",
-                  meta.badgeBg,
-                  meta.badgeText
-                )}
+                className={cn("py-0.2 rounded px-1.5 text-[10px] font-bold uppercase", meta.badgeBg, meta.badgeText)}
               >
                 {extension}
               </span>
             ) : null}
           </div>
-          <span className="text-xs text-tertiary">
-            {size ? formatBytes(size) : meta.label}
-          </span>
+          <span className="text-xs text-tertiary">{size ? formatBytes(size) : meta.label}</span>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-1 pl-2">
-        {downloadSrc && (
+        {effectiveSrc && (
           <>
             <button
               type="button"
@@ -133,7 +129,7 @@ export function FileCardBlock(props: FileCardBlockProps) {
               onClick={handleCopy}
               title="کپی لینک"
             >
-              {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+              {copied ? <Check className="text-emerald-500 h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </button>
             <button
               type="button"

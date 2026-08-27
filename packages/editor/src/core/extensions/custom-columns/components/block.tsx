@@ -27,10 +27,7 @@ export function CustomColumnsBlock(props: CustomColumnsNodeViewProps) {
     <NodeViewWrapper className="editor-columns-container my-3">
       <NodeViewContent
         as="div"
-        className={cn(
-          "grid w-full gap-3",
-          count === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"
-        )}
+        className={cn("grid w-full gap-3", count === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2")}
       />
     </NodeViewWrapper>
   );
@@ -42,15 +39,12 @@ export function CustomColumnBlock(props: NodeViewProps) {
   return (
     <NodeViewWrapper className="editor-column-item min-w-0 flex-1">
       <div
-        className={cn(
-          "min-h-[60px] rounded-xl border border-dashed border-subtle/60 p-3 transition-colors",
-          {
-            "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
-            "hover:border-subtle": !selected,
-          }
-        )}
+        className={cn("min-h-[60px] rounded-xl border border-dashed border-subtle/60 p-3 transition-colors", {
+          "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
+          "hover:border-subtle": !selected,
+        })}
       >
-        <NodeViewContent as="div" className="w-full break-words min-w-0" />
+        <NodeViewContent as="div" className="w-full min-w-0 break-words" />
       </div>
     </NodeViewWrapper>
   );

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Download, ExternalLink, FileText, LayoutList, Maximize2, Copy, Check } from "lucide-react";
 // plane imports
 import { cn } from "@plane/utils";
@@ -18,11 +18,19 @@ interface PDFBlockProps extends CustomAttachmentNodeViewProps {
 
 export function PDFBlock(props: PDFBlockProps) {
   const { editor, getPos, node, selected, downloadSrc } = props;
-  const { id, originalName, size, status } = node.attrs;
+  const { id, originalName, size, status, src } = node.attrs;
   const isDuplicating = isAttachmentDuplicating(status);
 
   const [isEmbedView, setIsEmbedView] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const effectiveSrc = useMemo(() => {
+    if (downloadSrc) return downloadSrc;
+    if (src && (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("blob:"))) {
+      return src;
+    }
+    return undefined;
+  }, [downloadSrc, src]);
 
   const handleBlockClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -39,31 +47,31 @@ export function PDFBlock(props: PDFBlockProps) {
   const handleOpenPreview = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (downloadSrc) {
-        window.open(downloadSrc, "_blank");
+      if (effectiveSrc) {
+        window.open(effectiveSrc, "_blank");
       }
     },
-    [downloadSrc]
+    [effectiveSrc]
   );
 
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (downloadSrc) {
-        navigator.clipboard.writeText(downloadSrc);
+      if (effectiveSrc) {
+        navigator.clipboard.writeText(effectiveSrc);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
     },
-    [downloadSrc]
+    [effectiveSrc]
   );
 
   const handleDownload = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (downloadSrc) {
+      if (effectiveSrc) {
         const a = document.createElement("a");
-        a.href = downloadSrc;
+        a.href = effectiveSrc;
         a.download = originalName || "document.pdf";
         a.target = "_blank";
         document.body.appendChild(a);
@@ -71,7 +79,7 @@ export function PDFBlock(props: PDFBlockProps) {
         document.body.removeChild(a);
       }
     },
-    [downloadSrc, originalName]
+    [effectiveSrc, originalName]
   );
 
   return (
@@ -79,12 +87,12 @@ export function PDFBlock(props: PDFBlockProps) {
       id={getAttachmentBlockId(id ?? "")}
       data-drag-handle
       className={cn(
-        "group my-2 flex w-full flex-col overflow-hidden rounded-xl border border-subtle bg-layer-2 transition-all cursor-pointer select-none",
+        "group my-2 flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-subtle bg-layer-2 transition-all select-none",
         isEmbedView ? "max-w-3xl" : "max-w-lg",
         {
-          "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+          "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
           "hover:border-strong hover:bg-layer-2-hover": !selected,
-          "opacity-50 pointer-events-none": isDuplicating,
+          "pointer-events-none opacity-50": isDuplicating,
         }
       )}
       onClick={handleBlockClick}
@@ -94,34 +102,30 @@ export function PDFBlock(props: PDFBlockProps) {
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center gap-3 overflow-hidden">
           {/* Red PDF Icon Badge */}
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-red-500/10 text-red-600 dark:bg-red-400/10 dark:text-red-400">
+          <div className="bg-red-500/10 text-red-600 dark:bg-red-400/10 dark:text-red-400 grid h-10 w-10 shrink-0 place-items-center rounded-lg">
             <FileText className="h-5 w-5" />
           </div>
 
           {/* Info */}
           <div className="flex flex-col overflow-hidden">
             <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-semibold text-primary">
-                {originalName || "Document.pdf"}
-              </span>
-              <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
+              <span className="text-sm truncate font-semibold text-primary">{originalName || "Document.pdf"}</span>
+              <span className="bg-red-500/10 text-red-600 dark:text-red-400 rounded px-1.5 py-0.5 text-[10px] font-bold">
                 PDF
               </span>
             </div>
-            <span className="text-xs text-tertiary">
-              {size ? formatBytes(size) : "PDF Document"}
-            </span>
+            <span className="text-xs text-tertiary">{size ? formatBytes(size) : "PDF Document"}</span>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-1 pl-2">
-          {downloadSrc && (
+          {effectiveSrc && (
             <>
               {/* Embed view toggle */}
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
+                className="text-xs flex items-center gap-1 rounded-md px-2 py-1 font-medium text-tertiary transition-colors hover:bg-layer-3 hover:text-primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEmbedView((prev) => !prev);
@@ -138,7 +142,7 @@ export function PDFBlock(props: PDFBlockProps) {
                 onClick={handleCopy}
                 title="کپی لینک فایل"
               >
-                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="text-emerald-500 h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </button>
 
               <button
@@ -164,10 +168,10 @@ export function PDFBlock(props: PDFBlockProps) {
       </div>
 
       {/* Inline Embedded PDF Viewer */}
-      {isEmbedView && downloadSrc && (
+      {isEmbedView && effectiveSrc && (
         <div className="border-t border-subtle bg-layer-1 p-1">
           <iframe
-            src={`${downloadSrc}#toolbar=0`}
+            src={`${effectiveSrc}#toolbar=0`}
             title={originalName || "PDF Viewer"}
             className="h-[520px] w-full rounded-lg bg-white"
           />

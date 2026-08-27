@@ -75,9 +75,9 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
           }
         }}
         className={cn(
-          "group relative flex w-full flex-col items-center justify-center rounded-xl border border-subtle bg-layer-2 p-5 transition-all cursor-pointer",
+          "group relative flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-subtle bg-layer-2 p-5 transition-all",
           {
-            "ring-2 ring-accent-primary border-transparent": selected && editor.isEditable,
+            "ring-accent-primary border-transparent ring-2": selected && editor.isEditable,
             "hover:border-strong hover:bg-layer-2-hover": !selected && !isEditing,
             "border-accent-primary bg-layer-1": isEditing,
           }
@@ -85,14 +85,14 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
       >
         {/* Actions top-right */}
         {!isEditing && (
-          <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <button
               type="button"
               onClick={handleCopy}
               className="grid h-7 w-7 place-items-center rounded-md text-tertiary transition hover:bg-layer-3 hover:text-primary"
               title="کپی فرمول LaTeX"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <Check className="text-emerald-500 h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
             {editor.isEditable && (
               <button
@@ -115,9 +115,7 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
           <div className="flex flex-col items-center gap-1 py-1">
             <div className="flex items-center gap-2">
               <Sigma className="h-4 w-4 text-accent-primary opacity-60" />
-              <span className="font-serif text-lg tracking-wide text-primary italic font-medium">
-                {latex}
-              </span>
+              <span className="font-serif text-lg font-medium tracking-wide text-primary italic">{latex}</span>
             </div>
             <span className="text-[10px] text-tertiary opacity-0 transition-opacity group-hover:opacity-100">
               برای ویرایش فرمول کلیک کنید
@@ -126,7 +124,7 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
         ) : (
           /* Formula Editing Form */
           <div className="flex w-full max-w-md flex-col gap-3 py-1" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <div className="text-xs flex items-center gap-2 font-semibold text-primary">
               <Sigma className="h-4 w-4 text-accent-primary" />
               <span>فرمول ریاضی (LaTeX Equation)</span>
             </div>
@@ -138,19 +136,17 @@ export function CustomMathBlock(props: CustomMathNodeViewProps) {
                 onChange={(e) => setTempLatex(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="مثال: \int_{0}^{\infty} e^{-x^2} dx یا E = mc^2"
-                className="w-full rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 font-mono text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+                className="font-mono text-sm focus:border-accent-primary w-full rounded-lg border border-subtle bg-layer-2 px-3 py-1.5 text-primary placeholder:text-tertiary focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleSave}
-                className="shrink-0 rounded-lg bg-accent-primary px-3 py-1.5 text-xs font-medium text-white shadow transition hover:bg-accent-primary/90"
+                className="text-xs shadow shrink-0 rounded-lg bg-accent-primary px-3 py-1.5 font-medium text-white transition hover:bg-accent-primary/90"
               >
                 ثبت
               </button>
             </div>
-            <span className="text-[11px] text-tertiary">
-              راهنما: کلید Enter برای ذخیره و Esc برای انصراف
-            </span>
+            <span className="text-[11px] text-tertiary">راهنما: کلید Enter برای ذخیره و Esc برای انصراف</span>
           </div>
         )}
       </div>

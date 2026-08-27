@@ -45,9 +45,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
   const attrs = node.attrs as TCodeBlockAttributes;
   const currentLang = attrs[ECodeBlockAttributeNames.LANGUAGE] || "plaintext";
   const currentLangLabel =
-    LANGUAGES.find((l) => l.value.toLowerCase() === currentLang.toLowerCase())?.label ||
-    currentLang ||
-    "Plain Text";
+    LANGUAGES.find((l) => l.value.toLowerCase() === currentLang.toLowerCase())?.label || currentLang || "Plain Text";
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -96,7 +94,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
             onClick={() => editor.isEditable && setIsLangOpen((prev) => !prev)}
             disabled={!editor.isEditable}
             className={cn(
-              "flex h-7 items-center gap-1 rounded-md border border-subtle bg-layer-1 px-2 text-[11px] font-medium text-secondary shadow-sm transition hover:bg-layer-2 hover:text-primary",
+              "shadow-sm flex h-7 items-center gap-1 rounded-md border border-subtle bg-layer-1 px-2 text-[11px] font-medium text-secondary transition hover:bg-layer-2 hover:text-primary",
               !editor.isEditable && "cursor-default"
             )}
           >
@@ -107,7 +105,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
           {isLangOpen && (
             <div
               contentEditable={false}
-              className="absolute right-0 top-8 z-50 max-h-56 w-36 overflow-y-auto rounded-lg border border-subtle bg-layer-1 p-1 shadow-lg ring-1 ring-black/5 dark:ring-white/10"
+              className="shadow-lg absolute top-8 right-0 z-50 max-h-56 w-36 overflow-y-auto rounded-lg border border-subtle bg-layer-1 p-1 ring-1 ring-black/5 dark:ring-white/10"
             >
               {LANGUAGES.map((lang) => (
                 <button
@@ -115,9 +113,9 @@ export function CodeBlockComponent(props: NodeViewProps) {
                   type="button"
                   onClick={() => handleSelectLanguage(lang.value)}
                   className={cn(
-                    "flex w-full items-center justify-between rounded px-2 py-1 text-left text-xs transition hover:bg-layer-2",
+                    "text-xs flex w-full items-center justify-between rounded px-2 py-1 text-left transition hover:bg-layer-2",
                     currentLang.toLowerCase() === lang.value.toLowerCase()
-                      ? "font-semibold text-accent-primary bg-accent-primary/10"
+                      ? "bg-accent-primary/10 font-semibold text-accent-primary"
                       : "text-secondary hover:text-primary"
                   )}
                 >
@@ -137,7 +135,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
             type="button"
             contentEditable={false}
             className={cn(
-              "flex h-7 w-7 items-center justify-center rounded-md border border-subtle bg-layer-1 text-tertiary shadow-sm transition hover:bg-layer-2 hover:text-primary",
+              "shadow-sm flex h-7 w-7 items-center justify-center rounded-md border border-subtle bg-layer-1 text-tertiary transition hover:bg-layer-2 hover:text-primary",
               {
                 "bg-success-subtle text-success-primary": copied,
               }
@@ -145,7 +143,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
             onClick={(e) => void copyToClipboard(e)}
           >
             {copied ? (
-              <CheckIcon className="h-3.5 w-3.5 text-emerald-500" strokeWidth={3} />
+              <CheckIcon className="text-emerald-500 h-3.5 w-3.5" strokeWidth={3} />
             ) : (
               <CopyIcon className="h-3.5 w-3.5" />
             )}
@@ -153,7 +151,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
         </Tooltip>
       </div>
 
-      <pre className="rounded-xl border border-subtle bg-layer-3 p-4 pt-8 text-primary font-mono text-sm">
+      <pre className="font-mono text-sm rounded-xl border border-subtle bg-layer-3 p-4 pt-8 text-primary">
         <NodeViewContent as="code" className="whitespace-pre-wrap" />
       </pre>
     </NodeViewWrapper>
