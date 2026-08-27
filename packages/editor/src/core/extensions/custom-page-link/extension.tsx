@@ -8,6 +8,7 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { v4 as uuidv4 } from "uuid";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
+import type { TMentionHandler } from "@/types";
 // local components
 import { CustomPageLinkBlock } from "./components/block";
 import type { CustomPageLinkNodeViewProps } from "./components/block";
@@ -15,8 +16,21 @@ import { CustomPageLinkExtensionConfig } from "./extension-config";
 import { EPageLinkAttributeNames } from "./types";
 import type { CustomPageLinkExtensionOptions, CustomPageLinkExtensionStorage } from "./types";
 
-export function CustomPageLinkExtension() {
+type Props = {
+  mentionHandler?: TMentionHandler;
+};
+
+export function CustomPageLinkExtension(props?: Props) {
+  const { mentionHandler } = props ?? {};
+
   return CustomPageLinkExtensionConfig.extend<CustomPageLinkExtensionOptions, CustomPageLinkExtensionStorage>({
+    addOptions() {
+      return {
+        ...this.parent?.(),
+        mentionHandler,
+      };
+    },
+
     addCommands() {
       return {
         insertPageLink:

@@ -231,6 +231,8 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
       )}
       style={borderColor ? { borderColor } : undefined}
       contentEditable={false}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Tab Navigation */}
       {!isImageBeingUploaded && !isErrorState && (

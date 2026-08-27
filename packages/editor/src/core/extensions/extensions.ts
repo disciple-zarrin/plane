@@ -140,7 +140,7 @@ export const CoreEditorExtensions = (args: TArguments): Extensions => {
     CustomColumnsExtension(),
     CustomColumnExtension(),
     CustomBreadcrumbExtension(),
-    CustomPageLinkExtension(),
+    CustomPageLinkExtension({ mentionHandler }),
     CustomSyncedBlockExtension(),
     CustomEmbedExtension(),
     UtilityExtension({

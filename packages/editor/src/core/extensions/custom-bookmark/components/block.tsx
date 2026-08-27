@@ -92,7 +92,9 @@ export function CustomBookmarkBlock(props: CustomBookmarkNodeViewProps) {
     return (
       <NodeViewWrapper>
         <div
-          data-drag-handle
+          contentEditable={false}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           className={cn(
             "my-2 flex w-full max-w-xl items-center gap-2 rounded-xl border border-subtle bg-layer-2 p-2 transition-all",
             {
@@ -109,6 +111,7 @@ export function CustomBookmarkBlock(props: CustomBookmarkNodeViewProps) {
               placeholder="Paste web link (e.g. https://github.com)..."
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
               className="text-sm flex-1 bg-transparent text-primary placeholder:text-tertiary focus:outline-none"
             />
             <button

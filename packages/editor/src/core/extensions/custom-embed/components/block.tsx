@@ -326,7 +326,11 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
           </>
         ) : (
           /* Edit / Input Mode */
-          <div className="flex w-full flex-col gap-2.5 bg-layer-2 p-4">
+          <div
+            className="flex w-full flex-col gap-2.5 bg-layer-2 p-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-xs flex items-center gap-2 font-semibold text-primary">
               <Globe className="h-4 w-4 text-accent-primary" />
               <span>جاسازی تعاملی (Embed Web Content / Video)</span>
@@ -338,6 +342,7 @@ export function CustomEmbedBlock(props: CustomEmbedNodeViewProps) {
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
                 onKeyDown={(e) => {
+                  e.stopPropagation();
                   if (e.key === "Enter") handleSave();
                 }}
                 placeholder="آدرس یوتیوب، آپارات، لوم، ویمو، فیگما، کدپن یا لینک مستقیم ویدیو/صوت..."
