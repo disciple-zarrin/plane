@@ -827,7 +827,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply red text color",
         searchTerms: ["red", "color", "ghermez", "rang"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-pink-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-pink-text)" } }],
+              text: "متن قرمز",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "note",
@@ -840,7 +849,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply green text color",
         searchTerms: ["green", "color", "sabz"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-green-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-green-text)" } }],
+              text: "متن سبز",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "color-red",
@@ -853,7 +871,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply blue text color",
         searchTerms: ["blue", "color", "abi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-light-blue-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-light-blue-text)" } }],
+              text: "متن آبی",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "color-green",
@@ -866,7 +893,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply yellow text color",
         searchTerms: ["yellow", "peach", "color", "zard"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-peach-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-peach-text)" } }],
+              text: "متن زرد",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "color-blue",
@@ -879,7 +915,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply purple text color",
         searchTerms: ["purple", "color", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-purple-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-purple-text)" } }],
+              text: "متن بنفش",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "color-yellow",
@@ -892,7 +937,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply orange text color",
         searchTerms: ["orange", "color", "narenji"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-orange-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-orange-text)" } }],
+              text: "متن نارنجی",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "color-purple",
@@ -905,7 +959,16 @@ export const getSlashCommandFilteredSections =
         description: "Apply gray text color",
         searchTerms: ["gray", "grey", "color", "toosi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setTextColor("var(--editor-colors-gray-text)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "textStyle", attrs: { color: "var(--editor-colors-gray-text)" } }],
+              text: "متن خاکستری",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "color-orange",
@@ -1429,7 +1492,20 @@ export const getSlashCommandFilteredSections =
         description: "Insert a green Done status badge",
         searchTerms: ["done", "badge done", "complete", "anjam shod", "vaziat"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(" `✅ انجام شد` ").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [
+                { type: "bold" },
+                { type: "customColor", attrs: { backgroundColor: "var(--editor-colors-green-background)" } },
+                { type: "textStyle", attrs: { color: "var(--editor-colors-green-text)" } },
+              ],
+              text: " ✅ انجام شد ",
+            })
+            .run();
         },
         section: "badges",
         pushAfter: "lock",
@@ -1442,7 +1518,20 @@ export const getSlashCommandFilteredSections =
         description: "Insert a yellow In Progress status badge",
         searchTerms: ["in progress", "progress", "doing", "dar hal anjam"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(" `🔄 در حال انجام` ").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [
+                { type: "bold" },
+                { type: "customColor", attrs: { backgroundColor: "var(--editor-colors-peach-background)" } },
+                { type: "textStyle", attrs: { color: "var(--editor-colors-peach-text)" } },
+              ],
+              text: " 🔄 در حال انجام ",
+            })
+            .run();
         },
         section: "badges",
         pushAfter: "badge-done",
@@ -1455,7 +1544,20 @@ export const getSlashCommandFilteredSections =
         description: "Insert a red Blocked status badge",
         searchTerms: ["blocked", "stop", "khatar", "motevaghef"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(" `⛔ متوقف شده` ").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [
+                { type: "bold" },
+                { type: "customColor", attrs: { backgroundColor: "var(--editor-colors-pink-background)" } },
+                { type: "textStyle", attrs: { color: "var(--editor-colors-pink-text)" } },
+              ],
+              text: " ⛔ متوقف شده ",
+            })
+            .run();
         },
         section: "badges",
         pushAfter: "badge-progress",
@@ -1468,7 +1570,20 @@ export const getSlashCommandFilteredSections =
         description: "Insert a blue In Review status badge",
         searchTerms: ["in review", "review", "barrasi"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(" `👀 در حال بررسی` ").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [
+                { type: "bold" },
+                { type: "customColor", attrs: { backgroundColor: "var(--editor-colors-light-blue-background)" } },
+                { type: "textStyle", attrs: { color: "var(--editor-colors-light-blue-text)" } },
+              ],
+              text: " 👀 در حال بررسی ",
+            })
+            .run();
         },
         section: "badges",
         pushAfter: "badge-blocked",
@@ -1481,7 +1596,20 @@ export const getSlashCommandFilteredSections =
         description: "Insert a gray To Do status badge",
         searchTerms: ["todo", "badge todo", "backlog", "entezar"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).insertContent(" `📋 در انتظار` ").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [
+                { type: "bold" },
+                { type: "customColor", attrs: { backgroundColor: "var(--editor-colors-gray-background)" } },
+                { type: "textStyle", attrs: { color: "var(--editor-colors-gray-text)" } },
+              ],
+              text: " 📋 در انتظار ",
+            })
+            .run();
         },
         section: "badges",
         pushAfter: "badge-review",
@@ -2040,7 +2168,16 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with yellow background",
         searchTerms: ["highlight yellow", "yellow bg", "zard", "majik"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-peach-background)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "customColor", attrs: { backgroundColor: "var(--editor-colors-peach-background)" } }],
+              text: "متن هایلایت زرد",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "callout-gray",
@@ -2053,7 +2190,16 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with green background",
         searchTerms: ["highlight green", "green bg", "sabz"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-green-background)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "customColor", attrs: { backgroundColor: "var(--editor-colors-green-background)" } }],
+              text: "متن هایلایت سبز",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "highlight-yellow",
@@ -2066,7 +2212,16 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with pink background",
         searchTerms: ["highlight pink", "pink bg", "soorati"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-pink-background)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "customColor", attrs: { backgroundColor: "var(--editor-colors-pink-background)" } }],
+              text: "متن هایلایت صورتی",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "highlight-green",
@@ -2083,7 +2238,13 @@ export const getSlashCommandFilteredSections =
             .chain()
             .focus()
             .deleteRange(range)
-            .setBackgroundColor("var(--editor-colors-light-blue-background)")
+            .insertContent({
+              type: "text",
+              marks: [
+                { type: "customColor", attrs: { backgroundColor: "var(--editor-colors-light-blue-background)" } },
+              ],
+              text: "متن هایلایت آبی",
+            })
             .run();
         },
         section: "highlights",
@@ -2097,7 +2258,16 @@ export const getSlashCommandFilteredSections =
         description: "Highlight text with purple background",
         searchTerms: ["highlight purple", "purple bg", "banafshe"],
         command: ({ editor, range }: CommandProps) => {
-          editor.chain().focus().deleteRange(range).setBackgroundColor("var(--editor-colors-purple-background)").run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: "text",
+              marks: [{ type: "customColor", attrs: { backgroundColor: "var(--editor-colors-purple-background)" } }],
+              text: "متن هایلایت بنفش",
+            })
+            .run();
         },
         section: "highlights",
         pushAfter: "highlight-blue",
