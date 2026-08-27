@@ -237,6 +237,7 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
 
   return (
     <div
+      contentEditable={false}
       className={cn(
         "my-3 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl border bg-layer-1 text-tertiary transition-all duration-200 ease-in-out",
         {
@@ -246,6 +247,8 @@ export function CustomAttachmentUploader(props: CustomAttachmentUploaderProps) {
         }
       )}
       style={{ borderColor }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Tab Navigation */}
       {!isUploading && !isErrorState && (

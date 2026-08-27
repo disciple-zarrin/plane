@@ -5,6 +5,7 @@
  */
 
 import type { Node } from "@tiptap/core";
+import type { TMentionHandler } from "@/types";
 
 export enum EPageLinkAttributeNames {
   ID = "id",
@@ -18,7 +19,11 @@ export type TPageLinkAttributes = {
   [EPageLinkAttributeNames.URL]: string;
 };
 
-export type CustomPageLinkExtensionOptions = Record<string, unknown>;
+export type CustomPageLinkExtensionOptions = {
+  mentionHandler?: TMentionHandler;
+  [key: string]: unknown;
+};
+
 export type CustomPageLinkExtensionStorage = Record<string, unknown>;
 
 export type CustomPageLinkExtensionType = Node<CustomPageLinkExtensionOptions, CustomPageLinkExtensionStorage>;
