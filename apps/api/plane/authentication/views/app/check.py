@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 ## Module imports
-from plane.db.models import User
+from plane.db.models import User, WorkspaceMemberInvite
 from plane.license.models import Instance
 from plane.authentication.adapter.error import (
     AuthenticationException,
@@ -41,12 +41,16 @@ class EmailCheckEndpoint(APIView):
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        (EMAIL_HOST, ENABLE_MAGIC_LINK_LOGIN) = get_configuration_value(
+        (EMAIL_HOST, ENABLE_MAGIC_LINK_LOGIN, ENABLE_SIGNUP) = get_configuration_value(
             [
                 {"key": "EMAIL_HOST", "default": os.environ.get("EMAIL_HOST", "")},
                 {
                     "key": "ENABLE_MAGIC_LINK_LOGIN",
                     "default": os.environ.get("ENABLE_MAGIC_LINK_LOGIN", "1"),
+                },
+                {
+                    "key": "ENABLE_SIGNUP",
+                    "default": os.environ.get("ENABLE_SIGNUP", "0"),
                 },
             ]
         )
@@ -93,6 +97,16 @@ class EmailCheckEndpoint(APIView):
                 },
                 status=status.HTTP_200_OK,
             )
+
+        # If sign up is disabled and no workspace invite exists, reject sign up immediately
+        if ENABLE_SIGNUP == "0" and not WorkspaceMemberInvite.objects.filter(email=email).exists():
+            exc = AuthenticationException(
+                error_code=AUTHENTICATION_ERROR_CODES["SIGNUP_DISABLED"],
+                error_message="SIGNUP_DISABLED",
+                payload={"email": email},
+            )
+            return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
+
         # Else return response
         return Response(
             {
