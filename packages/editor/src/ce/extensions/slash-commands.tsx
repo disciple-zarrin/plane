@@ -8,7 +8,11 @@ import { FilePlus2 } from "lucide-react";
 import type { TSlashCommandAdditionalOption } from "@/extensions";
 import type { IEditorProps } from "@/types";
 
-type Props = Pick<IEditorProps, "disabledExtensions" | "flaggedExtensions" | "extendedEditorProps">;
+type Props = {
+  disabledExtensions?: IEditorProps["disabledExtensions"];
+  flaggedExtensions?: IEditorProps["flaggedExtensions"];
+  extendedEditorProps?: IEditorProps["extendedEditorProps"];
+};
 
 type TExtendedSlashProps = {
   slashCommandAdditionalOptions?: TSlashCommandAdditionalOption[];
@@ -60,7 +64,7 @@ export const coreEditorAdditionalSlashCommandOptions = (props: Props): TSlashCom
     {
       commandKey: "text" as TSlashCommandAdditionalOption["commandKey"],
       key: "subpage",
-      title: "صفحه فرعی",
+      title: "صفحه فرعی (Subpage)",
       description: "ساخت صفحه تو‌در‌تو مثل Notion",
       searchTerms: ["page", "subpage", "wiki", "صفحه", "فرعی", "nested"],
       icon: <FilePlus2 className="size-3.5" />,
@@ -68,7 +72,6 @@ export const coreEditorAdditionalSlashCommandOptions = (props: Props): TSlashCom
       pushAfter: "text",
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).run();
-        // Defer so TipTap finishes closing the slash menu first
         setTimeout(() => triggerCreateSubpage(props.extendedEditorProps), 0);
       },
     },
