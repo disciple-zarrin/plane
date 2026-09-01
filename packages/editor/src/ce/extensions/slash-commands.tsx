@@ -19,7 +19,7 @@ type TExtendedSlashProps = {
   onCreateSubpage?: () => void;
 };
 
-function triggerCreateSubpage(extendedEditorProps: IEditorProps["extendedEditorProps"]) {
+function triggerCreateSubpage(extendedEditorProps?: IEditorProps["extendedEditorProps"]) {
   const ext =
     extendedEditorProps && typeof extendedEditorProps === "object"
       ? (extendedEditorProps as TExtendedSlashProps)
