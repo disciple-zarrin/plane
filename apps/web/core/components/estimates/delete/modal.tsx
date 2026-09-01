@@ -52,35 +52,34 @@ export const DeleteEstimateModal = observer(function DeleteEstimateModal(props: 
       setButtonLoader(false);
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Estimate creation failed",
-        message: "We were unable to delete the estimate, please try again.",
+        title: "خطا در حذف سیستم تخمین",
+        message: "امکان حذف سیستم تخمین وجود ندارد، لطفاً دوباره تلاش کنید.",
       });
     }
   };
 
   return (
     <ModalCore isOpen={isOpen} position={EModalPosition.TOP} width={EModalWidth.XXL}>
-      <div className="relative space-y-6 py-5">
+      <div className="relative space-y-6 py-5" dir="rtl">
         {/* heading */}
         <div className="relative flex items-center justify-between gap-2 px-5">
-          <div className="text-18 font-medium text-primary">Delete Estimate System</div>
+          <div className="text-18 font-medium text-primary">حذف سیستم تخمین</div>
         </div>
 
         {/* estimate steps */}
         <div className="px-5">
           <div className="text-14 text-secondary">
-            Deleting the estimate <span className="font-bold text-primary">{estimate?.name}</span>
-            &nbsp;system will remove it from all work items permanently. This action cannot be undone. If you add
-            estimates again, you will need to update all the work items.
+            حذف سیستم تخمین <span className="font-bold text-primary">{estimate?.name}</span>
+            &nbsp;باعث حذف دائمی آن از تمام کارها خواهد شد. این عملیات غیرقابل بازگشت است. در صورت افزودن مجدد تخمین‌ها، باید همه کارها را به‌روزرسانی کنید.
           </div>
         </div>
 
         <div className="relative flex items-center justify-end gap-3 border-t border-subtle px-5 pt-5">
           <Button variant="secondary" size="lg" onClick={handleClose} disabled={buttonLoader}>
-            Cancel
+            انصراف
           </Button>
           <Button variant="error-fill" size="lg" onClick={handleDeleteEstimate} disabled={buttonLoader}>
-            {buttonLoader ? "Deleting" : "Delete Estimate"}
+            {buttonLoader ? "در حال حذف..." : "حذف سیستم تخمین"}
           </Button>
         </div>
       </div>

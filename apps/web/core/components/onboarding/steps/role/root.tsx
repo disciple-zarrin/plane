@@ -13,6 +13,7 @@ import { CheckIcon, ViewsIcon } from "@plane/propel/icons";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TUserProfile } from "@plane/types";
 import { EOnboardingSteps } from "@plane/types";
+import { cn } from "@plane/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 // local components
@@ -24,13 +25,13 @@ type Props = {
 };
 
 const ROLES = [
-  { id: "product-manager", label: "Product Manager", icon: Box },
-  { id: "engineering-manager", label: "Engineering Manager", icon: ViewsIcon },
-  { id: "designer", label: "Designer", icon: PenTool },
-  { id: "developer", label: "Developer", icon: Monitor },
-  { id: "founder-executive", label: "Founder/Executive", icon: Rocket },
-  { id: "operations-manager", label: "Operations Manager", icon: RefreshCw },
-  { id: "others", label: "Others", icon: Box },
+  { id: "product-manager", label: "مدیر محصول (Product Manager)", icon: Box },
+  { id: "engineering-manager", label: "مدیر مهندسی (Engineering Manager)", icon: ViewsIcon },
+  { id: "designer", label: "طراح (Designer)", icon: PenTool },
+  { id: "developer", label: "توسعه‌دهنده / برنامه‌نویس (Developer)", icon: Monitor },
+  { id: "founder-executive", label: "مؤسس / مدیر ارشد (Founder/Executive)", icon: Rocket },
+  { id: "operations-manager", label: "مدیر عملیات (Operations Manager)", icon: RefreshCw },
+  { id: "others", label: "سایر موارد (Others)", icon: Box },
 ];
 
 const defaultValues = {
@@ -87,17 +88,17 @@ export const RoleSetupStep = observer(function RoleSetupStep({ handleStepChange 
   const isButtonDisabled = !isSubmitting && isValid ? false : true;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10" dir="rtl">
       {/* Header */}
-      <CommonOnboardingHeader title="What's your role?" description="Let's set up Plane for how you work." />
+      <CommonOnboardingHeader title="نقش شما چیست؟" description="بیایید حصار را متناسب با نحوه کار شما تنظیم کنیم." />
       {/* Role Selection */}
-      <div className="flex flex-col gap-3">
-        <p className="text-body-sm-semibold text-placeholder">Select one</p>
+      <div className="flex flex-col gap-3 text-right">
+        <p className="text-body-sm-semibold text-placeholder">یک مورد را انتخاب کنید</p>
         <Controller
           control={control}
           name="role"
           rules={{
-            required: "This field is required",
+            required: "این فیلد الزامی است",
           }}
           render={({ field: { value, onChange } }) => (
             <div className="flex flex-col gap-3">
@@ -108,29 +109,23 @@ export const RoleSetupStep = observer(function RoleSetupStep({ handleStepChange 
                 return (
                   <button
                     key={role.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      onChange(role.id);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 transition-all duration-200 ${
+                    type="button"
+                    onClick={() => onChange(role.id)}
+                    className={cn(
+                      "flex items-center justify-between rounded-lg border p-4 text-left transition-all duration-200",
                       isSelected
-                        ? "border-accent-strong bg-accent-subtle text-accent-primary"
-                        : "border-subtle text-tertiary hover:border-strong"
-                    }`}
+                        ? "border-accent-strong bg-accent-primary/10 text-primary"
+                        : "border-strong bg-surface-1 text-secondary hover:border-strong-1 hover:text-primary"
+                    )}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon className="size-3.5" />
-                      <span className="text-body-sm-semibold">{role.label}</span>
+                    <div className="flex items-center gap-3">
+                      <Icon className="size-5" />
+                      <span className="text-14 font-medium">{role.label}</span>
                     </div>
                     {isSelected && (
-                      <>
-                        <button
-                          className={`border-blue-500 flex size-4 items-center justify-center rounded-sm border-2 bg-accent-primary`}
-                        >
-                          <CheckIcon className="h-3 w-3 text-on-color" />
-                        </button>
-                      </>
+                      <div className="flex size-5 items-center justify-center rounded-full bg-accent-primary text-on-color">
+                        <CheckIcon className="size-3" />
+                      </div>
                     )}
                   </button>
                 );
@@ -143,10 +138,10 @@ export const RoleSetupStep = observer(function RoleSetupStep({ handleStepChange 
       {/* Action Buttons */}
       <div className="space-y-3">
         <Button variant="primary" type="submit" className="w-full" size="xl" disabled={isButtonDisabled}>
-          Continue
+          ادامه
         </Button>
         <Button variant="ghost" onClick={handleSkip} className="w-full text-tertiary" size="xl">
-          Skip
+          رد شدن
         </Button>
       </div>
     </form>

@@ -106,7 +106,7 @@ export function WorkspaceJoinInvitesStep(props: Props) {
           onClick={submitInvitations}
           disabled={isJoiningWorkspaces || !invitationsRespond.length}
         >
-          {isJoiningWorkspaces ? <Spinner height="20px" width="20px" /> : "Continue"}
+          {isJoiningWorkspaces ? <Spinner height="20px" width="20px" /> : "ادامه"}
         </Button>
         <Button
           variant="ghost"
@@ -115,11 +115,11 @@ export function WorkspaceJoinInvitesStep(props: Props) {
           onClick={handleCurrentViewChange}
           disabled={isJoiningWorkspaces}
         >
-          Create new workspace
+          ایجاد فضای کاری جدید
         </Button>
       </div>
     </div>
   ) : (
-    <div>No Invitations found</div>
+    <div className="text-center text-secondary">دعوت‌نامه‌ای یافت نشد</div>
   );
 }

@@ -53,14 +53,14 @@ export const UseCaseSetupStep = observer(function UseCaseSetupStep({ handleStepC
       [await updateUserProfile(profileUpdatePayload)];
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "Success",
-        message: "Profile setup completed!",
+        title: "موفق",
+        message: "تنظیم پروفایل تکمیل شد!",
       });
     } catch {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error",
-        message: "Profile setup failed. Please try again!",
+        title: "خطا",
+        message: "خطا در تنظیم پروفایل. لطفاً دوباره تلاش کنید!",
       });
     }
   };
@@ -81,20 +81,20 @@ export const UseCaseSetupStep = observer(function UseCaseSetupStep({ handleStepC
   const isButtonDisabled = !isSubmitting && isValid ? false : true;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10" dir="rtl">
       {/* Header */}
-      <CommonOnboardingHeader title="What brings you to Plane?" description="Tell us your goals and team size." />
+      <CommonOnboardingHeader title="هدف شما از استفاده از حصار چیست؟" description="اهداف و نحوه استفاده تیم خود را انتخاب کنید." />
 
       {/* Use Case Selection */}
-      <div className="flex flex-col gap-3">
-        <p className="text-body-sm-semibold text-placeholder">Select one or more</p>
+      <div className="flex flex-col gap-3 text-right">
+        <p className="text-body-sm-semibold text-placeholder">یک یا چند مورد را انتخاب کنید</p>
 
         <Controller
           control={control}
           name="use_case"
           rules={{
-            required: "Please select at least one option",
-            validate: (value) => (value && value.length > 0) || "Please select at least one option",
+            required: "لطفاً حداقل یک گزینه را انتخاب کنید",
+            validate: (value) => (value && value.length > 0) || "لطفاً حداقل یک گزینه را انتخاب کنید",
           }}
           render={({ field: { value, onChange } }) => (
             <div className="flex flex-col gap-3">
@@ -148,10 +148,10 @@ export const UseCaseSetupStep = observer(function UseCaseSetupStep({ handleStepC
       {/* Action Buttons */}
       <div className="space-y-3">
         <Button variant="primary" type="submit" className="w-full" size="xl" disabled={isButtonDisabled}>
-          Continue
+          ادامه
         </Button>
-        <Button variant="ghost" onClick={handleSkip} className="w-full" size="xl">
-          Skip
+        <Button variant="ghost" onClick={handleSkip} className="w-full text-tertiary" size="xl">
+          رد شدن
         </Button>
       </div>
     </form>

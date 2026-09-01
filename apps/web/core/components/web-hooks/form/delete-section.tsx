@@ -21,7 +21,7 @@ export function WebhookDeleteSection(props: Props) {
       {({ open }) => (
         <div className="w-full">
           <Disclosure.Button as="button" type="button" className="flex w-full items-center justify-between py-4">
-            <span className="text-16 tracking-tight">Danger zone</span>
+            <span className="text-16 tracking-tight">منطقه حساس و خطرناک</span>
             {open ? <ChevronUpIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
           </Disclosure.Button>
 
@@ -37,8 +37,7 @@ export function WebhookDeleteSection(props: Props) {
             <Disclosure.Panel>
               <div className="flex flex-col gap-8">
                 <span className="text-13 tracking-tight">
-                  Once a webhook is deleted, it cannot be restored. Future events will no longer be delivered to this
-                  webhook.
+                  پس از حذف وب‌هوک، امکان بازیابی آن وجود نخواهد داشت و رویدادهای بعدی به این وب‌هوک ارسال نخواهند شد.
                 </span>
                 <div>
                   <Button
@@ -47,7 +46,7 @@ export function WebhookDeleteSection(props: Props) {
                     onClick={openDeleteModal}
                     data-ph-element={WORKSPACE_SETTINGS_TRACKER_ELEMENTS.WEBHOOK_DELETE_BUTTON}
                   >
-                    Delete webhook
+                    حذف وب‌هوک
                   </Button>
                 </div>
               </div>

@@ -62,10 +62,10 @@ export function Invitations(props: Props) {
   };
 
   return invitations && invitations.length > 0 ? (
-    <div className="space-y-4">
+    <div className="space-y-4" dir="rtl">
       <div className="mx-auto space-y-1 py-4 text-center">
-        <h3 className="text-24 font-bold text-primary">You are invited!</h3>
-        <p className="font-medium text-placeholder">Accept the invites to collaborate with your team.</p>
+        <h3 className="text-24 font-bold text-primary">شما دعوت شده‌اید!</h3>
+        <p className="font-medium text-placeholder">برای همکاری با تیم خود، دعوت‌نامه‌ها را بپذیرید.</p>
       </div>
       <div>
         {invitations &&
@@ -104,11 +104,11 @@ export function Invitations(props: Props) {
         onClick={submitInvitations}
         disabled={isJoiningWorkspaces || !invitationsRespond.length}
       >
-        {isJoiningWorkspaces ? <Spinner height="20px" width="20px" /> : "Continue to workspace"}
+        {isJoiningWorkspaces ? <Spinner height="20px" width="20px" /> : "ادامه و ورود به فضای کاری"}
       </Button>
       <div className="mx-auto mt-4 flex items-center sm:w-96">
         <hr className="w-full border-strong" />
-        <p className="mx-3 flex-shrink-0 text-center text-13 text-placeholder">or</p>
+        <p className="mx-3 flex-shrink-0 text-center text-13 text-placeholder">یا</p>
         <hr className="w-full border-strong" />
       </div>
       <Button
@@ -118,10 +118,10 @@ export function Invitations(props: Props) {
         onClick={handleCurrentViewChange}
         disabled={isJoiningWorkspaces}
       >
-        Create your own workspace
+        ایجاد فضای کاری اختصاصی خودتان
       </Button>
     </div>
   ) : (
-    <div>No Invitations found</div>
+    <div className="text-center text-secondary">دعوت‌نامه‌ای یافت نشد</div>
   );
 }

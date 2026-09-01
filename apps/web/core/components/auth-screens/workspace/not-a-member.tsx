@@ -16,21 +16,20 @@ export function NotAWorkspaceMember() {
       <div className="grid h-full place-items-center p-4">
         <div className="space-y-8 text-center">
           <div className="space-y-2">
-            <h3 className="text-16 font-semibold">Not Authorized!</h3>
+            <h3 className="text-16 font-semibold">دسترسی غیرمجاز!</h3>
             <p className="mx-auto w-1/2 text-13 text-secondary">
-              You{"'"}re not a member of this workspace. Please contact the workspace admin to get an invitation or
-              check your pending invitations.
+              شما عضو این فضای کاری نیستید. لطفاً برای دریافت دعوت‌نامه با مدیر فضای کاری تماس بگیرید یا دعوت‌نامه‌های در انتظار خود را بررسی کنید.
             </p>
           </div>
           <div className="flex items-center justify-center gap-2">
             <Link href="/invitations">
               <span>
-                <Button variant="secondary">Check pending invites</Button>
+                <Button variant="secondary">بررسی دعوت‌نامه‌های در انتظار</Button>
               </span>
             </Link>
             <Link href="/create-workspace">
               <span>
-                <Button variant="primary">Create new workspace</Button>
+                <Button variant="primary">ایجاد فضای کاری جدید</Button>
               </span>
             </Link>
           </div>

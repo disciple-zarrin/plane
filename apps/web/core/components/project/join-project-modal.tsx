@@ -50,20 +50,20 @@ export function JoinProjectModal(props: TJoinProjectModalProps) {
 
   return (
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.XL}>
-      <div className="space-y-5 px-5 py-8 sm:p-6">
-        <h3 className="text-16 leading-6 font-medium text-primary">Join Project?</h3>
-        <p>
-          Are you sure you want to join the project <span className="font-semibold break-words">{project?.name}</span>?
-          Please click the &apos;Join Project&apos; button below to continue.
+      <div className="space-y-5 px-5 py-8 sm:p-6" dir="rtl">
+        <h3 className="text-16 leading-6 font-medium text-primary text-right">پیوستن به پروژه؟</h3>
+        <p className="text-right text-secondary">
+          آیا مطمئن هستید که می‌خواهید به پروژه <span className="font-semibold break-words">{project?.name}</span> بپیوندید؟
+          لطفاً برای ادامه روی دکمه «پیوستن به پروژه» در زیر کلیک کنید.
         </p>
         <div className="space-y-3" />
       </div>
       <div className="mt-5 flex justify-end gap-2 px-5 pb-8 sm:px-6 sm:pb-6">
         <Button variant="secondary" size="lg" onClick={handleClose}>
-          Cancel
+          انصراف
         </Button>
         <Button variant="primary" size="lg" tabIndex={1} type="submit" onClick={handleJoin} loading={isJoiningLoading}>
-          {isJoiningLoading ? "Joining..." : "Join Project"}
+          {isJoiningLoading ? "در حال پیوستن..." : "پیوستن به پروژه"}
         </Button>
       </div>
     </ModalCore>

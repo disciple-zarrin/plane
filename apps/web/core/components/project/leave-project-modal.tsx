@@ -58,7 +58,11 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
 
     if (data) {
       if (data.projectName === project?.name) {
-        if (data.confirmLeave === "Leave Project") {
+        if (
+          data.confirmLeave === "Leave Project" ||
+          data.confirmLeave === "ترک پروژه" ||
+          data.confirmLeave?.toLowerCase() === "leave project"
+        ) {
           router.push(`/${workspaceSlug}/projects`);
           return leaveProject(workspaceSlug.toString(), project.id)
             .then(() => {
@@ -67,62 +71,61 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
             .catch((_err) => {
               setToast({
                 type: TOAST_TYPE.ERROR,
-                title: "Error!",
-                message: "Something went wrong please try again later.",
+                title: "خطا!",
+                message: "مشکلی پیش آمد، لطفاً بعداً دوباره امتحان کنید.",
               });
             });
         } else {
           setToast({
             type: TOAST_TYPE.ERROR,
-            title: "Error!",
-            message: "Please confirm leaving the project by typing the 'Leave Project'.",
+            title: "خطا!",
+            message: "لطفاً عبارت «ترک پروژه» را برای تأیید وارد کنید.",
           });
         }
       } else {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: "Please enter the project name as shown in the description.",
+          title: "خطا!",
+          message: "لطفاً نام پروژه را دقیقاً همان‌طور که در توضیحات آمده وارد کنید.",
         });
       }
     } else {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Please fill all fields.",
+        title: "خطا!",
+        message: "لطفاً تمام فیلدها را پر کنید.",
       });
     }
   };
 
   return (
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.XXL}>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-6" dir="rtl">
         <div className="flex w-full items-center justify-start gap-6">
           <span className="place-items-center rounded-full bg-danger-subtle p-4">
             <AlertTriangleIcon className="h-6 w-6 text-danger-primary" aria-hidden="true" />
           </span>
           <span className="flex items-center justify-start">
-            <h3 className="text-18 font-medium 2xl:text-20">Leave Project</h3>
+            <h3 className="text-18 font-medium 2xl:text-20 text-right">ترک پروژه</h3>
           </span>
         </div>
 
         <span>
-          <p className="text-13 leading-7 text-secondary">
-            Are you sure you want to leave the project -
-            <span className="font-medium text-primary">{` "${project?.name}" `}</span>? All of the work items associated
-            with you will become inaccessible.
+          <p className="text-13 leading-7 text-secondary text-right">
+            آیا مطمئن هستید که می‌خواهید پروژه
+            <span className="font-medium text-primary">{` «${project?.name}» `}</span> را ترک کنید؟ تمام کارهای مرتبط با شما غیرقابل دسترسی خواهند شد.
           </p>
         </span>
 
-        <div className="text-secondary">
+        <div className="text-secondary text-right">
           <p className="text-13 break-words">
-            Enter the project name <span className="font-medium text-primary">{project?.name}</span> to continue:
+            برای ادامه، نام پروژه <span className="font-medium text-primary">{project?.name}</span> را وارد کنید:
           </p>
           <Controller
             control={control}
             name="projectName"
             rules={{
-              required: "Label title is required",
+              required: "نام پروژه الزامی است",
             }}
             render={({ field: { value, onChange, ref } }) => (
               <Input
@@ -133,16 +136,16 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.projectName)}
-                placeholder="Enter project name"
-                className="mt-2 w-full"
+                placeholder="نام پروژه را وارد کنید"
+                className="mt-2 w-full text-right"
               />
             )}
           />
         </div>
 
-        <div className="text-secondary">
+        <div className="text-secondary text-right">
           <p className="text-13">
-            To confirm, type <span className="font-medium text-primary">Leave Project</span> below:
+            برای تأیید، عبارت <span className="font-medium text-primary">ترک پروژه</span> را در زیر تایپ کنید:
           </p>
           <Controller
             control={control}
@@ -156,18 +159,18 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.confirmLeave)}
-                placeholder="Enter 'leave project'"
-                className="mt-2 w-full"
+                placeholder="عبارت 'ترک پروژه' یا 'Leave Project' را وارد کنید"
+                className="mt-2 w-full text-right"
               />
             )}
           />
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={handleClose}>
-            Cancel
+            انصراف
           </Button>
           <Button variant="error-fill" size="lg" type="submit" loading={isSubmitting}>
-            {isSubmitting ? "Leaving..." : "Leave Project"}
+            {isSubmitting ? "در حال خروج..." : "ترک پروژه"}
           </Button>
         </div>
       </form>
