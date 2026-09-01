@@ -162,7 +162,7 @@
           },
           "website": {
             "label": "آدرس وبسایت",
-            "placeholder": "https://plane.so",
+            "placeholder": "https://hesar.ir",
             "validation": {
               "invalid": "آدرس URL نامعتبر است",
               "maxLength": "آدرس URL باید کمتر از ۸۰۰ کاراکتر باشد"
@@ -170,7 +170,7 @@
           },
           "company_name": {
             "label": "نام شرکت",
-            "placeholder": "Plane",
+            "placeholder": "حصار",
             "validation": {
               "required": "نام شرکت الزامی است",
               "maxLength": "نام شرکت باید کمتر از ۲۵۵ کاراکتر باشد"
@@ -178,7 +178,7 @@
           },
           "contact_email": {
             "label": "ایمیل تماس",
-            "placeholder": "help@plane.so",
+            "placeholder": "help@hesar.ir",
             "validation": {
               "invalid": "آدرس ایمیل نامعتبر است",
               "maxLength": "ایمیل تماس باید کمتر از ۲۵۵ کاراکتر باشد"
@@ -186,7 +186,7 @@
           },
           "privacy_policy_url": {
             "label": "لینک سیاست حریم خصوصی",
-            "placeholder": "https://planes.so/privacy-policy",
+            "placeholder": "https://hesar.ir/privacy-policy",
             "validation": {
               "invalid": "آدرس URL نامعتبر است",
               "maxLength": "آدرس URL باید کمتر از ۸۰۰ کاراکتر باشد"
@@ -194,7 +194,7 @@
           },
           "terms_of_service_url": {
             "label": "لینک شرایط استفاده",
-            "placeholder": "https://planes.so/terms-of-use",
+            "placeholder": "https://hesar.ir/terms-of-use",
             "validation": {
               "invalid": "آدرس URL نامعتبر است",
               "maxLength": "آدرس URL باید کمتر از ۸۰۰ کاراکتر باشد"

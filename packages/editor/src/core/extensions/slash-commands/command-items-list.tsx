@@ -284,14 +284,14 @@ export const getSlashCommandFilteredSections =
       },
       {
         key: "text-colors",
-        title: "Colors",
+        title: "رنگ‌های متن (Text Colors)",
         items: [
           {
             commandKey: "text-color-default",
             key: "text-color-default",
-            title: "Default",
-            description: "Change text color",
-            searchTerms: ["color", "text", "default"],
+            title: "رنگ پیش‌فرض (Default)",
+            description: "تغییر رنگ متن",
+            searchTerms: ["color", "text", "default", "رنگ"],
             icon: <ALargeSmall className="size-3.5 text-primary" />,
             command: ({ editor, range }) => toggleTextColor(undefined, editor, range),
           },
@@ -301,8 +301,8 @@ export const getSlashCommandFilteredSections =
                 commandKey: `text-color-${color.key}`,
                 key: `text-color-${color.key}`,
                 title: color.label,
-                description: "Change text color",
-                searchTerms: ["color", "text", color.label],
+                description: "تغییر رنگ متن",
+                searchTerms: ["color", "text", color.label, "رنگ"],
 
                 icon: (
                   <ALargeSmall
@@ -320,14 +320,14 @@ export const getSlashCommandFilteredSections =
       },
       {
         key: "background-colors",
-        title: "Background colors",
+        title: "رنگ‌های پس‌زمینه (Background Colors)",
         items: [
           {
             commandKey: "background-color-default",
             key: "background-color-default",
-            title: "Default background",
-            description: "Change background color",
-            searchTerms: ["color", "bg", "background", "default"],
+            title: "پس‌زمینه پیش‌فرض (Default Background)",
+            description: "تغییر رنگ پس‌زمینه",
+            searchTerms: ["color", "bg", "background", "default", "پس زمینه"],
             icon: <ALargeSmall className="size-3.5" />,
             iconContainerStyle: {
               borderRadius: "4px",
@@ -342,8 +342,8 @@ export const getSlashCommandFilteredSections =
                 commandKey: `background-color-${color.key}`,
                 key: `background-color-${color.key}`,
                 title: color.label,
-                description: "Change background color",
-                searchTerms: ["color", "bg", "background", color.label],
+                description: "تغییر رنگ پس‌زمینه",
+                searchTerms: ["color", "bg", "background", color.label, "پس زمینه"],
                 icon: <ALargeSmall className="size-3.5" />,
 
                 iconContainerStyle: {
@@ -363,10 +363,10 @@ export const getSlashCommandFilteredSections =
       internalAdditionalOptions.push({
         commandKey: "image",
         key: "image",
-        title: "Image",
+        title: "تصویر (Image)",
         icon: <ImageIcon className="size-3.5" />,
-        description: "Insert an image",
-        searchTerms: ["img", "photo", "picture", "media", "upload"],
+        description: "درج تصویر در متن",
+        searchTerms: ["img", "photo", "picture", "media", "upload", "تصویر", "عکس"],
         command: ({ editor, range }: CommandProps) => insertImage({ editor, event: "insert", range }),
         section: "media",
         pushAfter: "code",
@@ -377,10 +377,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "video",
         key: "video",
-        title: "Video",
+        title: "ویدیو (Video)",
         icon: <FileVideo className="size-3.5" />,
-        description: "Upload or embed a video",
-        searchTerms: ["video", "mp4", "movie", "clip", "media", "film"],
+        description: "بارگذاری یا درج ویدیو",
+        searchTerms: ["video", "mp4", "movie", "clip", "media", "film", "ویدیو", "فیلم"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
@@ -391,10 +391,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "audio",
         key: "audio",
-        title: "Audio",
+        title: "صدا (Audio)",
         icon: <FileAudio className="size-3.5" />,
-        description: "Upload or embed an audio track",
-        searchTerms: ["audio", "music", "sound", "mp3", "voice", "recording"],
+        description: "بارگذاری یا درج فایل صوتی",
+        searchTerms: ["audio", "music", "sound", "mp3", "voice", "recording", "صدا", "آهنگ", "صوت"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
@@ -405,10 +405,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "pdf",
         key: "pdf",
-        title: "PDF Document",
+        title: "سند پی‌دی‌اف (PDF Document)",
         icon: <FileText className="size-3.5" />,
-        description: "Upload a PDF document",
-        searchTerms: ["pdf", "document", "doc", "paper"],
+        description: "بارگذاری سند PDF",
+        searchTerms: ["pdf", "document", "doc", "paper", "پی دی اف", "سند"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
@@ -419,10 +419,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "file",
         key: "file",
-        title: "File",
+        title: "فایل و پیوست (File)",
         icon: <FileIcon className="size-3.5" />,
-        description: "Upload any document or file",
-        searchTerms: ["file", "attachment", "upload", "doc", "zip", "archive"],
+        description: "بارگذاری هر نوع فایل یا سند",
+        searchTerms: ["file", "attachment", "upload", "doc", "zip", "archive", "فایل", "پیوست"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertAttachmentComponent({ event: "insert" });
@@ -433,10 +433,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "bookmark",
         key: "bookmark",
-        title: "Web Bookmark",
+        title: "نشانک وب (Web Bookmark)",
         icon: <Bookmark className="size-3.5" />,
-        description: "Insert a Notion-style web bookmark card",
-        searchTerms: ["bookmark", "link", "url", "web", "preview"],
+        description: "درج کارت پیش‌نمایش پیوند وب",
+        searchTerms: ["bookmark", "link", "url", "web", "preview", "لینک", "نشانک"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertBookmarkComponent({});
@@ -447,10 +447,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "toggle",
         key: "toggle",
-        title: "Toggle List",
+        title: "لیست تاشو (Toggle List)",
         icon: <ChevronRight className="size-3.5" />,
-        description: "Toggles can show and hide content",
-        searchTerms: ["toggle", "collapsible", "dropdown", "accordion", "hide", "show"],
+        description: "نمایش یا پنهان کردن محتوای جمع‌شونده",
+        searchTerms: ["toggle", "collapsible", "dropdown", "accordion", "hide", "show", "تاشو", "لیست"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertToggle({});
@@ -461,10 +461,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "table-of-contents",
         key: "table-of-contents",
-        title: "Table of Contents",
+        title: "فهرست مطالب (Table of Contents)",
         icon: <ListTree className="size-3.5" />,
-        description: "Insert a dynamic outline of page headings",
-        searchTerms: ["toc", "table of contents", "outline", "headings", "index"],
+        description: "ایجاد فهرست پویای عناوین صفحه",
+        searchTerms: ["toc", "table of contents", "outline", "headings", "index", "فهرست", "عناوین"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertTableOfContents();
@@ -475,10 +475,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "math",
         key: "math",
-        title: "Math / Equation",
+        title: "فرمول ریاضی (Math / Equation)",
         icon: <Sigma className="size-3.5" />,
-        description: "Insert a LaTeX mathematical equation block",
-        searchTerms: ["math", "equation", "latex", "formula", "algebra", "calculate"],
+        description: "درج بلوک فرمول ریاضی با لاتک (LaTeX)",
+        searchTerms: ["math", "equation", "latex", "formula", "algebra", "calculate", "ریاضی", "فرمول"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertMath({ latex: "E = mc^2" });
@@ -489,10 +489,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "inline-math",
         key: "inline-math",
-        title: "Inline Math / فرمول ریاضی درون‌خطی",
+        title: "فرمول ریاضی درون‌خطی (Inline Math)",
         icon: <Sigma className="size-3.5 text-accent-primary" />,
-        description: "Insert an inline LaTeX equation ($...$)",
-        searchTerms: ["inline math", "equation", "latex inline", "formula", "riazi", "formool"],
+        description: "درج فرمول ریاضی درون‌خطی با لاتک ($...$)",
+        searchTerms: ["inline math", "equation", "latex inline", "formula", "riazi", "formool", "ریاضی"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).insertContent(" $E = mc^2$ ").run();
         },
@@ -502,10 +502,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "2columns",
         key: "2columns",
-        title: "2 Columns",
+        title: "چیدمان ۲ ستونه (2 Columns)",
         icon: <Columns2 className="size-3.5" />,
-        description: "Split layout into 2 side-by-side columns",
-        searchTerms: ["columns", "2 columns", "split", "grid", "side by side", "two"],
+        description: "تقسیم چیدمان به ۲ ستون در کنار هم",
+        searchTerms: ["columns", "2 columns", "split", "grid", "side by side", "two", "ستون", "دو ستون"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertColumns({ count: 2 });
@@ -516,10 +516,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "3columns",
         key: "3columns",
-        title: "3 Columns",
+        title: "چیدمان ۳ ستونه (3 Columns)",
         icon: <Columns3 className="size-3.5" />,
-        description: "Split layout into 3 side-by-side columns",
-        searchTerms: ["columns", "3 columns", "split", "grid", "three"],
+        description: "تقسیم چیدمان به ۳ ستون در کنار هم",
+        searchTerms: ["columns", "3 columns", "split", "grid", "three", "ستون", "سه ستون"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertColumns({ count: 3 });
@@ -530,10 +530,10 @@ export const getSlashCommandFilteredSections =
       {
         commandKey: "breadcrumb",
         key: "breadcrumb",
-        title: "Breadcrumbs",
+        title: "مسیر راهنما (Breadcrumbs)",
         icon: <FolderTree className="size-3.5" />,
-        description: "Insert a document hierarchy breadcrumb path",
-        searchTerms: ["breadcrumb", "path", "hierarchy", "navigation", "trail"],
+        description: "درج مسیر سلسله‌مراتب سند",
+        searchTerms: ["breadcrumb", "path", "hierarchy", "navigation", "trail", "مسیر", "راهنما"],
         command: ({ editor, range }: CommandProps) => {
           editor.chain().focus().deleteRange(range).run();
           editor.commands.insertBreadcrumb();
