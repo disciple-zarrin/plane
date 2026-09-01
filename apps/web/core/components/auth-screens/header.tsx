@@ -44,7 +44,7 @@ export const AuthHeader = observer(function AuthHeader({ type }: AuthHeaderProps
       pageTitle={t(authContentMap[type].pageTitle)}
       additionalAction={
         enableSignUpConfig && (
-          <div className="flex flex-col items-end text-center text-13 font-medium text-tertiary sm:flex-row sm:items-center sm:gap-2">
+          <div className="flex flex-col items-start rtl:items-start text-center text-13 font-medium text-tertiary sm:flex-row sm:items-center sm:gap-2">
             <span className="text-body-sm-regular text-tertiary">{t(authContentMap[type].text)}</span>
             <Link
               data-ph-element={AUTH_TRACKER_ELEMENTS.NAVIGATE_TO_SIGN_UP}
@@ -70,7 +70,7 @@ export function AuthHeaderBase(props: TAuthHeaderBase) {
   return (
     <>
       <PageHead title={pageTitle} />
-      <div className="sticky top-0 flex w-full flex-shrink-0 items-center justify-between gap-6">
+      <div className="sticky top-0 flex w-full flex-shrink-0 items-center justify-between gap-6" dir="rtl">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight text-primary">حصار</span>
         </Link>

@@ -145,6 +145,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
       <form
         ref={formRef}
         className="space-y-4"
+        dir="rtl"
         method="POST"
         action={`${API_BASE_URL}/auth/${mode === EAuthModes.SIGN_IN ? "sign-in" : "sign-up"}/`}
         onSubmit={async (event) => {
@@ -169,7 +170,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
         <input type="hidden" value={passwordFormData.email} name="email" />
         {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
         <div className="space-y-1">
-          <label htmlFor="email" className="text-13 font-medium text-tertiary">
+          <label htmlFor="email" className="block text-13 font-medium text-tertiary text-right">
             {t("auth.common.email.label")}
           </label>
           <div className={`relative flex items-center rounded-md border border-strong bg-surface-1`}>
@@ -180,13 +181,13 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               value={passwordFormData.email}
               onChange={(e) => handleFormChange("email", e.target.value)}
               placeholder={t("auth.common.email.placeholder")}
-              className={`h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder`}
+              className={`h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder text-right rtl:text-right pl-10 pr-3 rtl:pl-10 rtl:pr-3`}
               disabled
             />
             {passwordFormData.email.length > 0 && (
               <button
                 type="button"
-                className="absolute right-3 size-5"
+                className="absolute left-3 rtl:left-3 rtl:right-auto size-5"
                 onClick={handleEmailClear}
                 aria-label={t("aria_labels.auth_forms.clear_email")}
               >
@@ -197,7 +198,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-13 font-medium text-tertiary">
+          <label htmlFor="password" className="block text-13 font-medium text-tertiary text-right">
             {mode === EAuthModes.SIGN_IN ? t("auth.common.password.label") : t("auth.common.password.set_password")}
           </label>
           <div className="relative flex items-center rounded-md bg-surface-1">
@@ -208,7 +209,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               value={passwordFormData.password}
               onChange={(e) => handleFormChange("password", e.target.value)}
               placeholder={t("auth.common.password.placeholder")}
-              className="h-10 w-full border border-strong !bg-surface-1 pr-12 disable-autofill-style placeholder:text-placeholder"
+              className="h-10 w-full border border-strong !bg-surface-1 pl-12 pr-3 rtl:pl-12 rtl:pr-3 disable-autofill-style placeholder:text-placeholder text-right rtl:text-right"
               onFocus={() => setIsPasswordInputFocused(true)}
               onBlur={() => setIsPasswordInputFocused(false)}
               autoComplete="off"
@@ -217,7 +218,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
             <button
               type="button"
               onClick={() => handleShowPassword("password")}
-              className="absolute right-3 grid size-5 place-items-center"
+              className="absolute left-3 rtl:left-3 rtl:right-auto grid size-5 place-items-center"
               aria-label={t(
                 showPassword?.password ? "aria_labels.auth_forms.hide_password" : "aria_labels.auth_forms.show_password"
               )}
@@ -234,7 +235,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
 
         {mode === EAuthModes.SIGN_UP && (
           <div className="space-y-1">
-            <label htmlFor="confirm-password" className="text-13 font-medium text-tertiary">
+            <label htmlFor="confirm-password" className="block text-13 font-medium text-tertiary text-right">
               {t("auth.common.password.confirm_password.label")}
             </label>
             <div className="relative flex items-center rounded-md bg-surface-1">
@@ -245,14 +246,14 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
                 value={passwordFormData.confirm_password}
                 onChange={(e) => handleFormChange("confirm_password", e.target.value)}
                 placeholder={t("auth.common.password.confirm_password.placeholder")}
-                className="h-10 w-full border border-strong !bg-surface-1 pr-12 disable-autofill-style placeholder:text-placeholder"
+                className="h-10 w-full border border-strong !bg-surface-1 pl-12 pr-3 rtl:pl-12 rtl:pr-3 disable-autofill-style placeholder:text-placeholder text-right rtl:text-right"
                 onFocus={() => setIsRetryPasswordInputFocused(true)}
                 onBlur={() => setIsRetryPasswordInputFocused(false)}
                 autoComplete="off"
               />
               <button
                 type="button"
-                className="absolute right-3 grid size-5 place-items-center"
+                className="absolute left-3 rtl:left-3 rtl:right-auto grid size-5 place-items-center"
                 aria-label={t(
                   showPassword?.retypePassword
                     ? "aria_labels.auth_forms.hide_password"
@@ -270,7 +271,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
             {!!passwordFormData.confirm_password &&
               passwordFormData.password !== passwordFormData.confirm_password &&
               renderPasswordMatchError && (
-                <span className="text-13 text-danger-primary">{t("auth.common.password.errors.match")}</span>
+                <span className="block text-13 text-danger-primary text-right">{t("auth.common.password.errors.match")}</span>
               )}
           </div>
         )}
