@@ -9,263 +9,194 @@ import type { PageProps } from "@react-pdf/renderer";
 import { pdf } from "@react-pdf/renderer";
 import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router";
+// plane editor
 import type { EditorRefApi } from "@plane/editor";
+// plane ui
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
+// components
 import { PDFDocument } from "@/components/editor/pdf";
-import { buildDocxFromTree } from "@/components/pages/export/docx-builder";
-import { buildMarkdownZipFromTree } from "@/components/pages/export/markdown-zip";
-import {
-  buildCombinedHtml,
-  escapeHtml,
-  flattenExportTree,
-  injectLiveRootHtml,
-  retainMentionedPages,
-  rewritePageMentionsToBookmarks,
-  sanitizeHtmlForPdf,
-  pageTitleLooksRtl,
-  treeIsRtl,
-} from "@/components/pages/export/tree-utils";
-import { cachePageMentionName } from "@/components/editor/embeds/mentions/page-cache";
+// hooks
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-import { PageExportService } from "@/services/page/page-export.service";
-import type { TExportTree } from "@/services/page/page-export.service";
 
 type Props = {
   editorRef: EditorRefApi | null;
   isOpen: boolean;
   onClose: () => void;
   pageTitle: string;
-  /** When set, enables tree export (PDF/DOCX/MD zip with subpages). */
-  pageId?: string;
-  /** wiki = workspace pages; project = project pages */
-  exportContext?: "wiki" | "project";
-  /** Live editor RTL toggle — overrides API value for the root page. */
-  isRtl?: boolean;
 };
 
-type TExportFormats = "pdf" | "markdown" | "docx";
+type TExportFormats = "pdf" | "markdown";
 type TPageFormats = Exclude<PageProps["size"], undefined>;
 type TContentVariety = "everything" | "no-assets";
-type TExportScope = "this_page" | "page_and_subpages";
 
 type TFormValues = {
   export_format: TExportFormats;
   page_format: TPageFormats;
   content_variety: TContentVariety;
-  export_scope: TExportScope;
 };
 
-const EXPORT_FORMATS: { key: TExportFormats; label: string }[] = [
-  { key: "pdf", label: "PDF" },
-  { key: "docx", label: "Word (DOCX)" },
-  { key: "markdown", label: "Markdown (+ تصاویر)" },
+const EXPORT_FORMATS: {
+  key: TExportFormats;
+  label: string;
+}[] = [
+  {
+    key: "pdf",
+    label: "PDF",
+  },
+  {
+    key: "markdown",
+    label: "Markdown",
+  },
 ];
 
-const PAGE_FORMATS: { key: TPageFormats; label: string }[] = [
-  { key: "A4", label: "A4" },
-  { key: "A3", label: "A3" },
-  { key: "LETTER", label: "Letter" },
+const PAGE_FORMATS: {
+  key: TPageFormats;
+  label: string;
+}[] = [
+  {
+    key: "A4",
+    label: "A4",
+  },
+  {
+    key: "A3",
+    label: "A3",
+  },
+  {
+    key: "A2",
+    label: "A2",
+  },
+  {
+    key: "LETTER",
+    label: "Letter",
+  },
+  {
+    key: "LEGAL",
+    label: "Legal",
+  },
+  {
+    key: "TABLOID",
+    label: "Tabloid",
+  },
 ];
 
-const CONTENT_VARIETY: { key: TContentVariety; label: string }[] = [
-  { key: "everything", label: "همه چیز" },
-  { key: "no-assets", label: "بدون تصویر" },
-];
-
-const EXPORT_SCOPES: { key: TExportScope; label: string }[] = [
-  { key: "this_page", label: "فقط این صفحه" },
-  { key: "page_and_subpages", label: "این صفحه + صفحات فرعی" },
+const CONTENT_VARIETY: {
+  key: TContentVariety;
+  label: string;
+}[] = [
+  {
+    key: "everything",
+    label: "Everything",
+  },
+  {
+    key: "no-assets",
+    label: "No images",
+  },
 ];
 
 const defaultValues: TFormValues = {
   export_format: "pdf",
   page_format: "A4",
   content_variety: "everything",
-  export_scope: "page_and_subpages",
 };
 
-const exportService = new PageExportService();
-
-function initiateDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 export function ExportPageModal(props: Props) {
-  const { editorRef, isOpen, onClose, pageTitle, pageId, exportContext = "project", isRtl } = props;
+  const { editorRef, isOpen, onClose, pageTitle } = props;
+  // states
   const [isExporting, setIsExporting] = useState(false);
+  // params
   const { workspaceSlug, projectId } = useParams();
-  const { control, reset, watch } = useForm<TFormValues>({ defaultValues });
+  // form info
+  const { control, reset, watch } = useForm<TFormValues>({
+    defaultValues,
+  });
+  // parse editor content
   const { replaceCustomComponentsFromHTMLContent, replaceCustomComponentsFromMarkdownContent } = useParseEditorContent({
     projectId,
     workspaceSlug: workspaceSlug ?? "",
   });
-
+  // derived values
   const selectedExportFormat = watch("export_format");
   const selectedPageFormat = watch("page_format");
   const selectedContentVariety = watch("content_variety");
-  const selectedScope = watch("export_scope");
   const isPDFSelected = selectedExportFormat === "pdf";
-  const fileName =
-    pageTitle
-      ?.toLowerCase()
-      ?.replace(/[^a-z0-9-_آ-ی]/gi, "-")
-      .replace(/-+/g, "-") || "page";
-
+  const fileName = pageTitle
+    ?.toLowerCase()
+    ?.replace(/[^a-z0-9-_]/g, "-")
+    .replace(/-+/g, "-");
+  // handle modal close
   const handleClose = () => {
     onClose();
-    setTimeout(() => reset(), 300);
+    setTimeout(() => {
+      reset();
+    }, 300);
   };
 
-  const fetchTree = async () => {
-    if (!workspaceSlug || !pageId) throw new Error("missing page");
-    if (exportContext === "wiki") {
-      return exportService.fetchWikiTree(workspaceSlug.toString(), pageId);
-    }
-    if (!projectId) throw new Error("missing project");
-    return exportService.fetchProjectTree(workspaceSlug.toString(), projectId.toString(), pageId);
+  const initiateDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
   };
 
-  const scopeTree = (tree: TExportTree, liveHtml?: string | null): TExportTree => {
-    // Warm page-name cache for mention labels in export.
-    tree.pages.forEach((p) => {
-      if (p.id && p.name) cachePageMentionName(p.id, p.name);
-    });
-    if (selectedScope !== "this_page") return tree;
-    return retainMentionedPages(tree, liveHtml);
-  };
-
-  const prepareTree = async (): Promise<TExportTree> => {
-    if (!pageId) throw new Error("missing page");
-    const liveHtml = editorRef?.getDocument()?.html;
-    const withLive = injectLiveRootHtml(await fetchTree(), liveHtml, pageTitle, isRtl);
-    return scopeTree(withLive, liveHtml);
-  };
-
-  const webBaseUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/${workspaceSlug || ""}${
-          exportContext === "wiki" ? "/wiki" : projectId ? `/projects/${projectId}/pages` : "/wiki"
-        }`
-      : "";
-
+  // handle export as a PDF
   const handleExportAsPDF = async () => {
-    if (pageId) {
-      const tree = await prepareTree();
-      const combined =
-        selectedScope === "page_and_subpages"
-          ? buildCombinedHtml(tree, { includeToc: true, webBaseUrl })
-          : (() => {
-              const root = flattenExportTree(tree)[0];
-              const title = root?.name || pageTitle;
-              const titleRtl = pageTitleLooksRtl(title, root?.description_html);
-              const body = rewritePageMentionsToBookmarks(root?.description_html || "<p></p>", tree.pages, titleRtl, {
-                webBaseUrl,
-              });
-              // Include sibling/mentioned page sections so #bookmarks resolve in PDF.
-              const extras = flattenExportTree(tree)
-                .slice(1)
-                .map((p) => {
-                  const pTitle = p.name || title;
-                  const pTitleRtl = pageTitleLooksRtl(pTitle, p.description_html);
-                  const pBody = rewritePageMentionsToBookmarks(p.description_html || "<p></p>", tree.pages, pTitleRtl, {
-                    webBaseUrl,
-                  });
-                  return `<div id="${p.bookmark_id}"><h1 class="page-title" dir="${pTitleRtl ? "rtl" : "ltr"}" style="direction:${pTitleRtl ? "rtl" : "ltr"};text-align:${pTitleRtl ? "right" : "left"}">${escapeHtml(pTitle)}</h1>${pBody}</div>`;
-                })
-                .join("\n");
-              const rootId = root?.bookmark_id ? ` id="${root.bookmark_id}"` : "";
-              return sanitizeHtmlForPdf(
-                `<div${rootId}><h1 class="page-title" dir="${titleRtl ? "rtl" : "ltr"}" style="direction:${titleRtl ? "rtl" : "ltr"};text-align:${titleRtl ? "right" : "left"}">${escapeHtml(title)}</h1>${body}</div>${extras}`
-              );
-            })();
-      const parsed = await replaceCustomComponentsFromHTMLContent({
-        htmlContent: combined,
+    try {
+      const pageContent = `<h1 class="page-title">${pageTitle}</h1>${editorRef?.getDocument().html ?? "<p></p>"}`;
+      const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
+        htmlContent: pageContent,
         noAssets: selectedContentVariety === "no-assets",
       });
-      const blob = await pdf(
-        <PDFDocument content={sanitizeHtmlForPdf(parsed)} pageFormat={selectedPageFormat} isRtl={treeIsRtl(tree)} />
-      ).toBlob();
-      initiateDownload(blob, selectedScope === "page_and_subpages" ? `${fileName}-tree.pdf` : `${fileName}.pdf`);
-      return;
+
+      const blob = await pdf(<PDFDocument content={parsedPageContent} pageFormat={selectedPageFormat} />).toBlob();
+      initiateDownload(blob, `${fileName}-${selectedPageFormat.toString().toLowerCase()}.pdf`);
+    } catch (error) {
+      throw new Error(`Error in exporting as a PDF: ${error}`, { cause: error });
     }
-
-    const liveHtml = editorRef?.getDocument()?.html ?? "<p></p>";
-    const titleRtl = pageTitleLooksRtl(pageTitle, liveHtml);
-    const contentRtl = Boolean(isRtl) || /dir=["']rtl["']/i.test(liveHtml);
-    const pageContent = sanitizeHtmlForPdf(
-      `<div><h1 class="page-title" dir="${titleRtl ? "rtl" : "ltr"}" style="direction:${titleRtl ? "rtl" : "ltr"};text-align:${titleRtl ? "right" : "left"}">${escapeHtml(pageTitle)}</h1>${liveHtml}</div>`
-    );
-    const parsedPageContent = await replaceCustomComponentsFromHTMLContent({
-      htmlContent: pageContent,
-      noAssets: selectedContentVariety === "no-assets",
-    });
-    const blob = await pdf(
-      <PDFDocument content={sanitizeHtmlForPdf(parsedPageContent)} pageFormat={selectedPageFormat} isRtl={contentRtl} />
-    ).toBlob();
-    initiateDownload(blob, `${fileName}.pdf`);
   };
-
+  // handle export as markdown
   const handleExportAsMarkdown = async () => {
-    if (pageId) {
-      const tree = await prepareTree();
-      const blob = await buildMarkdownZipFromTree(tree);
-      initiateDownload(blob, `${fileName}-export.zip`);
-      return;
-    }
-    const liveMd = editorRef?.getMarkDown() ?? "";
-    const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
-      markdownContent: liveMd,
-      noAssets: selectedContentVariety === "no-assets",
-    });
-    const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
-    initiateDownload(blob, `${fileName}.md`);
-  };
+    try {
+      const markdownContent = editorRef?.getMarkDown() ?? "";
+      const parsedMarkdownContent = replaceCustomComponentsFromMarkdownContent({
+        markdownContent,
+        noAssets: selectedContentVariety === "no-assets",
+      });
 
-  const handleExportAsDocx = async () => {
-    if (!pageId) {
-      const html = editorRef?.getDocument()?.html ?? "<p></p>";
-      const tree: TExportTree = {
-        root: "current",
-        pages: [
-          {
-            id: "current",
-            name: pageTitle,
-            parent: null,
-            description_html: html,
-            description_json: {},
-            children_ids: [],
-            bookmark_id: "page_current",
-            is_rtl: Boolean(isRtl),
-          },
-        ],
-      };
-      const blob = await buildDocxFromTree(tree, { webBaseUrl });
-      initiateDownload(blob, `${fileName}.docx`);
-      return;
+      const blob = new Blob([parsedMarkdownContent], { type: "text/markdown" });
+      initiateDownload(blob, `${fileName}.md`);
+    } catch (error) {
+      throw new Error(`Error in exporting as markdown: ${error}`, { cause: error });
     }
-    const tree = await prepareTree();
-    const blob = await buildDocxFromTree(tree, { webBaseUrl });
-    initiateDownload(blob, `${fileName}.docx`);
   };
-
+  // handle export
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      if (selectedExportFormat === "pdf") await handleExportAsPDF();
-      if (selectedExportFormat === "markdown") await handleExportAsMarkdown();
-      if (selectedExportFormat === "docx") await handleExportAsDocx();
-      setToast({ type: TOAST_TYPE.SUCCESS, title: "موفق", message: "خروجی آماده شد." });
+      if (selectedExportFormat === "pdf") {
+        await handleExportAsPDF();
+      }
+      if (selectedExportFormat === "markdown") {
+        await handleExportAsMarkdown();
+      }
+      setToast({
+        type: TOAST_TYPE.SUCCESS,
+        title: "Success!",
+        message: "Page exported successfully.",
+      });
       handleClose();
     } catch (error) {
-      console.error(error);
-      setToast({ type: TOAST_TYPE.ERROR, title: "خطا", message: "خروجی گرفته نشد." });
+      console.error("Error in exporting page:", error);
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: "Error!",
+        message: "Page could not be exported. Please try again later.",
+      });
     } finally {
       setIsExporting(false);
     }
@@ -275,16 +206,16 @@ export function ExportPageModal(props: Props) {
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.SM}>
       <div>
         <div className="space-y-5 p-5">
-          <h3 className="text-18 font-medium text-secondary">خروجی صفحه</h3>
+          <h3 className="text-18 font-medium text-secondary">Export page</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">فرمت</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">Export format</h6>
               <Controller
                 control={control}
                 name="export_format"
                 render={({ field: { onChange, value } }) => (
                   <CustomSelect
-                    label={EXPORT_FORMATS.find((f) => f.key === value)?.label}
+                    label={EXPORT_FORMATS.find((format) => format.key === value)?.label}
                     buttonClassName="border-none"
                     value={value}
                     onChange={(val: TExportFormats) => onChange(val)}
@@ -300,39 +231,14 @@ export function ExportPageModal(props: Props) {
                 )}
               />
             </div>
-            {pageId && (
-              <div className="flex items-center justify-between gap-2">
-                <h6 className="flex-shrink-0 text-13 text-secondary">محدوده</h6>
-                <Controller
-                  control={control}
-                  name="export_scope"
-                  render={({ field: { onChange, value } }) => (
-                    <CustomSelect
-                      label={EXPORT_SCOPES.find((s) => s.key === value)?.label}
-                      buttonClassName="border-none"
-                      value={value}
-                      onChange={(val: TExportScope) => onChange(val)}
-                      className="flex-shrink-0"
-                      placement="bottom-end"
-                    >
-                      {EXPORT_SCOPES.map((s) => (
-                        <CustomSelect.Option key={s.key} value={s.key}>
-                          {s.label}
-                        </CustomSelect.Option>
-                      ))}
-                    </CustomSelect>
-                  )}
-                />
-              </div>
-            )}
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">محتوا</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">Include content</h6>
               <Controller
                 control={control}
                 name="content_variety"
                 render={({ field: { onChange, value } }) => (
                   <CustomSelect
-                    label={CONTENT_VARIETY.find((v) => v.key === value)?.label}
+                    label={CONTENT_VARIETY.find((variety) => variety.key === value)?.label}
                     buttonClassName="border-none"
                     value={value}
                     onChange={(val: TContentVariety) => onChange(val)}
@@ -350,13 +256,13 @@ export function ExportPageModal(props: Props) {
             </div>
             {isPDFSelected && (
               <div className="flex items-center justify-between gap-2">
-                <h6 className="flex-shrink-0 text-13 text-secondary">اندازه صفحه</h6>
+                <h6 className="flex-shrink-0 text-13 text-secondary">Page format</h6>
                 <Controller
                   control={control}
                   name="page_format"
                   render={({ field: { onChange, value } }) => (
                     <CustomSelect
-                      label={PAGE_FORMATS.find((f) => f.key === value)?.label}
+                      label={PAGE_FORMATS.find((format) => format.key === value)?.label}
                       buttonClassName="border-none"
                       value={value}
                       onChange={(val: TPageFormats) => onChange(val)}
@@ -377,10 +283,10 @@ export function ExportPageModal(props: Props) {
         </div>
         <div className="flex items-center justify-end gap-2 border-t-[0.5px] border-subtle px-5 py-4">
           <Button variant="secondary" size="lg" onClick={handleClose}>
-            انصراف
+            Cancel
           </Button>
           <Button variant="primary" size="lg" loading={isExporting} onClick={handleExport}>
-            {isExporting ? "در حال خروجی…" : "خروجی"}
+            {isExporting ? "Exporting" : "Export"}
           </Button>
         </div>
       </div>

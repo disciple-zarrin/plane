@@ -25,6 +25,5 @@ export * from "./keymap";
 export * from "./quote";
 export * from "./side-menu";
 export * from "./text-align";
-export * from "./text-direction";
 export * from "./custom-synced-block";
 export * from "./utility";
