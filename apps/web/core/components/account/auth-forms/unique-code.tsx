@@ -82,6 +82,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
   return (
     <form
       className="space-y-4"
+      dir="rtl"
       method="POST"
       action={`${API_BASE_URL}/auth/${mode === EAuthModes.SIGN_IN ? "magic-sign-in" : "magic-sign-up"}/`}
       onSubmit={() => {
@@ -95,7 +96,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
       <input type="hidden" value={uniqueCodeFormData.email} name="email" />
       {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
       <div className="space-y-1">
-        <label htmlFor="email" className="text-13 font-medium text-tertiary">
+        <label htmlFor="email" className="block text-13 font-medium text-tertiary text-right">
           {t("auth.common.email.label")}
         </label>
         <div className={`relative flex items-center rounded-md border border-strong bg-surface-1`}>
@@ -106,14 +107,14 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
             value={uniqueCodeFormData.email}
             onChange={(e) => handleFormChange("email", e.target.value)}
             placeholder={t("auth.common.email.placeholder")}
-            className="h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder"
+            className="h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder text-right rtl:text-right pl-10 pr-3 rtl:pl-10 rtl:pr-3"
             autoComplete="off"
             disabled
           />
           {uniqueCodeFormData.email.length > 0 && (
             <button
               type="button"
-              className="absolute right-3 grid size-5 place-items-center"
+              className="absolute left-3 rtl:left-3 rtl:right-auto grid size-5 place-items-center"
               aria-label={t("aria_labels.auth_forms.clear_email")}
               onClick={handleEmailClear}
             >
@@ -124,7 +125,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="unique-code" className="text-13 font-medium text-tertiary">
+        <label htmlFor="unique-code" className="block text-13 font-medium text-tertiary text-right">
           {t("auth.common.unique_code.label")}
         </label>
         <Input
@@ -133,7 +134,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
           value={uniqueCodeFormData.code}
           onChange={(e) => handleFormChange("code", e.target.value)}
           placeholder={t("auth.common.unique_code.placeholder")}
-          className="h-10 w-full border border-strong !bg-surface-1 pr-12 disable-autofill-style placeholder:text-placeholder"
+          className="h-10 w-full border border-strong !bg-surface-1 px-3 text-center tracking-widest disable-autofill-style placeholder:text-placeholder"
           autoComplete="off"
           autoFocus
         />
