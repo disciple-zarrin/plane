@@ -87,8 +87,8 @@ export function SetPasswordRoot({ onPasswordChange, onConfirmPasswordChange, dis
       >
         <div className="flex items-center gap-1 text-tertiary">
           <LockIcon className="size-3" />
-          <span className="font-medium">Set a password</span>
-          <span>{`(Optional)`}</span>
+          <span className="font-medium">تعیین رمز عبور</span>
+          <span>{`(اختیاری)`}</span>
         </div>
         <div className="flex items-center gap-2 text-placeholder">
           <ChevronDownIcon className={chevronIconClasses} />
@@ -102,16 +102,16 @@ export function SetPasswordRoot({ onPasswordChange, onConfirmPasswordChange, dis
             id="password"
             value={passwordState.password}
             onChange={(value) => handlePasswordChange("password", value)}
-            placeholder="Set a password"
-            className="transition-all duration-200"
+            placeholder="تعیین رمز عبور"
+            className="transition-all duration-200 text-right"
           />
           {passwordState.password.length > 0 && <PasswordStrengthIndicator password={passwordState.password} />}
         </div>
 
         <div className="flex flex-col gap-2 pb-2">
           {/* Confirm password label */}
-          <div className="transform text-13 font-medium text-tertiary transition-all delay-75 duration-300 ease-in-out">
-            Confirm password
+          <div className="transform text-13 font-medium text-tertiary transition-all delay-75 duration-300 ease-in-out text-right">
+            تکرار رمز عبور
           </div>
 
           {/* Confirm password input */}
@@ -120,11 +120,11 @@ export function SetPasswordRoot({ onPasswordChange, onConfirmPasswordChange, dis
               id="confirm-password"
               value={passwordState.confirmPassword}
               onChange={(value) => handlePasswordChange("confirmPassword", value)}
-              placeholder="Confirm password"
-              className="transition-all duration-200"
+              placeholder="تکرار رمز عبور"
+              className="transition-all duration-200 text-right"
             />
-            {hasPasswordMismatch && <p className="mt-1 text-11 text-danger-primary">Passwords do not match</p>}
-            {isPasswordValid && <p className="mt-1 text-11 text-success-primary">✓ Passwords match</p>}
+            {hasPasswordMismatch && <p className="mt-1 text-11 text-danger-primary text-right">رمزهای عبور مطابقت ندارند</p>}
+            {isPasswordValid && <p className="mt-1 text-11 text-success-primary text-right">✓ رمزهای عبور مطابقت دارند</p>}
           </div>
         </div>
       </div>

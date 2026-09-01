@@ -116,14 +116,14 @@ export function WorkItemSelectionPage(props: Props) {
                 })
               );
             }}
-            emptyText="Search for issue id or issue title"
+            emptyText="جستجو بر اساس شناسه یا عنوان کار"
           />
         ) : (
-          <div className="px-3 py-8 text-center text-13 text-tertiary">Search for issue id or issue title</div>
+          <div className="px-3 py-8 text-center text-13 text-tertiary">جستجو بر اساس شناسه یا عنوان کار</div>
         )
       ) : issueResults.length > 0 ? (
         <CommandPaletteEntityList
-          heading="Issues"
+          heading="کارها"
           items={issueResults}
           getKey={(issue) => issue.id}
           getLabel={(issue) => `${issue.project__identifier}-${issue.sequence_id} ${issue.name}`}
