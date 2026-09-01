@@ -23,11 +23,12 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
         // Apply the document direction for the initial language so RTL locales
         // (e.g. Persian) render mirrored on first load, not only after a switch.
         if (typeof window !== "undefined") {
-          const lng = (i18nInstance.language || "en") as TLanguage;
+          const lng = (i18nInstance.language || "fa") as TLanguage;
           document.documentElement.lang = lng;
           document.documentElement.dir = getLanguageDirection(lng);
         }
         setIsReady(true);
+        return null;
       })
       .catch((err) => {
         console.error("Failed to initialize i18n:", err);
