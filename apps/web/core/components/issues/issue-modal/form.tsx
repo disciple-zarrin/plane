@@ -360,7 +360,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
             className="flex w-full flex-col"
           >
             <div className="rounded-t-lg bg-surface-1 p-5">
-              <h3 className="pb-2 text-h4-medium text-secondary">{modalTitle}</h3>
+              <h3 className="pb-2 text-h4-medium text-secondary text-start">{modalTitle}</h3>
               <div className="flex items-center justify-between pt-2 pb-4">
                 <div className="flex items-center gap-x-1">
                   <IssueProjectSelect
@@ -442,10 +442,10 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
               </div>
               {showActionButtons && (
                 <div
-                  className="flex items-center justify-end gap-4 border-t-[0.5px] border-subtle pt-6 pb-3"
+                  className="flex items-center justify-between gap-4 border-t-[0.5px] border-subtle pt-6 pb-3"
                   tabIndex={getIndex("create_more")}
                 >
-                  {!data?.id && (
+                  {!data?.id ? (
                     <div
                       className="inline-flex cursor-pointer items-center gap-1.5"
                       onClick={() => onCreateMoreToggleChange(!isCreateMoreToggleEnabled)}
@@ -457,6 +457,8 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
                       <ToggleSwitch value={isCreateMoreToggleEnabled} onChange={() => {}} size="sm" />
                       <span className="text-caption-sm-regular">{t("create_more")}</span>
                     </div>
+                  ) : (
+                    <div />
                   )}
                   <div className="flex items-center gap-2">
                     <div tabIndex={getIndex("discard_button")}>
