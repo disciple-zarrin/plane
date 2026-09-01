@@ -115,109 +115,97 @@ const errorCodeMessages: {
 } = {
   // global
   [EAuthenticationErrorCodes.INSTANCE_NOT_CONFIGURED]: {
-    title: `Instance not configured`,
-    message: () => `Instance not configured. Please contact your administrator.`,
+    title: `سیستم پیکربندی نشده است`,
+    message: () => `سامانه پیکربندی نشده است. لطفاً با مدیر سیستم تماس بگیرید.`,
   },
   [EAuthenticationErrorCodes.INVALID_EMAIL]: {
-    title: `Invalid email`,
-    message: () => `Invalid email. Please try again.`,
+    title: `ایمیل نامعتبر است`,
+    message: () => `فرمت ایمیل وارد شده صحیح نیست. لطفاً مجدداً بررسی کنید.`,
   },
   [EAuthenticationErrorCodes.EMAIL_REQUIRED]: {
-    title: `Email required`,
-    message: () => `Email required. Please try again.`,
+    title: `ورود ایمیل الزامی است`,
+    message: () => `لطفاً آدرس ایمیل خود را وارد کنید.`,
   },
   [EAuthenticationErrorCodes.SIGNUP_DISABLED]: {
-    title: `Sign up disabled`,
-    message: () => `Sign up disabled. Please contact your administrator.`,
+    title: `ثبت‌نام عمومی غیرفعال است`,
+    message: () => `امکان ثبت‌نام مستقیم وجود ندارد. عضویت در سامانه فقط از طریق لینک دعوت‌نامه امکان‌پذیر است.`,
   },
   [EAuthenticationErrorCodes.MAGIC_LINK_LOGIN_DISABLED]: {
-    title: `Magic link login disabled`,
-    message: () => `Magic link login disabled. Please contact your administrator.`,
+    title: `ورود با لینک جادویی غیرفعال است`,
+    message: () => `امکان ورود با کد یکتا غیرفعال شده است. لطفاً از رمز عبور استفاده فرمایید.`,
   },
   [EAuthenticationErrorCodes.PASSWORD_LOGIN_DISABLED]: {
-    title: `Password login disabled`,
-    message: () => `Password login disabled. Please contact your administrator.`,
+    title: `ورود با رمز عبور غیرفعال است`,
+    message: () => `ورود با رمز عبور غیرفعال شده است. لطفاً با مدیر سیستم تماس بگیرید.`,
   },
   [EAuthenticationErrorCodes.USER_ACCOUNT_DEACTIVATED]: {
-    title: `User account deactivated`,
-    message: () => `User account deactivated. Please contact ${SUPPORT_EMAIL ? SUPPORT_EMAIL : "administrator"}.`,
+    title: `حساب کاربری غیرفعال شده است`,
+    message: () => `حساب کاربری شما غیرفعال است. لطفاً با مدیر سامانه تماس بگیرید.`,
   },
   [EAuthenticationErrorCodes.BOT_USER_LOGIN_FORBIDDEN]: {
-    title: `Sign in not allowed`,
-    message: () => `This account cannot be used to sign in. Please use a personal account.`,
+    title: `ورود مجاز نیست`,
+    message: () => `این حساب برای ورود مجاز نمی‌باشد.`,
   },
   [EAuthenticationErrorCodes.INVALID_PASSWORD]: {
-    title: `Invalid password`,
-    message: () => `Invalid password. Please try again.`,
+    title: `رمز عبور اشتباه است`,
+    message: () => `رمز عبور وارد شده صحیح نمی‌باشد. لطفاً مجدداً امتحان کنید.`,
   },
   [EAuthenticationErrorCodes.PASSWORD_TOO_WEAK]: {
-    title: `Password too weak`,
-    message: () => `Please use a stronger password.`,
+    title: `رمز عبور ضعیف است`,
+    message: () => `لطفاً از رمز عبور قوی‌تری شامل حروف، ارقام و نمادها استفاده فرمایید.`,
   },
   [EAuthenticationErrorCodes.SMTP_NOT_CONFIGURED]: {
-    title: `SMTP not configured`,
-    message: () => `SMTP not configured. Please contact your administrator.`,
+    title: `سرویس ایمیل تنظیم نشده است`,
+    message: () => `سرویس ارسال ایمیل پیکربندی نشده است. لطفاً با مدیر سیستم تماس بگیرید.`,
   },
 
   // sign up
   [EAuthenticationErrorCodes.USER_ALREADY_EXIST]: {
-    title: `User already exists`,
+    title: `حساب کاربری قبلاً ایجاد شده است`,
     message: (email = undefined) => (
       <div>
-        Your account is already registered.&nbsp;
+        این ایمیل از قبل ثبت شده است.&nbsp;
         <Link
           className="font-medium underline underline-offset-4 transition-all hover:font-bold"
           href={`/sign-in${email ? `?email=${encodeURIComponent(email)}` : ``}`}
         >
-          Sign In
+          ورود به حساب
         </Link>
-        &nbsp;now.
       </div>
     ),
   },
   [EAuthenticationErrorCodes.REQUIRED_EMAIL_PASSWORD_SIGN_UP]: {
-    title: `Email and password required`,
-    message: () => `Email and password required. Please try again.`,
+    title: `ایمیل و رمز عبور الزامی است`,
+    message: () => `لطفاً ایمیل و رمز عبور را وارد کنید.`,
   },
   [EAuthenticationErrorCodes.AUTHENTICATION_FAILED_SIGN_UP]: {
-    title: `Authentication failed`,
-    message: () => `Authentication failed. Please try again.`,
+    title: `خطا در ایجاد حساب`,
+    message: () => `ثبت‌نام با خطا مواجه شد. لطفاً مجدداً تلاش فرمایید.`,
   },
   [EAuthenticationErrorCodes.INVALID_EMAIL_SIGN_UP]: {
-    title: `Invalid email`,
-    message: () => `Invalid email. Please try again.`,
+    title: `ایمیل نامعتبر است`,
+    message: () => `ایمیل وارد شده معتبر نمی‌باشد.`,
   },
   [EAuthenticationErrorCodes.MAGIC_SIGN_UP_EMAIL_CODE_REQUIRED]: {
-    title: `Email and code required`,
-    message: () => `Email and code required. Please try again.`,
+    title: `کد یکتا الزامی است`,
+    message: () => `لطفاً کد ارسال‌شده را وارد فرمایید.`,
   },
   [EAuthenticationErrorCodes.INVALID_EMAIL_MAGIC_SIGN_UP]: {
-    title: `Invalid email`,
-    message: () => `Invalid email. Please try again.`,
+    title: `ایمیل نامعتبر است`,
+    message: () => `ایمیل وارد شده معتبر نمی‌باشد.`,
   },
 
   [EAuthenticationErrorCodes.USER_DOES_NOT_EXIST]: {
-    title: `User does not exist`,
-    message: (email = undefined) => (
-      <div>
-        No account found.&nbsp;
-        <Link
-          className="font-medium underline underline-offset-4 transition-all hover:font-bold"
-          href={`/${email ? `?email=${encodeURIComponent(email)}` : ``}`}
-        >
-          Create one
-        </Link>
-        &nbsp;to get started.
-      </div>
-    ),
+    title: `کاربری با این ایمیل یافت نشد`,
+    message: () => `حساب کاربری با این مشخصات وجود ندارد. برای عضویت لطفاً با مدیر سیستم تماس بگیرید.`,
   },
   [EAuthenticationErrorCodes.REQUIRED_EMAIL_PASSWORD_SIGN_IN]: {
-    title: `Email and password required`,
-    message: () => `Email and password required. Please try again.`,
+    title: `ایمیل و رمز عبور الزامی است`,
+    message: () => `لطفاً ایمیل و رمز عبور را وارد کنید.`,
   },
   [EAuthenticationErrorCodes.AUTHENTICATION_FAILED_SIGN_IN]: {
-    title: `Authentication failed`,
-    message: () => `Authentication failed. Please try again.`,
+    title: `خطا در ورود`,
+    message: () => `اطلاعات ورود اشتباه است. لطفاً ایمیل و رمز عبور خود را بررسی کنید.`,
   },
   [EAuthenticationErrorCodes.INVALID_EMAIL_SIGN_IN]: {
     title: `Invalid email`,
