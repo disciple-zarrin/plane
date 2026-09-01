@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { ImageIcon, RotateCcw } from "lucide-react";
+import { ImageIcon, RotateCcw, Upload, Link2, Loader2, ArrowRight } from "lucide-react";
 import type { ChangeEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 // plane imports
 import { cn } from "@plane/utils";
 // constants
@@ -43,21 +43,25 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
     updateAttributes,
     hasDuplicationFailed,
   } = props;
-  // refs
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasTriggeredFilePickerRef = useRef(false);
   const hasTriedUploadingOnMountRef = useRef(false);
   const { id: imageEntityId } = node.attrs;
-  // derived values
+
+  const [activeTab, setActiveTab] = useState<"upload" | "embed">("upload");
+  const [embedUrl, setEmbedUrl] = useState("");
+  const [uploadPercent, setUploadPercent] = useState(0);
+
   const imageComponentImageFileMap = useMemo(() => getImageComponentImageFileMap(editor), [editor]);
-  const isTouchDevice = !!editor.storage.utility.isTouchDevice;
+  const isTouchDevice = !editor.storage.utility.isTouchDevice;
 
   const onUpload = useCallback(
     (url: string) => {
       if (url) {
         if (!imageEntityId) return;
+        setUploadPercent(100);
         setIsUploaded(true);
-        // Update the node view's src attribute post upload
         updateAttributes({
           src: url,
           status: ECustomImageStatus.UPLOADED,
@@ -65,39 +69,52 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
         imageComponentImageFileMap?.delete(imageEntityId);
 
         const pos = getPos();
-        // get current node
         const getCurrentSelection = editor.state.selection;
         const currentNode = editor.state.doc.nodeAt(getCurrentSelection.from);
 
-        // only if the cursor is at the current image component, manipulate
-        // the cursor position
         if (
           currentNode &&
           currentNode.type.name === node.type.name &&
           currentNode.attrs.src === url &&
           pos !== undefined
         ) {
-          // control cursor position after upload
           const nextNode = editor.state.doc.nodeAt(pos + 1);
 
           if (nextNode && nextNode.type.name === CORE_EXTENSIONS.PARAGRAPH) {
-            // If there is a paragraph node after the image component, move the focus to the next node
             editor.commands.setTextSelection(pos + 1);
           } else {
-            // create a new paragraph after the image component post upload
             editor.commands.createParagraphNear();
           }
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [imageComponentImageFileMap, imageEntityId, updateAttributes, getPos]
+    [imageComponentImageFileMap, imageEntityId, updateAttributes, getPos, editor, node.type.name, setIsUploaded]
   );
 
   const uploadImageEditorCommand = useCallback(
     async (file: File) => {
+      setUploadPercent(10);
       updateAttributes({ status: ECustomImageStatus.UPLOADING });
-      return await extension.options.uploadImage?.(imageEntityId ?? "", file);
+
+      const progressInterval = setInterval(() => {
+        setUploadPercent((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 15;
+        });
+      }, 150);
+
+      try {
+        const res = await extension.options.uploadImage?.(imageEntityId ?? "", file);
+        clearInterval(progressInterval);
+        setUploadPercent(100);
+        return res;
+      } catch (err) {
+        clearInterval(progressInterval);
+        throw err;
+      }
     },
     [extension.options, imageEntityId, updateAttributes]
   );
@@ -113,7 +130,6 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
     alert(message);
   }, []);
 
-  // hooks
   const { isUploading: isImageBeingUploaded, uploadFile } = useUploader({
     acceptedMimeTypes: ACCEPTED_IMAGE_MIME_TYPES,
     editorCommand: uploadImageEditorCommand,
@@ -131,12 +147,9 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
     uploader: uploadFile,
   });
 
-  // after the image component is mounted we start the upload process based on
-  // it's uploaded
   useEffect(() => {
     if (hasTriedUploadingOnMountRef.current) return;
 
-    // the meta data of the image component
     const meta = imageComponentImageFileMap?.get(imageEntityId ?? "");
     if (meta) {
       if (meta.event === "drop" && "file" in meta) {
@@ -174,29 +187,27 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
     [uploadFile, editor, getPos]
   );
 
+  const handleEmbedSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (!embedUrl.trim()) return;
+
+      const trimmed = embedUrl.trim();
+      setIsUploaded(true);
+      updateAttributes({
+        src: trimmed,
+        status: ECustomImageStatus.UPLOADED,
+      });
+    },
+    [embedUrl, setIsUploaded, updateAttributes]
+  );
+
   const isErrorState = failedToLoadImage || hasDuplicationFailed;
 
   const borderColor =
     selected && editor.isEditable && !isErrorState
       ? "color-mix(in srgb, var(--border-color-accent-strong) 20%, transparent)"
       : undefined;
-
-  const getDisplayMessage = useCallback(() => {
-    const isUploading = isImageBeingUploaded;
-    if (isErrorState) {
-      return "Error loading image";
-    }
-
-    if (isUploading) {
-      return "Uploading...";
-    }
-
-    if (draggedInside && editor.isEditable) {
-      return "Drop image here";
-    }
-
-    return "Add an image";
-  }, [draggedInside, editor.isEditable, isErrorState, isImageBeingUploaded]);
 
   const handleRetryClick = useCallback(
     (e: React.MouseEvent) => {
@@ -211,57 +222,157 @@ export function CustomImageUploader(props: CustomImageUploaderProps) {
   return (
     <div
       className={cn(
-        "image-upload-component flex cursor-default items-center justify-start gap-2 rounded-lg border border-dashed bg-layer-3 px-2 py-3 text-tertiary transition-all duration-200 ease-in-out",
+        "image-upload-component my-3 flex w-full max-w-2xl flex-col overflow-hidden rounded-xl border bg-layer-1 text-tertiary transition-all duration-200 ease-in-out",
         {
           "border-subtle": !(selected && editor.isEditable && !isErrorState),
-          "cursor-pointer hover:bg-layer-3-hover hover:text-secondary": editor.isEditable && !isErrorState,
-          "bg-layer-3-hover text-secondary": draggedInside && editor.isEditable && !isErrorState,
-          "bg-accent-primary/10 text-accent-secondary hover:bg-accent-primary/10 hover:text-accent-secondary":
-            selected && editor.isEditable && !isErrorState,
-          "cursor-default bg-danger-subtle text-danger-primary": isErrorState,
-          "hover:bg-danger-subtle-hover hover:text-danger-primary": isErrorState && editor.isEditable,
-          "bg-danger-subtle-selected": isErrorState && selected,
-          "hover:bg-danger-subtle-active": isErrorState && selected && editor.isEditable,
+          "ring-accent-primary border-transparent ring-2": selected && editor.isEditable && !isErrorState,
+          "border-danger-primary bg-danger-primary/5 text-danger-primary": isErrorState,
         }
       )}
       style={borderColor ? { borderColor } : undefined}
-      onDrop={onDrop}
-      onDragOver={onDragEnter}
-      onDragLeave={onDragLeave}
       contentEditable={false}
-      onClick={() => {
-        if (!failedToLoadImage && editor.isEditable && !hasDuplicationFailed) {
-          fileInputRef.current?.click();
-        }
-      }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
-      <ImageIcon className="size-4" />
-      <div className="flex-1 text-14 font-medium">{getDisplayMessage()}</div>
-      {hasDuplicationFailed && editor.isEditable && (
-        <button
-          type="button"
-          onClick={handleRetryClick}
+      {/* Tab Navigation */}
+      {!isImageBeingUploaded && !isErrorState && (
+        <div className="text-xs flex items-center border-b border-subtle bg-layer-2 px-3 py-1.5 select-none">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => setActiveTab("upload")}
+              className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
+                "shadow-sm bg-layer-1 text-primary": activeTab === "upload",
+                "text-tertiary hover:text-secondary": activeTab !== "upload",
+              })}
+            >
+              <Upload className="size-3.5" />
+              <span>بارگذاری تصویر (Upload)</span>
+            </button>
+
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => setActiveTab("embed")}
+              className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors", {
+                "shadow-sm bg-layer-1 text-primary": activeTab === "embed",
+                "text-tertiary hover:text-secondary": activeTab !== "embed",
+              })}
+            >
+              <Link2 className="size-3.5" />
+              <span>آدرس تصویر (Image URL)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      {isImageBeingUploaded ? (
+        /* Progress Bar View */
+        <div className="flex flex-col gap-3 p-4">
+          <div className="text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2 font-medium text-primary">
+              <Loader2 className="size-4 animate-spin text-accent-primary" />
+              <span>در حال بارگذاری تصویر...</span>
+            </div>
+            <span className="font-semibold text-accent-primary">{uploadPercent}%</span>
+          </div>
+
+          <div className="h-2 w-full overflow-hidden rounded-full bg-layer-3">
+            <div
+              className="h-full bg-accent-primary transition-all duration-300 ease-out"
+              style={{ width: `${uploadPercent}%` }}
+            />
+          </div>
+        </div>
+      ) : activeTab === "upload" ? (
+        /* Upload Dropzone Tab */
+        <div
           className={cn(
-            "flex items-center gap-1 rounded-md px-2 py-1 font-medium text-danger-primary transition-all duration-200 ease-in-out hover:bg-danger-subtle-hover",
+            "flex cursor-pointer flex-col items-center justify-center gap-2 p-6 transition-colors hover:bg-layer-2/50",
             {
-              "hover:bg-danger-subtle-hover": selected,
+              "bg-layer-3/50 text-secondary": draggedInside && editor.isEditable && !isErrorState,
             }
           )}
-          title="Retry duplication"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isTouchDevice && editor.isEditable && !isErrorState) {
+              fileInputRef.current?.click();
+            }
+          }}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={onDrop}
         >
-          <RotateCcw className="size-3" />
-          <span className="text-11">Retry</span>
-        </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept={ACCEPTED_IMAGE_MIME_TYPES.join(",")}
+            onChange={onFileChange}
+          />
+
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-layer-2 text-tertiary">
+            {hasDuplicationFailed ? (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={handleRetryClick}
+                className="grid place-items-center p-1 text-danger-primary"
+              >
+                <RotateCcw className="size-5" />
+              </button>
+            ) : (
+              <ImageIcon className="size-5 text-accent-primary" />
+            )}
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm font-medium text-primary">
+              {draggedInside ? "تصویر را اینجا رها کنید" : "برای انتخاب کلیک کنید یا تصویر را بکشید و رها کنید"}
+            </p>
+            <p className="text-xs mt-0.5 text-tertiary">پشتیبانی از PNG, JPG, GIF, SVG, WebP</p>
+          </div>
+        </div>
+      ) : (
+        /* Embed URL Tab */
+        <form onSubmit={handleEmbedSubmit} className="flex flex-col gap-3 p-4" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={embedUrl}
+              onChange={(e) => setEmbedUrl(e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder="آدرس اینترنتی تصویر (Image URL)..."
+              className="text-xs focus:border-accent-primary flex-1 rounded-lg border border-subtle bg-layer-1 px-3 py-2 text-primary placeholder:text-tertiary focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!embedUrl.trim()}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              className="text-xs flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              <span>جاسازی</span>
+              <ArrowRight className="size-3.5" />
+            </button>
+          </div>
+        </form>
       )}
-      <input
-        className="size-0 overflow-hidden"
-        ref={fileInputRef}
-        hidden
-        type="file"
-        accept={ACCEPTED_IMAGE_MIME_TYPES.join(",")}
-        onChange={onFileChange}
-        multiple
-      />
     </div>
   );
 }

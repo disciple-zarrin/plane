@@ -263,7 +263,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                             ))}
                           </div>
                         ) : (
-                          <p className="pt-7 text-center text-11 text-secondary">No images found.</p>
+                          <p className="pt-7 text-center text-11 text-secondary">تصویری یافت نشد.</p>
                         )
                       ) : (
                         <Loader className="grid grid-cols-4 gap-4">
@@ -312,7 +312,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                           type="button"
                           className="absolute top-0 right-0 z-40 -translate-y-1/2 rounded-sm bg-surface-2 px-2 py-0.5 text-11 font-medium text-secondary"
                         >
-                          Edit
+                          ویرایش
                         </button>
                         {image !== null || (value && value !== "") ? (
                           <>
@@ -325,7 +325,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                         ) : (
                           <div>
                             <span className="mt-2 block text-13 font-medium text-secondary">
-                              {isDragActive ? "Drop image here to upload" : "Drag & drop image here"}
+                              {isDragActive ? "تصویر را اینجا رها کنید" : "تصویر را بکشید و اینجا رها کنید"}
                             </span>
                           </div>
                         )}
@@ -334,14 +334,14 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                       </div>
                     </div>
                     {fileRejections.length > 0 && (
-                      <p className="text-13 text-danger-primary">
+                      <p className="text-13 text-danger-primary text-right">
                         {fileRejections[0].errors[0].code === "file-too-large"
-                          ? "The image size cannot exceed 5 MB."
-                          : "Please upload a file in a valid format."}
+                          ? "حجم تصویر نمی‌تواند بیشتر از ۵ مگابایت باشد."
+                          : "لطفاً فایلی با فرمت معتبر بارگذاری کنید."}
                       </p>
                     )}
 
-                    <p className="text-13 text-secondary">File formats supported- .jpeg, .jpg, .png, .webp</p>
+                    <p className="text-13 text-secondary text-right">فرمت‌های مجاز: .jpeg, .jpg, .png, .webp</p>
 
                     <div className="flex h-12 items-start justify-end gap-2">
                       <Button
@@ -351,7 +351,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                           setImage(null);
                         }}
                       >
-                        Cancel
+                        انصراف
                       </Button>
                       <Button
                         variant="primary"
@@ -360,7 +360,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                         disabled={!image}
                         loading={isImageUploading}
                       >
-                        {isImageUploading ? "Uploading" : "Upload & Save"}
+                        {isImageUploading ? "در حال بارگذاری..." : "بارگذاری و ذخیره"}
                       </Button>
                     </div>
                   </div>

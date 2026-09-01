@@ -133,6 +133,30 @@ export const CustomKeymap = Extension.create({
           return true;
         }
       },
+      "Mod-d": ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        const { $from } = selection;
+        if ($from.depth <= 0) return false;
+
+        let targetDepth = 1;
+        for (let d = $from.depth; d >= 1; d--) {
+          const n = $from.node(d);
+          if (n.type.name === "listItem" || n.type.name === "taskItem") {
+            targetDepth = d;
+            break;
+          }
+        }
+
+        const node = $from.node(targetDepth);
+        const posAfter = $from.after(targetDepth);
+
+        if (node) {
+          editor.chain().focus().insertContentAt(posAfter, node.toJSON()).run();
+          return true;
+        }
+        return false;
+      },
     };
   },
 });

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import TaskItem from "@tiptap/extension-task-item";
-import TaskList from "@tiptap/extension-task-list";
+import { TaskItem } from "@tiptap/extension-task-item";
+import { TaskList } from "@tiptap/extension-task-list";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Underline } from "@tiptap/extension-underline";
 // plane editor imports
@@ -16,6 +16,16 @@ import { CustomCodeBlockExtensionWithoutProps } from "./code/without-props";
 import { CustomCodeInlineExtension } from "./code-inline";
 import { CustomColorExtension } from "./custom-color";
 import { CustomImageExtensionConfig } from "./custom-image/extension-config";
+import { CustomAttachmentExtensionConfig } from "./custom-attachment/extension-config";
+import { CustomBookmarkExtensionConfig } from "./custom-bookmark/extension-config";
+import { CustomToggleExtensionConfig } from "./custom-toggle/extension-config";
+import { CustomTableOfContentsExtensionConfig } from "./custom-table-of-contents/extension-config";
+import { CustomMathExtensionConfig } from "./custom-math/extension-config";
+import { CustomColumnsExtensionConfig, CustomColumnExtensionConfig } from "./custom-columns/extension-config";
+import { CustomBreadcrumbExtensionConfig } from "./custom-breadcrumb/extension-config";
+import { CustomPageLinkExtensionConfig } from "./custom-page-link/extension-config";
+import { CustomSyncedBlockExtensionConfig } from "./custom-synced-block/extension-config";
+import { CustomEmbedExtensionConfig } from "./custom-embed/extension-config";
 import { CustomLinkExtension } from "./custom-link";
 import { EmojiExtension } from "./emoji/extension";
 import { CustomHorizontalRule } from "./horizontal-rule";
@@ -37,6 +47,17 @@ export const CoreEditorExtensionsWithoutProps = [
   CustomLinkExtension,
   ImageExtensionConfig,
   CustomImageExtensionConfig,
+  CustomAttachmentExtensionConfig,
+  CustomBookmarkExtensionConfig,
+  CustomToggleExtensionConfig,
+  CustomTableOfContentsExtensionConfig,
+  CustomMathExtensionConfig,
+  CustomColumnsExtensionConfig,
+  CustomColumnExtensionConfig,
+  CustomBreadcrumbExtensionConfig,
+  CustomPageLinkExtensionConfig,
+  CustomSyncedBlockExtensionConfig,
+  CustomEmbedExtensionConfig,
   Underline,
   TextStyle,
   TaskList.configure({

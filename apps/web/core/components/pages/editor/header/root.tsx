@@ -14,6 +14,7 @@ import { cn } from "@plane/utils";
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageEditorHeaderLogoPicker } from "./logo-picker";
+import { PagePropertiesHeader } from "./properties";
 
 type Props = {
   page: TPageInstance;
@@ -72,6 +73,7 @@ export const PageEditorHeaderRoot = observer(function PageEditorHeaderRoot(props
         )}
       </div>
       <PageEditorHeaderLogoPicker className="mt-2 flex w-full flex-shrink-0" page={page} />
+      <PagePropertiesHeader page={page} />
     </>
   );
 });
