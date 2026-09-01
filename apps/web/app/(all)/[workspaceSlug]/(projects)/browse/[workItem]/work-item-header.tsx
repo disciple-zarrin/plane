@@ -8,6 +8,7 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // plane ui
+import { useTranslation } from "@plane/i18n";
 import { WorkItemsIcon } from "@plane/propel/icons";
 import { Breadcrumbs, Header } from "@plane/ui";
 // components
@@ -21,6 +22,7 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
 
 export const WorkItemDetailsHeader = observer(function WorkItemDetailsHeader() {
+  const { t } = useTranslation();
   // router
   const router = useAppRouter();
   const { workspaceSlug, workItem } = useParams();
@@ -44,7 +46,7 @@ export const WorkItemDetailsHeader = observer(function WorkItemDetailsHeader() {
           <Breadcrumbs.Item
             component={
               <BreadcrumbLink
-                label="Work Items"
+                label={t("common.work_items") ?? "کارها"}
                 href={`/${workspaceSlug}/projects/${projectId}/issues/`}
                 icon={<WorkItemsIcon className="h-4 w-4 text-tertiary" />}
               />

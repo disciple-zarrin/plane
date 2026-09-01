@@ -109,22 +109,42 @@ export const WorkItemStateDropdownBase = observer(function WorkItemStateDropdown
     setQuery,
   });
 
+  const getStateName = (state: IState | undefined | null) => {
+    if (!state?.name) return t("state");
+    const nameLower = state.name.trim().toLowerCase();
+    const DEFAULT_STATE_NAMES_MAP: Record<string, string> = {
+      backlog: "انباشته",
+      todo: "برای انجام",
+      "to do": "برای انجام",
+      "in progress": "در حال انجام",
+      in_progress: "در حال انجام",
+      done: "انجام‌شده",
+      completed: "تکمیل‌شده",
+      cancelled: "لغوشده",
+      canceled: "لغوشده",
+    };
+    return DEFAULT_STATE_NAMES_MAP[nameLower] ?? state.name;
+  };
+
   // derived values
-  const options = statesList?.map((state) => ({
-    value: state?.id,
-    query: `${state?.name}`,
-    content: (
-      <div className="flex items-center gap-2">
-        <StateGroupIcon
-          stateGroup={state?.group ?? "backlog"}
-          color={state?.color}
-          className={cn("flex-shrink-0", iconSize)}
-          percentage={state?.order}
-        />
-        <span className="flex-grow truncate text-left">{state?.name}</span>
-      </div>
-    ),
-  }));
+  const options = statesList?.map((state) => {
+    const displayName = getStateName(state);
+    return {
+      value: state?.id,
+      query: `${state?.name} ${displayName}`,
+      content: (
+        <div className="flex items-center gap-2">
+          <StateGroupIcon
+            stateGroup={state?.group ?? "backlog"}
+            color={state?.color}
+            className={cn("flex-shrink-0", iconSize)}
+            percentage={state?.order}
+          />
+          <span className="flex-grow truncate text-start">{displayName}</span>
+        </div>
+      ),
+    };
+  });
 
   const filteredOptions =
     query === "" ? options : options?.filter((o) => o.query.toLowerCase().includes(query.toLowerCase()));
@@ -169,7 +189,7 @@ export const WorkItemStateDropdownBase = observer(function WorkItemStateDropdown
             className={buttonClassName}
             isActive={isOpen}
             tooltipHeading={t("state")}
-            tooltipContent={selectedState?.name ?? t("state")}
+            tooltipContent={getStateName(selectedState)}
             showTooltip={showTooltip}
             variant={buttonVariant}
             renderToolTipByDefault={renderByDefault}
@@ -187,7 +207,7 @@ export const WorkItemStateDropdownBase = observer(function WorkItemStateDropdown
                   />
                 )}
                 {BUTTON_VARIANTS_WITH_TEXT.includes(buttonVariant) && (
-                  <span className="flex-grow truncate text-left">{selectedState?.name ?? t("state")}</span>
+                  <span className="flex-grow truncate text-start">{getStateName(selectedState)}</span>
                 )}
                 {dropdownArrow && (
                   <ChevronDownIcon

@@ -79,10 +79,18 @@ function BorderButton(props: ButtonProps) {
   const { isMobile } = usePlatformOS();
   const { t } = useTranslation();
 
+  const getPriorityTitle = (p: TIssuePriorities | undefined, fallback: string) => {
+    if (!p) return fallback;
+    const translated = t(p);
+    if (translated && translated !== p) return translated;
+    const match = ISSUE_PRIORITIES.find((item) => item.key === p);
+    return match?.title ?? fallback;
+  };
+
   return (
     <Tooltip
       tooltipHeading={t("priority")}
-      tooltipContent={priorityDetails?.title ?? t("common.none")}
+      tooltipContent={getPriorityTitle(priority, t("common.none") ?? "هیچ‌کدام")}
       disabled={!showTooltip}
       isMobile={isMobile}
       renderByDefault={renderToolTipByDefault}
@@ -132,7 +140,7 @@ function BorderButton(props: ButtonProps) {
               "text-placeholder": !priority || priority === "none",
             })}
           >
-            {priorityDetails?.title ?? placeholder}
+            {getPriorityTitle(priority, placeholder)}
           </span>
         )}
         {dropdownArrow && (
@@ -157,8 +165,6 @@ function BackgroundButton(props: ButtonProps) {
     renderToolTipByDefault = true,
   } = props;
 
-  const priorityDetails = ISSUE_PRIORITIES.find((p) => p.key === priority);
-
   const priorityClasses = {
     urgent: "bg-layer-2",
     high: "bg-layer-2",
@@ -170,10 +176,18 @@ function BackgroundButton(props: ButtonProps) {
   const { isMobile } = usePlatformOS();
   const { t } = useTranslation();
 
+  const getPriorityTitle = (p: TIssuePriorities | undefined, fallback: string) => {
+    if (!p) return fallback;
+    const translated = t(p);
+    if (translated && translated !== p) return translated;
+    const match = ISSUE_PRIORITIES.find((item) => item.key === p);
+    return match?.title ?? fallback;
+  };
+
   return (
     <Tooltip
       tooltipHeading={t("priority")}
-      tooltipContent={t(priorityDetails?.key ?? "none")}
+      tooltipContent={getPriorityTitle(priority, t("common.none") ?? "هیچ‌کدام")}
       disabled={!showTooltip}
       isMobile={isMobile}
       renderByDefault={renderToolTipByDefault}
@@ -223,7 +237,7 @@ function BackgroundButton(props: ButtonProps) {
               "text-placeholder": !priority || priority === "none",
             })}
           >
-            {priorityDetails?.title ?? t("common.priority") ?? placeholder}
+            {getPriorityTitle(priority, placeholder)}
           </span>
         )}
         {dropdownArrow && (
@@ -249,15 +263,21 @@ function TransparentButton(props: ButtonProps) {
     renderToolTipByDefault = true,
   } = props;
 
-  const priorityDetails = ISSUE_PRIORITIES.find((p) => p.key === priority);
-
   const { isMobile } = usePlatformOS();
   const { t } = useTranslation();
+
+  const getPriorityTitle = (p: TIssuePriorities | undefined, fallback: string) => {
+    if (!p) return fallback;
+    const translated = t(p);
+    if (translated && translated !== p) return translated;
+    const match = ISSUE_PRIORITIES.find((item) => item.key === p);
+    return match?.title ?? fallback;
+  };
 
   return (
     <Tooltip
       tooltipHeading={t("priority")}
-      tooltipContent={priorityDetails?.title ?? t("common.none")}
+      tooltipContent={getPriorityTitle(priority, t("common.none") ?? "هیچ‌کدام")}
       disabled={!showTooltip}
       isMobile={isMobile}
       renderByDefault={renderToolTipByDefault}
@@ -307,7 +327,7 @@ function TransparentButton(props: ButtonProps) {
               "text-placeholder": !priority || priority === "none",
             })}
           >
-            {priorityDetails?.title ?? t("common.priority") ?? placeholder}
+            {getPriorityTitle(priority, placeholder)}
           </span>
         )}
         {dropdownArrow && (
@@ -363,16 +383,19 @@ export function PriorityDropdown(props: Props) {
     ],
   });
 
-  const options = ISSUE_PRIORITIES.map((priority) => ({
-    value: priority.key,
-    query: priority.key,
-    content: (
-      <div className="flex items-center gap-2">
-        <PriorityIcon priority={priority.key} size={14} withContainer />
-        <span className="flex-grow truncate">{priority.title}</span>
-      </div>
-    ),
-  }));
+  const options = ISSUE_PRIORITIES.map((priority) => {
+    const title = t(priority.key) || priority.title;
+    return {
+      value: priority.key,
+      query: `${priority.key} ${priority.title} ${title}`,
+      content: (
+        <div className="flex items-center gap-2">
+          <PriorityIcon priority={priority.key} size={14} withContainer />
+          <span className="flex-grow truncate text-start">{title}</span>
+        </div>
+      ),
+    };
+  });
 
   const filteredOptions =
     query === "" ? options : options.filter((o) => o.query.toLowerCase().includes(query.toLowerCase()));
