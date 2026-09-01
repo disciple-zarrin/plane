@@ -43,7 +43,11 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
     watch,
   } = useForm({ defaultValues });
 
-  const canDelete = watch("projectName") === project?.name && watch("confirmDelete") === "delete my project";
+  const canDelete =
+    watch("projectName") === project?.name &&
+    (watch("confirmDelete") === "delete my project" ||
+      watch("confirmDelete") === "حذف پروژه من" ||
+      watch("confirmDelete")?.toLowerCase() === "delete my project");
 
   const handleClose = () => {
     const timer = setTimeout(() => {
@@ -63,38 +67,37 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
       handleClose();
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "Success!",
-        message: "Project deleted successfully.",
+        title: "موفق!",
+        message: "پروژه با موفقیت حذف شد.",
       });
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Something went wrong. Please try again later.",
+        title: "خطا!",
+        message: "مشکلی پیش آمد. لطفاً بعداً دوباره تلاش کنید.",
       });
     }
   };
 
   return (
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.XXL}>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-6" dir="rtl">
         <div className="flex w-full items-center justify-start gap-6">
           <span className="place-items-center rounded-full bg-danger-subtle p-4">
             <AlertTriangle className="h-6 w-6 text-danger-primary" aria-hidden="true" />
           </span>
           <span className="flex items-center justify-start">
-            <h3 className="text-18 font-medium 2xl:text-20">Delete project</h3>
+            <h3 className="text-18 font-medium 2xl:text-20 text-right">حذف پروژه</h3>
           </span>
         </div>
         <span>
-          <p className="text-13 leading-7 text-secondary">
-            Are you sure you want to delete project <span className="font-semibold break-words">{project?.name}</span>?
-            All of the data related to the project will be permanently removed. This action cannot be undone
+          <p className="text-13 leading-7 text-secondary text-right">
+            آیا مطمئن هستید که می‌خواهید پروژه <span className="font-semibold break-words">{project?.name}</span> را حذف کنید؟ تمام داده‌های مرتبط با این پروژه برای همیشه حذف خواهند شد. این عملیات غیرقابل بازگشت است.
           </p>
         </span>
-        <div className="text-secondary">
+        <div className="text-secondary text-right">
           <p className="text-13 break-words">
-            Enter the project name <span className="font-medium text-primary">{project?.name}</span> to continue:
+            برای ادامه، نام پروژه <span className="font-medium text-primary">{project?.name}</span> را وارد کنید:
           </p>
           <Controller
             control={control}
@@ -108,16 +111,16 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.projectName)}
-                placeholder="Project name"
-                className="mt-2 w-full"
+                placeholder="نام پروژه"
+                className="mt-2 w-full text-right"
                 autoComplete="off"
               />
             )}
           />
         </div>
-        <div className="text-secondary">
+        <div className="text-secondary text-right">
           <p className="text-13">
-            To confirm, type <span className="font-medium text-primary">delete my project</span> below:
+            برای تأیید، عبارت <span className="font-medium text-primary">حذف پروژه من</span> را در زیر تایپ کنید:
           </p>
           <Controller
             control={control}
@@ -131,8 +134,8 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.confirmDelete)}
-                placeholder="Enter 'delete my project'"
-                className="mt-2 w-full"
+                placeholder="عبارت 'حذف پروژه من' یا 'delete my project' را وارد کنید"
+                className="mt-2 w-full text-right"
                 autoComplete="off"
               />
             )}
@@ -140,10 +143,10 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={handleClose}>
-            Cancel
+            انصراف
           </Button>
           <Button variant="error-fill" size="lg" type="submit" disabled={!canDelete} loading={isSubmitting}>
-            {isSubmitting ? "Deleting" : "Delete project"}
+            {isSubmitting ? "در حال حذف..." : "حذف پروژه"}
           </Button>
         </div>
       </form>

@@ -95,8 +95,8 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
 
   return (
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.XL}>
-      <div className="space-y-5 px-5 py-8 sm:p-6">
-        <h3 className="text-16 leading-6 font-medium text-primary">Upload Image</h3>
+      <div className="space-y-5 px-5 py-8 sm:p-6" dir="rtl">
+        <h3 className="text-16 leading-6 font-medium text-primary text-right">بارگذاری تصویر</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-center gap-3">
             <div
@@ -113,7 +113,7 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
                     type="button"
                     className="absolute top-0 right-0 z-40 translate-x-1/2 -translate-y-1/2 rounded-sm bg-surface-2 px-2 py-0.5 text-11 font-medium text-secondary"
                   >
-                    Edit
+                    ویرایش
                   </button>
                   <img
                     src={image ? URL.createObjectURL(image) : value ? getFileURL(value) : ""}
@@ -125,7 +125,7 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
                 <div>
                   <UserCirclePropertyIcon className="mx-auto h-16 w-16 text-secondary" />
                   <span className="mt-2 block text-13 font-medium text-secondary">
-                    {isDragActive ? "Drop image here to upload" : "Drag & drop image here"}
+                    {isDragActive ? "تصویر را اینجا رها کنید" : "تصویر را بکشید و اینجا رها کنید"}
                   </span>
                 </div>
               )}
@@ -134,24 +134,24 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
             </div>
           </div>
           {fileRejections.length > 0 && (
-            <p className="text-13 text-danger-primary">
+            <p className="text-13 text-danger-primary text-right">
               {fileRejections[0].errors[0].code === "file-too-large"
-                ? "The image size cannot exceed 5 MB."
-                : "Please upload a file in a valid format."}
+                ? "حجم تصویر نمی‌تواند بیشتر از ۵ مگابایت باشد."
+                : "لطفاً فایلی با فرمت معتبر بارگذاری کنید."}
             </p>
           )}
         </div>
-        <p className="my-4 text-13 text-secondary">File formats supported- .jpeg, .jpg, .png, .webp</p>
+        <p className="my-4 text-13 text-secondary text-right">فرمت‌های مجاز: .jpeg, .jpg, .png, .webp</p>
         <div className="flex items-center justify-between">
           <Button variant="error-fill" size="lg" onClick={handleImageRemove} disabled={!value}>
-            {isRemoving ? "Removing" : "Remove"}
+            {isRemoving ? "در حال حذف..." : "حذف"}
           </Button>
           <div className="flex items-center gap-2">
             <Button variant="secondary" size="lg" onClick={handleClose}>
-              Cancel
+              انصراف
             </Button>
             <Button variant="primary" size="lg" onClick={handleSubmit} disabled={!image} loading={isImageUploading}>
-              {isImageUploading ? "Uploading" : "Upload & Save"}
+              {isImageUploading ? "در حال بارگذاری..." : "بارگذاری و ذخیره"}
             </Button>
           </div>
         </div>

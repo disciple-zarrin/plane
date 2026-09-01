@@ -299,10 +299,10 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                     </AvatarGroup>
                   </div>
                 ) : (
-                  <span className="text-13 text-placeholder italic">No Member Yet</span>
+                  <span className="text-13 text-placeholder italic">هنوز عضوی ندارد</span>
                 )}
               </Tooltip>
-              {isArchived && <div className="text-11 font-medium text-placeholder">Archived</div>}
+              {isArchived && <div className="text-11 font-medium text-placeholder">بایگانی‌شده</div>}
             </div>
             {isArchived ? (
               hasAdminRole && (
@@ -317,7 +317,7 @@ export const ProjectCard = observer(function ProjectCard(props: Props) {
                   >
                     <div className="flex items-center gap-1.5">
                       <ArchiveRestoreIcon className="h-3.5 w-3.5" />
-                      Restore
+                      بازیابی
                     </div>
                   </div>
                   <div
