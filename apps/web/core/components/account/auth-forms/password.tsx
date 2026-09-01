@@ -105,11 +105,9 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
 
   const isButtonDisabled = useMemo(
     () =>
-      !isSubmitting &&
-      !!passwordFormData.password &&
-      (mode === EAuthModes.SIGN_UP ? passwordFormData.password === passwordFormData.confirm_password : true)
-        ? false
-        : true,
+      !passwordFormData.password ||
+      isSubmitting ||
+      (mode === EAuthModes.SIGN_UP && passwordFormData.password !== passwordFormData.confirm_password),
     [isSubmitting, mode, passwordFormData.confirm_password, passwordFormData.password]
   );
 
@@ -304,7 +302,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
             </>
           ) : (
             <Button type="submit" variant="primary" className="w-full" size="xl" disabled={isButtonDisabled}>
-              {isSubmitting ? <Spinner height="20px" width="20px" /> : "Create account"}
+              {isSubmitting ? <Spinner height="20px" width="20px" /> : t("auth.common.create_account")}
             </Button>
           )}
         </div>

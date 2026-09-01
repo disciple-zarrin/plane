@@ -27,30 +27,30 @@ type TAuthHeader = {
 const Titles = {
   [EAuthModes.SIGN_IN]: {
     [EAuthSteps.EMAIL]: {
-      header: "Work in all dimensions.",
-      subHeader: "Welcome back to Plane.",
+      header: "مدیریت کارها در تمام ابعاد",
+      subHeader: "به حساب کاربری خود وارد شوید.",
     },
     [EAuthSteps.PASSWORD]: {
-      header: "Work in all dimensions.",
-      subHeader: "Welcome back to Plane.",
+      header: "مدیریت کارها در تمام ابعاد",
+      subHeader: "رمز عبور خود را وارد کنید.",
     },
     [EAuthSteps.UNIQUE_CODE]: {
-      header: "Work in all dimensions.",
-      subHeader: "Welcome back to Plane.",
+      header: "مدیریت کارها در تمام ابعاد",
+      subHeader: "کد تأیید ارسال‌شده را وارد کنید.",
     },
   },
   [EAuthModes.SIGN_UP]: {
     [EAuthSteps.EMAIL]: {
-      header: "Work in all dimensions.",
-      subHeader: "Create your Plane account.",
+      header: "مدیریت کارها در تمام ابعاد",
+      subHeader: "حساب کاربری جدید ایجاد کنید.",
     },
     [EAuthSteps.PASSWORD]: {
-      header: "Work in all dimensions.",
-      subHeader: "Create your Plane account.",
+      header: "مدیریت کارها در تمام ابعاد",
+      subHeader: "رمز عبور حساب خود را تنظیم کنید.",
     },
     [EAuthSteps.UNIQUE_CODE]: {
-      header: "Work in all dimensions.",
-      subHeader: "Create your Plane account.",
+      header: "مدیریت کارها در تمام ابعاد",
+      subHeader: "کد تأیید ارسال‌شده را وارد کنید.",
     },
   },
 };
@@ -74,11 +74,11 @@ export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
   const getHeaderSubHeader = (
     step: EAuthSteps,
     mode: EAuthModes,
-    invitation: IWorkspaceMemberInvitation | undefined,
+    currentInvitation: IWorkspaceMemberInvitation | undefined,
     email: string | undefined
   ) => {
-    if (invitation && email && invitation.email === email && invitation.workspace) {
-      const workspace = invitation.workspace;
+    if (currentInvitation && email && currentInvitation.email === email && currentInvitation.workspace) {
+      const workspace = currentInvitation.workspace;
       return {
         header: (
           <div className="relative inline-flex items-center gap-2">
@@ -89,8 +89,8 @@ export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
         ),
         subHeader:
           mode == EAuthModes.SIGN_UP
-            ? "Create an account to start managing work with your team."
-            : "Log in to start managing work with your team.",
+            ? "برای شروع همکاری با تیم، یک حساب کاربری بسازید."
+            : "برای ورود و دسترسی به تیم، وارد حساب خود شوید.",
       };
     }
 
