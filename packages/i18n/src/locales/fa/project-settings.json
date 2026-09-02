@@ -1,5 +1,9 @@
 {
   "project_settings": {
+    "label": "تنظیمات پروژه",
+    "header": {
+      "title": "تنظیمات پروژه"
+    },
     "general": {
       "enter_project_id": "شناسه پروژه را وارد کنید",
       "please_select_a_timezone": "لطفاً یک منطقه زمانی انتخاب کنید",
