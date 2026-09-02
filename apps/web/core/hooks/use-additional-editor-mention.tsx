@@ -5,10 +5,11 @@
  */
 
 import { useCallback, useMemo } from "react";
-// plane editor
+import { FileText } from "lucide-react";
 import type { TMentionSection } from "@plane/editor";
-// plane types
-import type { TSearchEntities, TSearchResponse } from "@plane/types";
+import type { TPageSearchResponse, TSearchEntities, TSearchResponse } from "@plane/types";
+import { useParams } from "next/navigation";
+import { cachePageMentionName, getCachedPageMentionName } from "@/components/editor/embeds/mentions/page-cache";
 
 export type TUseAdditionalEditorMentionArgs = {
   enableAdvancedMentions: boolean;
@@ -34,20 +35,62 @@ export type TAdditionalParseEditorContentReturnType =
     }
   | undefined;
 
-export const useAdditionalEditorMention = (_args: TUseAdditionalEditorMentionArgs) => {
+export const useAdditionalEditorMention = (args: TUseAdditionalEditorMentionArgs) => {
+  const { enableAdvancedMentions } = args;
+  const { workspaceSlug, projectId } = useParams();
+
   const updateAdditionalSections = useCallback(
-    (_args: TAdditionalEditorMentionHandlerArgs): TAdditionalEditorMentionHandlerReturnType => ({
-      sections: [],
-    }),
-    []
+    ({ response }: TAdditionalEditorMentionHandlerArgs): TAdditionalEditorMentionHandlerReturnType => {
+      if (!enableAdvancedMentions) return { sections: [] };
+      const pages = response.page as TPageSearchResponse[] | undefined;
+      if (!pages?.length) return { sections: [] };
+      return {
+        sections: [
+          {
+            key: "pages",
+            title: "Pages",
+            items: pages.map((page) => {
+              const id = page.id || "";
+              const title = page.name || "Untitled";
+              cachePageMentionName(id, title);
+              return {
+                icon: <FileText className="size-3.5" />,
+                id,
+                entity_identifier: id,
+                entity_name: "page" as const,
+                title,
+              };
+            }),
+          },
+        ],
+      };
+    },
+    [enableAdvancedMentions]
   );
 
   const parseAdditionalEditorContent = useCallback(
-    (_args: TAdditionalParseEditorContentArgs): TAdditionalParseEditorContentReturnType => undefined,
-    []
+    ({ id, entityType }: TAdditionalParseEditorContentArgs): TAdditionalParseEditorContentReturnType => {
+      if (entityType !== "page" && (entityType as string) !== "page_mention") return undefined;
+      const slug = workspaceSlug?.toString() || "";
+      // Prefer wiki route; project pages still work via wiki if is_global, else project path when projectId present
+      if (projectId) {
+        return {
+          redirectionPath: `/${slug}/projects/${projectId}/pages/${id}`,
+          textContent: getCachedPageMentionName(id) || "page",
+        };
+      }
+      return {
+        redirectionPath: `/${slug}/wiki/${id}`,
+        textContent: getCachedPageMentionName(id) || "page",
+      };
+    },
+    [workspaceSlug, projectId]
   );
 
-  const editorMentionTypes: TSearchEntities[] = useMemo(() => ["user_mention"], []);
+  const editorMentionTypes: TSearchEntities[] = useMemo(
+    () => (enableAdvancedMentions ? ["user_mention", "page"] : ["user_mention"]),
+    [enableAdvancedMentions]
+  );
 
   return {
     updateAdditionalSections,

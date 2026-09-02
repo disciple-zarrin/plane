@@ -143,6 +143,7 @@ from .issue.comment import IssueCommentViewSet, CommentReactionViewSet
 from .issue.label import LabelViewSet, BulkCreateIssueLabelsEndpoint
 
 from .issue.link import IssueLinkViewSet
+from .issue.worklog import IssueWorkLogViewSet, WorkspaceWorkLogEndpoint, IssueWorkLogSummaryEndpoint
 
 from .issue.relation import IssueRelationViewSet
 
@@ -173,7 +174,8 @@ from .page.base import (
     PagesDescriptionViewSet,
     PageDuplicateEndpoint,
 )
-from .page.version import PageVersionEndpoint
+from .page.workspace import WorkspacePageViewSet, WorkspacePagesDescriptionEndpoint
+from .page.version import PageVersionEndpoint, WorkspacePageVersionEndpoint
 
 from .search.base import GlobalSearchEndpoint, SearchEndpoint
 from .search.issue import IssueSearchEndpoint
@@ -235,6 +237,12 @@ from .webhook.base import (
 from .error_404 import custom_404_view
 
 from .notification.base import MarkAllReadNotificationViewSet
+from .notification.web_push import (
+    WebPushVapidPublicKeyEndpoint,
+    WebPushSubscriptionEndpoint,
+    IssueUserAlarmEndpoint,
+    MyPendingIssueAlarmsEndpoint,
+)
 from .user.base import AccountEndpoint, ProfileEndpoint, UserSessionEndpoint
 
 from .timezone.base import TimezoneEndpoint

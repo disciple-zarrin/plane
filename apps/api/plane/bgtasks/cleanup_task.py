@@ -105,16 +105,19 @@ def get_email_logs_queryset():
 
 
 def get_page_versions_queryset():
-    """Get page versions beyond the maximum allowed (20 per page)."""
+    """Get page versions beyond each workspace's page_version_limit (0 = keep all)."""
     subq = (
         PageVersion.all_objects.annotate(
             row_num=Window(
                 expression=RowNumber(),
                 partition_by=[F("page_id")],
-                order_by=F("created_at").desc(),
-            )
+                # Match enforce_page_version_limit: newest by last_saved_at
+                order_by=F("last_saved_at").desc(),
+            ),
+            limit=F("workspace__page_version_limit"),
         )
-        .filter(row_num__gt=20)
+        .filter(limit__gt=0)
+        .filter(row_num__gt=F("limit"))
         .values("id")
     )
 

@@ -5,9 +5,9 @@
  */
 
 import type { PageProps, Styles } from "@react-pdf/renderer";
-import { Document, Font, Page, StyleSheet } from "@react-pdf/renderer";
+import { Document, Font, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { Html } from "react-pdf-html";
-// assets
+import React from "react";
 import interBold from "@/app/assets/fonts/inter/bold.ttf?url";
 import interHeavy from "@/app/assets/fonts/inter/heavy.ttf?url";
 import interLight from "@/app/assets/fonts/inter/light.ttf?url";
@@ -17,24 +17,25 @@ import interSemibold from "@/app/assets/fonts/inter/semibold.ttf?url";
 import interThin from "@/app/assets/fonts/inter/thin.ttf?url";
 import interUltraBold from "@/app/assets/fonts/inter/ultrabold.ttf?url";
 import interUltraLight from "@/app/assets/fonts/inter/ultralight.ttf?url";
-// plane imports
+import vazirBold from "@/app/assets/fonts/vazirmatn/Vazirmatn-Bold.ttf?url";
+import vazirRegular from "@/app/assets/fonts/vazirmatn/Vazirmatn-Regular.ttf?url";
 import { convertRemToPixel } from "@plane/utils";
 
-const EDITOR_PDF_FONT_FAMILY_STYLES: Styles = {
-  "*:not(.courier, .courier-bold)": { fontFamily: "Inter" },
-  ".courier": { fontFamily: "Courier" },
-  ".courier-bold": { fontFamily: "Courier-Bold" },
-};
-
 const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
-  // page title
   "h1.page-title": {
     fontSize: convertRemToPixel(1.6),
     fontWeight: "bold",
     marginTop: 0,
     marginBottom: convertRemToPixel(2),
   },
-  // headings
+  "h1.page-title[dir='rtl'], h1.page-title[dir=\"rtl\"]": {
+    direction: "rtl",
+    textAlign: "right",
+  },
+  "h1.page-title[dir='ltr'], h1.page-title[dir=\"ltr\"]": {
+    direction: "ltr",
+    textAlign: "left",
+  },
   "h1:not(.page-title)": {
     fontSize: convertRemToPixel(1.4),
     fontWeight: "semibold",
@@ -71,7 +72,6 @@ const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
     marginTop: convertRemToPixel(1),
     marginBottom: convertRemToPixel(0.0625),
   },
-  // paragraph
   "p:not(table p)": {
     fontSize: convertRemToPixel(0.8),
   },
@@ -81,7 +81,7 @@ const EDITOR_PDF_TYPOGRAPHY_STYLES: Styles = {
   },
 };
 
-const EDITOR_PDF_LIST_STYLES: Styles = {
+const EDITOR_PDF_LIST_BASE: Styles = {
   "ul, ol": {
     fontSize: convertRemToPixel(0.8),
     marginHorizontal: -20,
@@ -98,16 +98,6 @@ const EDITOR_PDF_LIST_STYLES: Styles = {
   "ul[data-type='taskList']": {
     position: "relative",
   },
-  "div.input-checkbox": {
-    position: "absolute",
-    top: convertRemToPixel(0.15),
-    left: -convertRemToPixel(1.2),
-    height: convertRemToPixel(0.75),
-    width: convertRemToPixel(0.75),
-    borderWidth: "1.5px",
-    borderStyle: "solid",
-    borderRadius: convertRemToPixel(0.125),
-  },
   "div.input-checkbox:not(.checked)": {
     backgroundColor: "#ffffff",
     borderColor: "#171717",
@@ -122,7 +112,6 @@ const EDITOR_PDF_LIST_STYLES: Styles = {
 };
 
 const EDITOR_PDF_CODE_STYLES: Styles = {
-  // code block
   "[data-node-type='code-block']": {
     marginVertical: convertRemToPixel(0.5),
     padding: convertRemToPixel(1),
@@ -130,7 +119,6 @@ const EDITOR_PDF_CODE_STYLES: Styles = {
     backgroundColor: "#f7f7f7",
     fontSize: convertRemToPixel(0.7),
   },
-  // inline code block
   "[data-node-type='inline-code-block']": {
     margin: 0,
     paddingVertical: convertRemToPixel(0.25 / 4 + 0.25 / 8),
@@ -143,12 +131,10 @@ const EDITOR_PDF_CODE_STYLES: Styles = {
   },
 };
 
-const EDITOR_PDF_DOCUMENT_STYLESHEET = StyleSheet.create({
-  ...EDITOR_PDF_FONT_FAMILY_STYLES,
+const EDITOR_PDF_SHARED: Styles = {
   ...EDITOR_PDF_TYPOGRAPHY_STYLES,
-  ...EDITOR_PDF_LIST_STYLES,
+  ...EDITOR_PDF_LIST_BASE,
   ...EDITOR_PDF_CODE_STYLES,
-  // quote block
   blockquote: {
     borderLeft: "3px solid gray",
     paddingLeft: convertRemToPixel(1),
@@ -160,33 +146,94 @@ const EDITOR_PDF_DOCUMENT_STYLESHEET = StyleSheet.create({
     marginVertical: 0,
     borderRadius: convertRemToPixel(0.375),
   },
-  // divider
   "div[data-type='horizontalRule']": {
     marginVertical: convertRemToPixel(1),
     height: 1,
     width: "100%",
     backgroundColor: "gray",
   },
-  // mention block
   "[data-node-type='mention-block']": {
     margin: 0,
     color: "#3f76ff",
     backgroundColor: "#3f76ff33",
     paddingHorizontal: convertRemToPixel(0.375),
   },
-  // table
   table: {
     marginTop: convertRemToPixel(0.5),
     marginBottom: convertRemToPixel(1),
     marginHorizontal: 0,
   },
   "table td": {
-    padding: convertRemToPixel(0.625),
+    padding: convertRemToPixel(0.5),
     border: "1px solid #e5e5e5",
   },
   "table p": {
     fontSize: convertRemToPixel(0.7),
   },
+  a: {
+    color: "#0563C1",
+    textDecoration: "underline",
+  },
+};
+
+function buildStylesheet(isRtl: boolean) {
+  // Vazirmatn covers Latin + Persian so mixed content stays readable either direction.
+  const fontFamily = "Vazirmatn";
+  return StyleSheet.create({
+    "*:not(.courier, .courier-bold)": { fontFamily },
+    ".courier": { fontFamily: "Courier" },
+    ".courier-bold": { fontFamily: "Courier-Bold" },
+    ...EDITOR_PDF_SHARED,
+    // Per-paragraph direction (Word-style) — must win over any page wrapper.
+    "[dir='rtl'], [dir=\"rtl\"]": {
+      direction: "rtl",
+      textAlign: "right",
+    },
+    "[dir='ltr'], [dir=\"ltr\"]": {
+      direction: "ltr",
+      textAlign: "left",
+    },
+    "ul.toc": {
+      marginHorizontal: 0,
+      paddingHorizontal: 0,
+    },
+    "ul.toc li": {
+      marginTop: convertRemToPixel(0.2),
+    },
+    "ul.toc li[dir='rtl'], ul.toc li[dir=\"rtl\"]": {
+      direction: "rtl",
+      textAlign: "right",
+    },
+    "ul.toc li[dir='ltr'], ul.toc li[dir=\"ltr\"]": {
+      direction: "ltr",
+      textAlign: "left",
+    },
+    "div.input-checkbox": {
+      position: "absolute",
+      top: convertRemToPixel(0.15),
+      ...(isRtl ? { right: -convertRemToPixel(1.2) } : { left: -convertRemToPixel(1.2) }),
+      height: convertRemToPixel(0.75),
+      width: convertRemToPixel(0.75),
+      borderWidth: "1.5px",
+      borderStyle: "solid",
+      borderRadius: convertRemToPixel(0.125),
+    },
+  });
+}
+
+Font.register({
+  family: "Vazirmatn",
+  fonts: [
+    { src: vazirRegular, fontWeight: "thin" },
+    { src: vazirRegular, fontWeight: "ultralight" },
+    { src: vazirRegular, fontWeight: "light" },
+    { src: vazirRegular, fontWeight: "normal" },
+    { src: vazirRegular, fontWeight: "medium" },
+    { src: vazirBold, fontWeight: "semibold" },
+    { src: vazirBold, fontWeight: "bold" },
+    { src: vazirBold, fontWeight: "ultrabold" },
+    { src: vazirBold, fontWeight: "heavy" },
+  ],
 });
 
 Font.register({
@@ -216,10 +263,43 @@ Font.register({
 type Props = {
   content: string;
   pageFormat: PageProps["size"];
+  /** Soft default for chrome/checkboxes only — block `dir` attrs override body text. */
+  isRtl?: boolean;
+};
+
+/** Pass HTML `id` through so Link src="#id" can jump (react-pdf-html drops ids by default). */
+function renderWithId(
+  Component: typeof View | typeof Text,
+  // oxlint-disable-next-line typescript/no-explicit-any
+  args: { style?: any; children?: React.ReactNode; element?: { attributes?: Record<string, string> } }
+) {
+  const { style, children, element } = args;
+  const id = element?.attributes?.id;
+  return React.createElement(Component, { style, ...(id ? { id } : {}) }, children);
+}
+
+const htmlRenderers = {
+  // oxlint-disable-next-line typescript/no-explicit-any
+  div: (args: any) => renderWithId(View, args),
+  // oxlint-disable-next-line typescript/no-explicit-any
+  h1: (args: any) => renderWithId(Text, args),
+  // oxlint-disable-next-line typescript/no-explicit-any
+  h2: (args: any) => renderWithId(Text, args),
+  // oxlint-disable-next-line typescript/no-explicit-any
+  h3: (args: any) => renderWithId(Text, args),
 };
 
 export function PDFDocument(props: Props) {
   const { content, pageFormat } = props;
+  // Prefer explicit block dirs in HTML; prop is only a soft default for chrome.
+  const contentHasRtl = /dir=["']rtl["']/i.test(content);
+  const contentHasLtr = /dir=["']ltr["']/i.test(content);
+  const mixed = contentHasRtl && contentHasLtr;
+  const isRtl = props.isRtl ?? contentHasRtl;
+  const stylesheet = buildStylesheet(isRtl);
+  // Never force a whole-document text-align wrapper — it flattens mixed paragraphs.
+  // Inline direction styles are applied in sanitizeHtmlForPdf / applyInlineDirectionStyles.
+  const wrapped = content;
 
   return (
     <Document>
@@ -227,10 +307,15 @@ export function PDFDocument(props: Props) {
         size={pageFormat}
         style={{
           backgroundColor: "#ffffff",
-          padding: 64,
+          padding: 48,
+          // Mixed docs stay LTR at page level so LTR blocks aren't mirrored; RTL blocks set their own direction.
+          direction: mixed ? "ltr" : isRtl ? "rtl" : "ltr",
+          fontFamily: "Vazirmatn",
         }}
       >
-        <Html stylesheet={EDITOR_PDF_DOCUMENT_STYLESHEET}>{content}</Html>
+        <Html stylesheet={stylesheet} renderers={htmlRenderers}>
+          {wrapped}
+        </Html>
       </Page>
     </Document>
   );

@@ -5,5 +5,9 @@
  */
 
 import type { RouteConfigEntry } from "@react-router/dev/routes";
+import { route } from "@react-router/dev/routes";
 
-export const extendedRoutes: RouteConfigEntry[] = [];
+export const extendedRoutes: RouteConfigEntry[] = [
+  route(":workspaceSlug/wiki", "./(all)/[workspaceSlug]/(projects)/wiki/page.tsx"),
+  route(":workspaceSlug/wiki/:pageId", "./(all)/[workspaceSlug]/(projects)/wiki/[pageId]/page.tsx"),
+];

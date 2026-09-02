@@ -18,6 +18,7 @@ import { Avatar, EModalPosition, EModalWidth, Loader, ModalCore } from "@plane/u
 import { calculateTimeAgo, cn, getFileURL } from "@plane/utils";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text";
+import { DocumentHtmlDiff } from "@/components/document-versions/html-diff";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -26,6 +27,7 @@ import { IconButton } from "@plane/propel/icon-button";
 type Props = {
   activeVersionDescription: string | undefined;
   activeVersionDetails: TDescriptionVersion | undefined;
+  currentDescriptionHtml?: string;
   handleClose: () => void;
   handleNavigation: (direction: "prev" | "next") => void;
   handleRestore: (descriptionHTML: string) => void;
@@ -41,6 +43,7 @@ export const DescriptionVersionsModal = observer(function DescriptionVersionsMod
   const {
     activeVersionDescription,
     activeVersionDetails,
+    currentDescriptionHtml,
     handleClose,
     handleNavigation,
     handleRestore,
@@ -122,7 +125,13 @@ export const DescriptionVersionsModal = observer(function DescriptionVersionsMod
         </div>
         {/* End header */}
         {/* Version description */}
-        <div className="mt-4 pb-4">
+        <div className="mt-4 space-y-4 pb-4">
+          {activeVersionId && activeVersionDescription && currentDescriptionHtml !== undefined && (
+            <div className="space-y-2">
+              <p className="text-11 text-tertiary">تغییرات نسبت به نسخهٔ فعلی (سبز/قرمز)</p>
+              <DocumentHtmlDiff beforeHtml={activeVersionDescription} afterHtml={currentDescriptionHtml} />
+            </div>
+          )}
           {activeVersionId && activeVersionDescription ? (
             <RichTextEditor
               key={activeVersionId}
@@ -160,7 +169,7 @@ export const DescriptionVersionsModal = observer(function DescriptionVersionsMod
             <IconButton type="button" variant="ghost" size="base" onClick={handleCopyMarkdown} icon={CopyIcon} />
           </Tooltip>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="lg" onClick={handleClose} tabIndex={1}>
+            <Button variant="secondary" size="lg" onClick={handleClose}>
               {t("common.cancel")}
             </Button>
             {!isRestoreDisabled && (

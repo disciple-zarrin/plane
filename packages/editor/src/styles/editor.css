@@ -30,6 +30,14 @@
   height: 0;
 }
 
+.ProseMirror p[dir="rtl"].is-editor-empty:first-child::before,
+.ProseMirror p[dir="rtl"].is-empty::before,
+.ProseMirror h1[dir="rtl"].is-empty::before,
+.ProseMirror h2[dir="rtl"].is-empty::before,
+.ProseMirror h3[dir="rtl"].is-empty::before {
+  float: right;
+}
+
 /* Display Placeholders on every new line. */
 .ProseMirror p.is-empty::before {
   content: attr(data-placeholder);

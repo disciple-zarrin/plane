@@ -27,6 +27,7 @@ import {
   MinusSquare,
   Palette,
   AlignCenter,
+  AlignLeft,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LinkIcon } from "@plane/propel/icons";
@@ -40,6 +41,7 @@ import {
   setLinkEditor,
   setText,
   setTextAlign,
+  setTextDirection,
   toggleBackgroundColor,
   toggleBlockquote,
   toggleBold,
@@ -255,6 +257,25 @@ export const TextAlignItem = (editor: Editor): EditorMenuItem<"text-align"> => (
   icon: AlignCenter,
 });
 
+export const TextDirectionItem = (editor: Editor): EditorMenuItem<"text-direction"> => ({
+  key: "text-direction",
+  name: "Text direction",
+  isActive: (props) => {
+    if (!props?.direction) return false;
+    if (editor.isActive({ dir: props.direction })) return true;
+    // Unset paragraphs behave as LTR until the user picks a direction.
+    if (props.direction === "ltr") {
+      return !editor.isActive({ dir: "rtl" });
+    }
+    return false;
+  },
+  command: (props) => {
+    if (!props) return;
+    setTextDirection(props.direction, editor);
+  },
+  icon: AlignLeft,
+});
+
 export const getEditorMenuItems = (editor: Editor | null): EditorMenuItem<TEditorCommands>[] => {
   if (!editor) return [];
 
@@ -282,5 +303,6 @@ export const getEditorMenuItems = (editor: Editor | null): EditorMenuItem<TEdito
     TextColorItem(editor),
     BackgroundColorItem(editor),
     TextAlignItem(editor),
+    TextDirectionItem(editor),
   ] as EditorMenuItem<TEditorCommands>[];
 };

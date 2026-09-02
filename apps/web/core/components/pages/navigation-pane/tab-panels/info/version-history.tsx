@@ -111,6 +111,7 @@ export const PageNavigationPaneInfoTabVersionHistory = observer(function PageNav
   return (
     <div>
       <p className="text-11 font-medium text-secondary">{t("page_navigation_pane.tabs.info.version_history.label")}</p>
+      <p className="mt-1 text-11 text-tertiary">{t("page_navigation_pane.tabs.info.version_history.hint")}</p>
       <div className="mt-3">
         <ul className="relative">
           {/* timeline line */}
@@ -142,6 +143,16 @@ export const PageNavigationPaneInfoTabVersionHistory = observer(function PageNav
             />
           ))}
         </ul>
+        {versionsList && versionsList.length === 0 && (
+          <p className="mt-3 ps-10 text-11 text-tertiary">
+            {t("page_navigation_pane.tabs.info.version_history.empty")}
+          </p>
+        )}
+        {activeVersion && (
+          <p className="mt-3 ps-10 text-11 text-accent-primary">
+            {t("page_navigation_pane.tabs.info.version_history.view_changes")}
+          </p>
+        )}
       </div>
     </div>
   );

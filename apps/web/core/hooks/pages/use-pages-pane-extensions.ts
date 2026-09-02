@@ -44,13 +44,6 @@ export const usePagesPaneExtensions = (_params: TPageExtensionHookParams) => {
     router.push(updatedRoute);
   }, [router, updateQueryParams]);
 
-  const editorExtensionHandlers: Map<string, unknown> = useMemo(() => {
-    const map: Map<string, unknown> = new Map();
-    return map;
-  }, []);
-
-  const navigationPaneExtensions: INavigationPaneExtension[] = [];
-
   const handleCloseNavigationPane = useCallback(() => {
     const updatedRoute = updateQueryParams({
       paramsToRemove: [PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM, PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM],
@@ -58,10 +51,23 @@ export const usePagesPaneExtensions = (_params: TPageExtensionHookParams) => {
     router.push(updatedRoute);
   }, [router, updateQueryParams]);
 
+  const handleToggleNavigationPane = useCallback(() => {
+    if (isNavigationPaneOpen) handleCloseNavigationPane();
+    else handleOpenNavigationPane();
+  }, [handleCloseNavigationPane, handleOpenNavigationPane, isNavigationPaneOpen]);
+
+  const editorExtensionHandlers: Map<string, unknown> = useMemo(() => {
+    const map: Map<string, unknown> = new Map();
+    return map;
+  }, []);
+
+  const navigationPaneExtensions: INavigationPaneExtension[] = [];
+
   return {
     editorExtensionHandlers,
     navigationPaneExtensions,
     handleOpenNavigationPane,
+    handleToggleNavigationPane,
     isNavigationPaneOpen,
     handleCloseNavigationPane,
   };

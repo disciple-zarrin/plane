@@ -89,6 +89,7 @@ type IssueRelation = {
 
 export type TIssue = TBaseIssue & {
   description_html?: string;
+  description_rtl?: boolean;
   is_subscribed?: boolean;
   parent?: Partial<TBaseIssue>;
   issue_reactions?: TIssueReaction[];

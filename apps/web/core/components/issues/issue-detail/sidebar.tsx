@@ -38,6 +38,8 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 // components
 import { IssueParentSelectRoot } from "@/components/issues/parent-select-root";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
+import { IssueWorklogsPanel } from "@/components/issues/worklogs/issue-worklogs-panel";
+import { IssueDeadlineAlarmControl } from "./deadline-alarm";
 import { IssueCycleSelect } from "./cycle-select";
 import { IssueLabel } from "./label";
 import { IssueModuleSelect } from "./module-select";
@@ -158,26 +160,37 @@ export const IssueDetailsSidebar = observer(function IssueDetailsSidebar(props: 
             </SidebarPropertyListItem>
 
             <SidebarPropertyListItem icon={DueDatePropertyIcon} label={t("common.order_by.due_date")}>
-              <div className="flex w-full items-center gap-2">
-                <DateDropdown
-                  placeholder={t("issue.add.due_date")}
-                  value={issue.target_date}
-                  onChange={(val) =>
-                    issueOperations.update(workspaceSlug, projectId, issueId, {
-                      target_date: val ? renderFormattedPayloadDate(val) : null,
-                    })
-                  }
-                  minDate={minDate ?? undefined}
+              <div className="flex w-full flex-col gap-1">
+                <div className="flex w-full items-center gap-2">
+                  <DateDropdown
+                    placeholder={t("issue.add.due_date")}
+                    value={issue.target_date}
+                    onChange={(val) =>
+                      issueOperations.update(workspaceSlug, projectId, issueId, {
+                        target_date: val ? renderFormattedPayloadDate(val) : null,
+                      })
+                    }
+                    minDate={minDate ?? undefined}
+                    disabled={!isEditable}
+                    buttonVariant="transparent-with-text"
+                    className="group w-full grow"
+                    buttonContainerClassName="w-full text-left h-7.5"
+                    buttonClassName={cn("text-body-xs-regular", {
+                      "text-placeholder": !issue.target_date,
+                      "text-danger-primary": shouldHighlightIssueDueDate(issue.target_date, stateDetails?.group),
+                    })}
+                    hideIcon
+                    clearIconClassName="h-3 w-3 hidden group-hover:inline text-primary"
+                  />
+                </div>
+                <IssueDeadlineAlarmControl
+                  workspaceSlug={workspaceSlug}
+                  projectId={projectId}
+                  issueId={issueId}
+                  issueName={issue.name}
+                  issueIdentifier={`${projectDetails?.identifier ?? ""}-${issue.sequence_id}`}
+                  targetDate={issue.target_date}
                   disabled={!isEditable}
-                  buttonVariant="transparent-with-text"
-                  className="group w-full grow"
-                  buttonContainerClassName="w-full text-left h-7.5"
-                  buttonClassName={cn("text-body-xs-regular", {
-                    "text-placeholder": !issue.target_date,
-                    "text-danger-primary": shouldHighlightIssueDueDate(issue.target_date, stateDetails?.group),
-                  })}
-                  hideIcon
-                  clearIconClassName="h-3 w-3 hidden group-hover:inline text-primary"
                 />
               </div>
             </SidebarPropertyListItem>
@@ -202,6 +215,13 @@ export const IssueDetailsSidebar = observer(function IssueDetailsSidebar(props: 
                 />
               </SidebarPropertyListItem>
             )}
+
+            <IssueWorklogsPanel
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+              issueId={issueId}
+              disabled={!isEditable}
+            />
 
             {projectDetails?.module_view && (
               <SidebarPropertyListItem icon={ModuleIcon} label={t("common.modules")}>

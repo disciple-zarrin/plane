@@ -6,6 +6,7 @@ from django.urls import path
 
 
 from plane.app.views import (
+    WorkspaceWorkLogEndpoint,
     UserWorkspaceInvitationsViewSet,
     WorkSpaceViewSet,
     WorkspaceJoinEndpoint,
@@ -256,5 +257,10 @@ urlpatterns = [
         "workspaces/<str:slug>/sidebar-preferences/",
         WorkspaceUserPreferenceViewSet.as_view(),
         name="workspace-user-preference",
+    ),
+    path(
+        "workspaces/<str:slug>/worklogs/",
+        WorkspaceWorkLogEndpoint.as_view(),
+        name="workspace-worklogs",
     ),
 ]

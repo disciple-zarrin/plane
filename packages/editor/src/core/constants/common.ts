@@ -58,6 +58,31 @@ export const TYPOGRAPHY_ITEMS: ToolbarMenuItem<"text" | "h1" | "h2" | "h3" | "h4
   { itemKey: "h6", renderKey: "h6", name: "Heading 6", icon: Heading6, editors: ["document"] },
 ];
 
+export const TEXT_DIRECTION_ITEMS: ToolbarMenuItem<"text-direction">[] = [
+  {
+    itemKey: "text-direction",
+    renderKey: "text-direction-ltr",
+    name: "LTR",
+    icon: AlignLeft,
+    editors: ["lite", "document"],
+    extraProps: {
+      direction: "ltr",
+    },
+  },
+  {
+    itemKey: "text-direction",
+    renderKey: "text-direction-rtl",
+    name: "RTL",
+    icon: AlignRight,
+    editors: ["lite", "document"],
+    extraProps: {
+      direction: "rtl",
+    },
+  },
+];
+
+// Keep direction only on the labeled EditorRtlToggle — icon-only toolbar
+// buttons look identical to text-align and confuse users.
 export const TEXT_ALIGNMENT_ITEMS: ToolbarMenuItem<"text-align">[] = [
   {
     itemKey: "text-align",

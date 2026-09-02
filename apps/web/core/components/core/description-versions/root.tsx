@@ -29,12 +29,14 @@ type Props = {
     retrieveDescriptionVersion: (entityId: string, versionId: string) => Promise<TDescriptionVersionDetails>;
   };
   handleRestore: (descriptionHTML: string) => void;
+  currentDescriptionHtml?: string;
   projectId?: string;
   workspaceSlug: string;
 };
 
 export const DescriptionVersionsRoot = observer(function DescriptionVersionsRoot(props: Props) {
-  const { className, entityInformation, fetchHandlers, handleRestore, projectId, workspaceSlug } = props;
+  const { className, entityInformation, fetchHandlers, handleRestore, currentDescriptionHtml, projectId, workspaceSlug } =
+    props;
   // states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
@@ -75,6 +77,7 @@ export const DescriptionVersionsRoot = observer(function DescriptionVersionsRoot
       <DescriptionVersionsModal
         activeVersionDescription={activeVersionDescription}
         activeVersionDetails={activeVersionDetails}
+        currentDescriptionHtml={currentDescriptionHtml}
         handleClose={() => {
           setIsModalOpen(false);
           setTimeout(() => {

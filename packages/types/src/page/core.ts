@@ -28,6 +28,10 @@ export type TPage = {
   workspace: string | undefined;
   logo_props: TLogoProps | undefined;
   deleted_at: Date | undefined;
+  view_props?: {
+    full_width?: boolean;
+    is_rtl?: boolean;
+  };
 } & TPageExtended;
 
 // page filters

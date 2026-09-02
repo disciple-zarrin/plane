@@ -190,7 +190,23 @@
       "worklogs": {
         "title": "Worklogs",
         "heading": "Worklogs",
-        "description": "Download worklogs AKA timesheets for anyone in any project."
+        "description": "Logged hours by person across work items"
+      },
+      "versions": {
+        "title": "Document versions",
+        "heading": "Page version retention",
+        "description": "Choose how many versions to keep for each page/wiki. Older versions beyond the limit are deleted.",
+        "mode_limited": "Keep a fixed number",
+        "mode_limited_help": "Only the latest N versions are kept per page; older ones are removed.",
+        "mode_all": "Keep all versions",
+        "mode_all_help": "No versions are deleted for retention (may use more disk space).",
+        "limit_label": "Maximum versions per page",
+        "save": "Save settings",
+        "saved_title": "Saved",
+        "saved_message": "Version retention settings updated.",
+        "save_error": "Could not save settings.",
+        "invalid_limit_title": "Invalid number",
+        "invalid_limit_message": "Enter a number between 1 and 500."
       },
       "group_syncing": {
         "title": "Group syncing",

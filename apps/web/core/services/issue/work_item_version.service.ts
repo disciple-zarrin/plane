@@ -48,4 +48,19 @@ export class WorkItemVersionService extends APIService {
         throw error?.response?.data;
       });
   }
+
+  async restoreDescriptionVersion(
+    workspaceSlug: string,
+    projectId: string,
+    workItemId: string,
+    versionId: string
+  ): Promise<{ description_html: string }> {
+    return this.post(
+      `/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${workItemId}/description-versions/${versionId}/restore/`
+    )
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
 }

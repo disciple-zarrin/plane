@@ -142,3 +142,40 @@ class WorkItemDescriptionVersionEndpoint(BaseAPIView):
             ),
         )
         return Response(paginated_data, status=status.HTTP_200_OK)
+
+    @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER])
+    def post(self, request, slug, project_id, work_item_id, pk=None):
+        """Restore issue description to a given version."""
+        if not pk:
+            return Response({"error": "Version id required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=work_item_id)
+            version = IssueDescriptionVersion.objects.get(
+                workspace__slug=slug,
+                project_id=project_id,
+                issue_id=work_item_id,
+                pk=pk,
+            )
+        except (Issue.DoesNotExist, IssueDescriptionVersion.DoesNotExist):
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        issue.description_html = version.description_html or "<p></p>"
+        issue.description_binary = version.description_binary
+        issue.description_json = version.description_json or {}
+        issue.description_stripped = version.description_stripped
+        issue.save(
+            update_fields=[
+                "description_html",
+                "description_binary",
+                "description_json",
+                "description_stripped",
+                "updated_at",
+            ]
+        )
+        return Response(
+            {
+                "description_html": issue.description_html,
+                "description_json": issue.description_json,
+            },
+            status=status.HTTP_200_OK,
+        )

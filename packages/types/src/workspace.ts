@@ -34,6 +34,8 @@ export interface IWorkspace {
   total_projects?: number;
   role: number;
   timezone: string;
+  /** Max page/wiki versions to keep per page. 0 = keep all. Default 20. */
+  page_version_limit?: number;
 }
 
 export interface IWorkspaceLite {

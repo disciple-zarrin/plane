@@ -13,6 +13,7 @@ import type { TNameDescriptionLoader } from "@plane/types";
 import { EFileAssetType, EIssueServiceType } from "@plane/types";
 // components
 import { DescriptionVersionsRoot } from "@/components/core/description-versions";
+import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
 import { DescriptionInput } from "@/components/editor/rich-text/description-input";
 import { IssueTypeSwitcher } from "@/components/issues/issue-type-switcher";
 // hooks
@@ -107,6 +108,10 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
           containerClassName="-ml-3"
         />
 
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="text-11 text-tertiary">جهت پاراگراف فعلی</span>
+          <EditorRtlToggle editorRef={editorRef} disabled={isArchived || !isEditable} />
+        </div>
         <DescriptionInput
           issueSequenceId={issue.sequence_id}
           containerClassName="-ml-6 border-none p-0! pl-6!"
@@ -127,7 +132,6 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
           setIsSubmitting={(value) => setIsSubmitting(value)}
           workspaceSlug={workspaceSlug}
         />
-
         <div className="flex items-center justify-between gap-2">
           {currentUser && (
             <IssueReaction
@@ -155,6 +159,7 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
                   workItemVersionService.retrieveDescriptionVersion(workspaceSlug, projectId, issueId, versionId),
               }}
               handleRestore={(descriptionHTML) => editorRef.current?.setEditorValue(descriptionHTML, true)}
+              currentDescriptionHtml={issue.description_html || ""}
               projectId={projectId}
               workspaceSlug={workspaceSlug}
             />

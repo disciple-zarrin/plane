@@ -11,6 +11,9 @@ from plane.app.views import (
     PagesDescriptionViewSet,
     PageVersionEndpoint,
     PageDuplicateEndpoint,
+    WorkspacePageViewSet,
+    WorkspacePagesDescriptionEndpoint,
+    WorkspacePageVersionEndpoint,
 )
 
 urlpatterns = [
@@ -29,25 +32,21 @@ urlpatterns = [
         PageViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
         name="project-pages",
     ),
-    # favorite pages
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/favorite-pages/<uuid:page_id>/",
         PageFavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="user-favorite-pages",
     ),
-    # archived pages
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/archive/",
         PageViewSet.as_view({"post": "archive", "delete": "unarchive"}),
         name="project-page-archive-unarchive",
     ),
-    # lock and unlock
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/lock/",
         PageViewSet.as_view({"post": "lock", "delete": "unlock"}),
         name="project-pages-lock-unlock",
     ),
-    # private and public page
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/access/",
         PageViewSet.as_view({"post": "access"}),
@@ -69,8 +68,63 @@ urlpatterns = [
         name="page-versions",
     ),
     path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/<uuid:pk>/restore/",
+        PageVersionEndpoint.as_view(),
+        name="page-version-restore",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/export-tree/",
+        PageViewSet.as_view({"get": "export_tree"}),
+        name="project-page-export-tree",
+    ),
+    path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/duplicate/",
         PageDuplicateEndpoint.as_view(),
         name="page-duplicate",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/",
+        WorkspacePageViewSet.as_view({"get": "list", "post": "create"}),
+        name="workspace-pages",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/",
+        WorkspacePageViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
+        name="workspace-pages-detail",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/archive/",
+        WorkspacePageViewSet.as_view({"post": "archive", "delete": "unarchive"}),
+        name="workspace-pages-archive",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/lock/",
+        WorkspacePageViewSet.as_view({"post": "lock", "delete": "unlock"}),
+        name="workspace-pages-lock",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/description/",
+        WorkspacePagesDescriptionEndpoint.as_view(),
+        name="workspace-page-description",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/export-tree/",
+        WorkspacePageViewSet.as_view({"get": "export_tree"}),
+        name="workspace-page-export-tree",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/versions/",
+        WorkspacePageVersionEndpoint.as_view(),
+        name="workspace-page-versions",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/versions/<uuid:pk>/",
+        WorkspacePageVersionEndpoint.as_view(),
+        name="workspace-page-versions-detail",
+    ),
+    path(
+        "workspaces/<str:slug>/pages/<uuid:page_id>/versions/<uuid:pk>/restore/",
+        WorkspacePageVersionEndpoint.as_view(),
+        name="workspace-page-version-restore",
     ),
 ]

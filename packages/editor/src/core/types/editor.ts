@@ -12,7 +12,7 @@ import type { NodeViewProps as TNodeViewProps } from "@tiptap/react";
 // plane imports
 import type { TCustomComponentsMetaData } from "@plane/utils";
 // extension types
-import type { TTextAlign } from "@/extensions";
+import type { TTextAlign, TTextDirection } from "@/extensions";
 // plane editor imports
 import type {
   IEditorPropsExtended,
@@ -154,6 +154,7 @@ export type TEditorCommands =
   | "background-color-default"
   | `background-color-${string}`
   | "text-align"
+  | "text-direction"
   | "callout"
   | "attachment"
   | "emoji"
@@ -179,6 +180,9 @@ export type TCommandExtraProps = {
   };
   "text-align": {
     alignment: TTextAlign;
+  };
+  "text-direction": {
+    direction: TTextDirection;
   };
 };
 
@@ -221,6 +225,8 @@ export type CoreEditorRefApi = {
   copyMarkdownToClipboard: () => void;
   getSelectedText: () => string | null;
   insertText: (contentHTML: string, insertOnNextLine?: boolean) => void;
+  /** Insert a Notion-style clickable page link at the current cursor. */
+  insertPageLink: (pageId: string, title?: string) => void;
   isAnyDropbarOpen: () => boolean;
   isEditorReadyToDiscard: () => boolean;
   isMenuItemActive: <T extends TEditorCommands>(props: TCommandWithPropsWithItemKey<T>) => boolean;

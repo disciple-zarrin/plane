@@ -3,9 +3,7 @@
 # See the LICENSE file for details.
 
 # Python imports
-import json
 from datetime import datetime
-from django.core.serializers.json import DjangoJSONEncoder
 
 # Django imports
 from django.db import connection
@@ -54,6 +52,8 @@ from plane.bgtasks.page_version_task import track_page_version
 from plane.bgtasks.recent_visited_task import recent_visited_task
 from plane.bgtasks.copy_s3_object import copy_s3_objects_of_description_and_assets
 from plane.app.permissions import ProjectPagePermission
+from plane.utils.page_version_snapshot import encode_page_snapshot
+from .export_tree import collect_mentioned_pages, collect_page_descendants, serialize_export_tree
 
 
 def unarchive_archive_page_and_descendants(page_id, archived_at):
@@ -78,7 +78,7 @@ class PageViewSet(BaseViewSet):
     permission_classes = [ProjectPagePermission]
     search_fields = ["name"]
 
-    def get_queryset(self):
+    def _membership_queryset(self):
         subquery = UserFavorite.objects.filter(
             user=self.request.user,
             entity_type="page",
@@ -94,7 +94,6 @@ class PageViewSet(BaseViewSet):
                 projects__project_projectmember__is_active=True,
                 projects__archived_at__isnull=True,
             )
-            .filter(parent__isnull=True)
             .filter(Q(owned_by=self.request.user) | Q(access=0))
             .prefetch_related("projects")
             .select_related("workspace")
@@ -126,6 +125,22 @@ class PageViewSet(BaseViewSet):
             .distinct()
         )
 
+    def get_queryset(self):
+        qs = self._membership_queryset()
+        parent = self.request.GET.get("parent") if hasattr(self, "request") else None
+        root_only = "1"
+        if hasattr(self, "request"):
+            root_only = self.request.GET.get("root_only", "1")
+        # retrieve/update actions must see nested pages
+        action = getattr(self, "action", None)
+        if action in ("retrieve", "partial_update", "destroy", "archive", "unarchive", "lock", "unlock", "access"):
+            return qs
+        if parent:
+            return qs.filter(parent_id=parent)
+        if root_only in ("1", "true", "True"):
+            return qs.filter(parent__isnull=True)
+        return qs
+
     def create(self, request, slug, project_id):
         serializer = PageSerializer(
             data=request.data,
@@ -146,7 +161,7 @@ class PageViewSet(BaseViewSet):
                 old_description_html=None,
                 page_id=serializer.data["id"],
             )
-            page = self.get_queryset().get(pk=serializer.data["id"])
+            page = self._membership_queryset().get(pk=serializer.data["id"])
             serializer = PageDetailSerializer(page)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -200,7 +215,7 @@ class PageViewSet(BaseViewSet):
             )
 
     def retrieve(self, request, slug, project_id, page_id=None):
-        page = self.get_queryset().filter(pk=page_id).first()
+        page = self._membership_queryset().filter(pk=page_id).first()
         project = Project.objects.get(pk=project_id)
         track_visit = request.query_params.get("track_visit", "true").lower() == "true"
 
@@ -267,6 +282,20 @@ class PageViewSet(BaseViewSet):
         page.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def export_tree(self, request, slug, project_id, page_id):
+        try:
+            page = Page.objects.get(
+                pk=page_id,
+                workspace__slug=slug,
+                projects__id=project_id,
+                project_pages__deleted_at__isnull=True,
+            )
+        except Page.DoesNotExist:
+            return Response({"error": "Page not found"}, status=status.HTTP_404_NOT_FOUND)
+        qs = self._membership_queryset()
+        pages = collect_mentioned_pages(collect_page_descendants(page, qs), qs)
+        return Response(serialize_export_tree(page, pages), status=status.HTTP_200_OK)
 
     def access(self, request, slug, project_id, page_id):
         access = request.data.get("access", 0)
@@ -545,11 +574,9 @@ class PagesDescriptionViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Store the old description_html before saving (needed for both tasks)
+        # Store the old body before saving (needed for transaction + version tasks)
         old_description_html = page.description_html
-
-        # Serialize the existing instance
-        existing_instance = json.dumps({"description_html": old_description_html}, cls=DjangoJSONEncoder)
+        existing_instance = encode_page_snapshot(page)
 
         # Use serializer for validation and update
         serializer = PageBinaryUpdateSerializer(page, data=request.data, partial=True)

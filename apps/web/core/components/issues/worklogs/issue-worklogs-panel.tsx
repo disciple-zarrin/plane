@@ -1,0 +1,293 @@
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { observer } from "mobx-react";
+import { ChevronDown, ChevronUp, Timer, Trash2 } from "lucide-react";
+import { Button } from "@plane/propel/button";
+import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { cn } from "@plane/utils";
+import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
+import { WorkLogService, type TIssueWorkLog } from "@/services/worklog.service";
+
+type Props = {
+  workspaceSlug: string;
+  projectId: string;
+  issueId: string;
+  disabled?: boolean;
+};
+
+const service = new WorkLogService();
+
+const QUICK_ADD = [
+  { label: "۱۵د", minutes: 15 },
+  { label: "۳۰د", minutes: 30 },
+  { label: "۱س", minutes: 60 },
+  { label: "۲س", minutes: 120 },
+  { label: "۴س", minutes: 240 },
+  { label: "۸س", minutes: 480 },
+];
+
+function formatHours(minutes: number) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (minutes <= 0) return "0h";
+  if (h <= 0) return `${m}m`;
+  if (m <= 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Props) {
+  const { workspaceSlug, projectId, issueId, disabled } = props;
+  const [logs, setLogs] = useState<TIssueWorkLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [hours, setHours] = useState("1");
+  const [minutes, setMinutes] = useState("0");
+  const [description, setDescription] = useState("");
+  const [loggedAt, setLoggedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await service.listIssueWorkLogs(workspaceSlug, projectId, issueId);
+      setLogs(Array.isArray(data) ? data : []);
+    } catch {
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaceSlug, projectId, issueId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const totalMinutes = useMemo(() => logs.reduce((acc, l) => acc + (l.duration_minutes || 0), 0), [logs]);
+
+  const addMinutes = useMemo(() => {
+    const h = Math.max(0, Number(hours) || 0);
+    const m = Math.max(0, Math.min(59, Number(minutes) || 0));
+    return Math.round(h * 60) + m;
+  }, [hours, minutes]);
+
+  const projectedTotal = totalMinutes + addMinutes;
+
+  const applyQuick = (mins: number) => {
+    setHours(String(Math.floor(mins / 60)));
+    setMinutes(String(mins % 60));
+    setOpen(true);
+  };
+
+  const onSave = async (overrideMinutes?: number) => {
+    const duration = overrideMinutes ?? addMinutes;
+    if (duration < 1) {
+      setError("حداقل ۱ دقیقه وارد کنید.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await service.createIssueWorkLog(workspaceSlug, projectId, issueId, {
+        duration_minutes: duration,
+        description,
+        logged_at: loggedAt,
+      });
+      setDescription("");
+      setHours("1");
+      setMinutes("0");
+      await refresh();
+      setToast({
+        type: TOAST_TYPE.SUCCESS,
+        title: "ثبت شد",
+        message: `${formatHours(duration)} به جمع زمان تسک اضافه شد.`,
+      });
+    } catch {
+      setError("ثبت نشد. دوباره تلاش کنید.");
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: "خطا",
+        message: "ثبت ساعت انجام نشد.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onDelete = async (log: TIssueWorkLog) => {
+    try {
+      await service.deleteIssueWorkLog(workspaceSlug, projectId, issueId, log.id);
+      await refresh();
+      setToast({
+        type: TOAST_TYPE.SUCCESS,
+        title: "حذف شد",
+        message: "ثبت زمان حذف شد.",
+      });
+    } catch {
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: "خطا",
+        message: "حذف انجام نشد.",
+      });
+    }
+  };
+
+  return (
+    <div className="w-full space-y-2">
+      <SidebarPropertyListItem icon={Timer} label="زمان صرف‌شده">
+        <div className="flex w-full items-center justify-between gap-2">
+          <button
+            type="button"
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-2 py-1 text-body-xs-medium transition-colors",
+              "hover:bg-surface-2",
+              open && "bg-surface-2"
+            )}
+            onClick={() => !disabled && setOpen((v) => !v)}
+            disabled={disabled}
+          >
+            <span className="tabular-nums text-primary">{loading ? "…" : formatHours(totalMinutes)}</span>
+            {!disabled && (open ? <ChevronUp className="size-3.5 text-tertiary" /> : <ChevronDown className="size-3.5 text-tertiary" />)}
+          </button>
+          {!disabled && (
+            <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+              ثبت ساعت
+            </Button>
+          )}
+        </div>
+      </SidebarPropertyListItem>
+
+      {open && !disabled && (
+        <div className="ms-0 space-y-3 rounded-lg border border-subtle bg-surface-1 p-3 sm:ms-[7.5rem]">
+          <div className="flex items-center justify-between gap-2 rounded-md border border-subtle bg-surface-2/60 px-3 py-2">
+            <div className="text-body-xs-regular text-tertiary">جمع فعلی</div>
+            <div className="flex items-center gap-2 text-body-xs-medium">
+              <span className="tabular-nums text-primary">{formatHours(totalMinutes)}</span>
+              {addMinutes > 0 && (
+                <>
+                  <span className="text-tertiary">→</span>
+                  <span className="tabular-nums text-accent-primary">{formatHours(projectedTotal)}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_ADD.map((q) => (
+              <button
+                key={q.minutes}
+                type="button"
+                onClick={() => applyQuick(q.minutes)}
+                className={cn(
+                  "rounded-full border border-subtle px-2.5 py-1 text-11 transition-colors",
+                  addMinutes === q.minutes
+                    ? "border-accent-primary bg-accent-primary/10 text-accent-primary"
+                    : "bg-surface-2 text-secondary hover:border-accent-primary/40"
+                )}
+              >
+                +{q.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <label className="space-y-1 text-11 text-tertiary">
+              ساعت
+              <input
+                className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+                type="number"
+                min={0}
+                step={1}
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+              />
+            </label>
+            <label className="space-y-1 text-11 text-tertiary">
+              دقیقه
+              <input
+                className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+                type="number"
+                min={0}
+                max={59}
+                step={5}
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <label className="block space-y-1 text-11 text-tertiary">
+            تاریخ
+            <input
+              className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+              type="date"
+              value={loggedAt}
+              onChange={(e) => setLoggedAt(e.target.value)}
+            />
+          </label>
+
+          <label className="block space-y-1 text-11 text-tertiary">
+            توضیح (اختیاری)
+            <textarea
+              className="w-full resize-none rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+              rows={2}
+              placeholder="چه کاری انجام شد؟"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </label>
+
+          {error && <p className="text-11 text-danger-primary">{error}</p>}
+
+          <div className="flex items-center gap-2">
+            <Button variant="primary" size="sm" onClick={() => onSave()} disabled={saving || addMinutes < 1}>
+              {saving ? "…" : `افزودن ${addMinutes > 0 ? formatHours(addMinutes) : ""}`}
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setOpen(false)} disabled={saving}>
+              بستن
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {logs.length > 0 && (
+        <div className="ms-0 max-h-48 space-y-1 overflow-auto rounded-lg border border-subtle bg-surface-1 p-2 sm:ms-[7.5rem]">
+          {logs.map((log) => (
+            <div
+              key={log.id}
+              className="group flex items-start justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-surface-2"
+            >
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 text-body-xs-medium text-primary">
+                  <span className="truncate">{log.actor_detail?.display_name || log.actor_detail?.email || "—"}</span>
+                  <span className="rounded bg-accent-primary/10 px-1.5 py-0.5 text-11 tabular-nums text-accent-primary">
+                    {formatHours(log.duration_minutes)}
+                  </span>
+                </div>
+                <div className="truncate text-11 text-tertiary">
+                  {log.logged_at}
+                  {log.description ? ` · ${log.description}` : ""}
+                </div>
+              </div>
+              {!disabled && (
+                <button
+                  type="button"
+                  className="shrink-0 rounded p-1 text-tertiary opacity-0 transition-opacity hover:bg-surface-1 hover:text-danger-primary group-hover:opacity-100"
+                  onClick={() => onDelete(log)}
+                  title="حذف"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});

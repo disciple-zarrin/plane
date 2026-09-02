@@ -505,15 +505,23 @@ class SearchEndpoint(BaseAPIView):
                         for field in fields:
                             q |= Q(**{f"{field}__icontains": query})
 
+                    project_pages = Page.objects.filter(
+                        q,
+                        projects__project_projectmember__member=self.request.user,
+                        projects__project_projectmember__is_active=True,
+                        projects__id=project_id,
+                        workspace__slug=slug,
+                        access=0,
+                    )
+                    wiki_pages = Page.objects.filter(
+                        q,
+                        workspace__slug=slug,
+                        is_global=True,
+                        access=0,
+                        archived_at__isnull=True,
+                    )
                     pages = (
-                        Page.objects.filter(
-                            q,
-                            projects__project_projectmember__member=self.request.user,
-                            projects__project_projectmember__is_active=True,
-                            projects__id=project_id,
-                            workspace__slug=slug,
-                            access=0,
-                        )
+                        (project_pages | wiki_pages)
                         .order_by("-created_at")
                         .distinct()
                         .values(
@@ -522,6 +530,7 @@ class SearchEndpoint(BaseAPIView):
                             "logo_props",
                             "projects__id",
                             "workspace__slug",
+                            "is_global",
                         )[:count]
                     )
                     response_data["page"] = list(pages)
@@ -710,11 +719,10 @@ class SearchEndpoint(BaseAPIView):
                     pages = (
                         Page.objects.filter(
                             q,
-                            projects__project_projectmember__member=self.request.user,
-                            projects__project_projectmember__is_active=True,
                             workspace__slug=slug,
                             access=0,
                             is_global=True,
+                            archived_at__isnull=True,
                         )
                         .order_by("-created_at")
                         .distinct()
@@ -724,6 +732,7 @@ class SearchEndpoint(BaseAPIView):
                             "logo_props",
                             "projects__id",
                             "workspace__slug",
+                            "is_global",
                         )[:count]
                     )
                     response_data["page"] = list(pages)

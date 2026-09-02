@@ -933,12 +933,14 @@ class IssueLiteSerializer(DynamicBaseSerializer):
 
 class IssueDetailSerializer(IssueSerializer):
     description_html = serializers.CharField()
+    description_rtl = serializers.BooleanField(required=False)
     is_subscribed = serializers.BooleanField(read_only=True)
     is_intake = serializers.BooleanField(read_only=True)
 
     class Meta(IssueSerializer.Meta):
         fields = IssueSerializer.Meta.fields + [
             "description_html",
+            "description_rtl",
             "is_subscribed",
             "is_intake",
         ]

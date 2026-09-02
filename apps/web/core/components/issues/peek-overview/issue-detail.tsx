@@ -13,6 +13,7 @@ import { EFileAssetType } from "@plane/types";
 import type { TNameDescriptionLoader } from "@plane/types";
 // components
 import { DescriptionVersionsRoot } from "@/components/core/description-versions";
+import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
 import { DescriptionInput } from "@/components/editor/rich-text/description-input";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -21,7 +22,6 @@ import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
 // plane web components
 import { IssueTypeSwitcher } from "@/components/issues/issue-type-switcher";
-// plane web hooks
 // services
 import { WorkItemVersionService } from "@/services/issue";
 // local components
@@ -106,6 +106,10 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
         containerClassName="-ml-3"
       />
 
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-11 text-tertiary">جهت پاراگراف فعلی</span>
+        <EditorRtlToggle editorRef={editorRef} disabled={disabled || isArchived} />
+      </div>
       <DescriptionInput
         issueSequenceId={issue.sequence_id}
         containerClassName="-ml-3 border-none"
@@ -126,7 +130,6 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
         projectId={issue.project_id}
         workspaceSlug={workspaceSlug}
       />
-
       <div className="flex items-center justify-between gap-2">
         {currentUser && (
           <IssueReaction
@@ -162,6 +165,7 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
                 ),
             }}
             handleRestore={(descriptionHTML) => editorRef.current?.setEditorValue(descriptionHTML, true)}
+            currentDescriptionHtml={issue.description_html || ""}
             projectId={issue.project_id}
             workspaceSlug={workspaceSlug}
           />
