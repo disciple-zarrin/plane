@@ -279,6 +279,9 @@ catalogs:
     date-fns:
       specifier: ^4.1.0
       version: 4.1.0
+    date-fns-jalali:
+      specifier: 4.1.0-0
+      version: 4.1.0-0
     dotenv:
       specifier: 16.4.7
       version: 16.4.7
@@ -1917,6 +1920,9 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      date-fns-jalali:
+        specifier: 'catalog:'
+        version: 4.1.0-0
       hast:
         specifier: 'catalog:'
         version: 1.0.0

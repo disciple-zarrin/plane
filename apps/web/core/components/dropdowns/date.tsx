@@ -11,11 +11,12 @@ import { usePopper } from "react-popper";
 import { CalendarDays } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // ui
+import { useTranslation } from "@plane/i18n";
 import type { Matcher } from "@plane/propel/calendar";
 import { Calendar } from "@plane/propel/calendar";
 import { CloseIcon } from "@plane/propel/icons";
 import { ComboDropDown } from "@plane/ui";
-import { cn, renderFormattedDate, getDate } from "@plane/utils";
+import { cn, renderFormattedDate, getDate, getCalendarStartOfWeek } from "@plane/utils";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
@@ -71,13 +72,15 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
     renderByDefault = true,
     labelClassName = "",
   } = props;
+  // Subscribe to locale so Jalali/Gregorian labels refresh when language changes.
+  const { currentLocale } = useTranslation();
   // states
   const [isOpen, setIsOpen] = useState(defaultOpen);
   // refs
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   // hooks
   const { data } = useUserProfile();
-  const startOfWeek = data?.start_of_the_week;
+  const startOfWeek = getCalendarStartOfWeek(data?.start_of_the_week);
   // popper-js refs
   const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
@@ -146,7 +149,10 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
       >
         {!hideIcon && icon}
         {BUTTON_VARIANTS_WITH_TEXT.includes(buttonVariant) && (
-          <span className={cn("flex-grow truncate text-left text-body-xs-medium", labelClassName)}>
+          <span
+            key={currentLocale}
+            className={cn("flex-grow truncate text-left text-body-xs-medium", labelClassName)}
+          >
             {value ? renderFormattedDate(value, formatToken) : placeholder}
           </span>
         )}
