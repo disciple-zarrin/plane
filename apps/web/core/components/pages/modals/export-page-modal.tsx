@@ -25,6 +25,9 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   pageTitle: string;
+  pageId?: string;
+  exportContext?: string;
+  isRtl?: boolean;
 };
 
 type TExportFormats = "pdf" | "markdown";
