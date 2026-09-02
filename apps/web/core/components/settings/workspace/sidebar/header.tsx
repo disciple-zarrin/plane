@@ -39,9 +39,10 @@ export const WorkspaceSettingsSidebarHeader = observer(function WorkspaceSetting
           variant="ghost"
           size="base"
           icon={ArrowLeft}
+          iconClassName="rtl:rotate-180"
           onClick={() => router.push(`/${currentWorkspace?.slug}/`)}
         />
-        <p>{t("workspace_settings.sidebar.workspace_settings") || "تنظیمات فضای کاری"}</p>
+        <p>{t("workspace_settings.sidebar.workspace_settings") || t("workspace_settings.label") || "تنظیمات فضای کاری"}</p>
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 px-5 py-0.5">
         <div className="flex items-center gap-2 truncate">

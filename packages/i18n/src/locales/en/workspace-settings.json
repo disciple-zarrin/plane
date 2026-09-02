@@ -1,6 +1,9 @@
 {
   "workspace_settings": {
     "label": "Workspace settings",
+    "sidebar": {
+      "workspace_settings": "Workspace settings"
+    },
     "page_label": "{workspace} - General settings",
     "key_created": "Key created",
     "copy_key": "Copy and save this secret key in Plane Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.",

@@ -46,9 +46,10 @@ export const ProjectSettingsSidebarHeader = observer(function ProjectSettingsSid
           variant="ghost"
           size="base"
           icon={ArrowLeft}
+          iconClassName="rtl:rotate-180"
           onClick={() => router.push(`/${currentWorkspace?.slug}/projects/${projectId}/issues/`)}
         />
-        <p>{t("project_settings.header.title") || "تنظیمات پروژه"}</p>
+        <p>{t("project_settings.header.title") || t("project_settings.label") || "تنظیمات پروژه"}</p>
       </div>
       <div className="mt-1.5 flex items-center gap-2 truncate px-5 py-0.5">
         <div className="grid size-8 shrink-0 place-items-center rounded bg-layer-2">
