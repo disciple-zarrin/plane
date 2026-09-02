@@ -206,7 +206,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
                 <>
                   <span className="text-placeholder">{placeholder.from}</span>
                   {placeholder.from && placeholder.to && (
-                    <ArrowRight className="h-3 w-3 flex-shrink-0 text-placeholder" />
+                    <ArrowRight className="h-3 w-3 flex-shrink-0 text-placeholder rtl:rotate-180" />
                   )}
                   <span className="text-placeholder">{placeholder.to}</span>
                 </>
@@ -235,7 +235,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
               {!hideIcon.from && <CalendarDays className="h-3 w-3 flex-shrink-0" />}
               {dateRange.from ? renderFormattedDate(dateRange.from) : renderPlaceholder ? placeholder.from : ""}
             </span>
-            <ArrowRight className="h-3 w-3 flex-shrink-0" />
+            <ArrowRight className="h-3 w-3 flex-shrink-0 rtl:rotate-180" />
             <span
               className={cn(
                 "flex h-full flex-grow items-center justify-center gap-1 rounded-xs",

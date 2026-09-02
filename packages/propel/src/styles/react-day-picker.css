@@ -138,6 +138,12 @@
     align-items: center;
   }
 
+  [dir="rtl"] .rdp-nav,
+  .rdp-root[dir="rtl"] .rdp-nav {
+    right: auto;
+    left: 1em;
+  }
+
   .rdp-button_next,
   .rdp-button_previous {
     border: none;
@@ -259,6 +265,11 @@
     margin: 0 0 0 5px;
   }
 
+  [dir="rtl"] .rdp-dropdown_icon,
+  .rdp-root[dir="rtl"] .rdp-dropdown_icon {
+    margin: 0 5px 0 0;
+  }
+
   /* --------------- */
   /* Range selection */
   /* --------------- */
@@ -294,6 +305,18 @@
 
   .rdp-range_end::before {
     right: 50%;
+  }
+
+  [dir="rtl"] .rdp-range_start::before,
+  .rdp-root[dir="rtl"] .rdp-range_start::before {
+    left: auto;
+    right: 50%;
+  }
+
+  [dir="rtl"] .rdp-range_end::before,
+  .rdp-root[dir="rtl"] .rdp-range_end::before {
+    right: auto;
+    left: 50%;
   }
 
   .rdp-range_start.rdp-range_end::before {
