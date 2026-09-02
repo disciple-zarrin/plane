@@ -18,7 +18,7 @@ import type { DateRange, Matcher } from "@plane/propel/calendar";
 import { Calendar } from "@plane/propel/calendar";
 import { CloseIcon, DueDatePropertyIcon } from "@plane/propel/icons";
 import { ComboDropDown } from "@plane/ui";
-import { cn, renderFormattedDate } from "@plane/utils";
+import { cn, renderFormattedDate, getCalendarStartOfWeek } from "@plane/utils";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
@@ -71,7 +71,8 @@ type Props = {
 };
 
 export const DateRangeDropdown = observer(function DateRangeDropdown(props: Props) {
-  const { t } = useTranslation();
+  const { t, currentLocale } = useTranslation();
+  void currentLocale;
   const {
     buttonClassName,
     buttonContainerClassName,
@@ -110,7 +111,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
   const [dateRange, setDateRange] = useState<DateRange>(value);
   // hooks
   const { data } = useUserProfile();
-  const startOfWeek = data?.start_of_the_week;
+  const startOfWeek = getCalendarStartOfWeek(data?.start_of_the_week);
   // refs
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   // popper-js refs

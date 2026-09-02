@@ -6,10 +6,10 @@
 
 // plane types
 import { useTranslation } from "@plane/i18n";
-// hooks
 import type { IUser } from "@plane/types";
+import { isPersianLocale } from "@plane/utils";
+// hooks
 import { useCurrentTime } from "@/hooks/use-current-time";
-// types
 
 export interface IUserGreetingsView {
   user: IUser;
@@ -17,30 +17,27 @@ export interface IUserGreetingsView {
 
 export function UserGreetingsView(props: IUserGreetingsView) {
   const { user } = props;
-  // current time hook
   const { currentTime } = useCurrentTime();
-  // store hooks
   const { t } = useTranslation();
+  const persian = isPersianLocale();
+  const locale = persian ? "fa-IR" : "en-US";
+  const timeZone = user?.user_timezone;
 
-  const hour = new Intl.DateTimeFormat("en-US", {
+  const hour = new Intl.DateTimeFormat(locale, {
     hour12: false,
     hour: "numeric",
+    timeZone,
   }).format(currentTime);
 
-  const date = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(currentTime);
-
-  const weekDay = new Intl.DateTimeFormat("en-US", {
+  const dateLine = new Intl.DateTimeFormat(locale, {
+    ...(persian ? { calendar: "persian" as const } : {}),
     weekday: "long",
-  }).format(currentTime);
-
-  const timeString = new Intl.DateTimeFormat("en-US", {
-    timeZone: user?.user_timezone,
-    hour12: false, // Use 24-hour format
+    month: persian ? "long" : "short",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
+    timeZone,
   }).format(currentTime);
 
   const greeting = parseInt(hour, 10) < 12 ? "morning" : parseInt(hour, 10) < 18 ? "afternoon" : "evening";
@@ -52,9 +49,7 @@ export function UserGreetingsView(props: IUserGreetingsView) {
       </h2>
       <h5 className="flex items-center gap-2 font-medium text-placeholder">
         <div>{greeting === "morning" ? "🌤️" : greeting === "afternoon" ? "🌥️" : "🌙️"}</div>
-        <div>
-          {weekDay}, {date} {timeString}
-        </div>
+        <div>{dateLine}</div>
       </h5>
     </div>
   );
