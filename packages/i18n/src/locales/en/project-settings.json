@@ -1,5 +1,9 @@
 {
   "project_settings": {
+    "label": "Project settings",
+    "header": {
+      "title": "Project settings"
+    },
     "general": {
       "enter_project_id": "Enter project ID",
       "please_select_a_timezone": "Please select a timezone",
