@@ -23,6 +23,7 @@ import { cn, generateWorkItemLink } from "@plane/utils";
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
 import { IssueProperties } from "@/components/issues/issue-layouts/properties";
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
+import { IssueAlarmBell } from "@/components/issues/issue-alarm-bell";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -234,7 +235,7 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
                 </Tooltip>
               )}
               {displayProperties && (displayProperties.key || displayProperties.issue_type) && (
-                <div className="flex-shrink-0" style={{ minWidth: `${keyMinWidth}px` }}>
+                <div className="flex flex-shrink-0 items-center gap-1" style={{ minWidth: `${keyMinWidth}px` }}>
                   {issue.project_id && (
                     <IssueIdentifier
                       issueId={issueId}
@@ -244,8 +245,10 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
                       displayProperties={displayProperties}
                     />
                   )}
+                  <IssueAlarmBell issueId={issueId} />
                 </div>
               )}
+              {!(displayProperties?.key || displayProperties?.issue_type) && <IssueAlarmBell issueId={issueId} />}
 
               {/* sub-issues chevron */}
               <div className="grid size-4 flex-shrink-0 place-items-center">

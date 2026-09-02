@@ -25,6 +25,7 @@ import { cn, generateWorkItemLink } from "@plane/utils";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { HIGHLIGHT_CLASS, getIssueBlockId } from "@/components/issues/issue-layouts/utils";
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
+import { IssueAlarmBell } from "@/components/issues/issue-alarm-bell";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useKanbanView } from "@/hooks/store/use-kanban-view";
@@ -95,15 +96,18 @@ const KanbanIssueDetailsBlock = observer(function KanbanIssueDetailsBlock(props:
   return (
     <>
       <div className="relative">
-        {issue.project_id && (
-          <IssueIdentifier
-            issueId={issue.id}
-            projectId={issue.project_id}
-            size="xs"
-            variant="tertiary"
-            displayProperties={displayProperties}
-          />
-        )}
+        <div className="flex items-center gap-1">
+          {issue.project_id && (
+            <IssueIdentifier
+              issueId={issue.id}
+              projectId={issue.project_id}
+              size="xs"
+              variant="tertiary"
+              displayProperties={displayProperties}
+            />
+          )}
+          <IssueAlarmBell issueId={issue.id} />
+        </div>
         {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
         <div
           className={cn("absolute -top-1 right-0", {

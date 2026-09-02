@@ -42,6 +42,7 @@ import { IssueCycleSelect } from "../issue-detail/cycle-select";
 import { IssueLabel } from "../issue-detail/label";
 import { IssueModuleSelect } from "../issue-detail/module-select";
 import { IssueWorklogsPanel } from "../worklogs/issue-worklogs-panel";
+import { IssueDeadlineAlarmControl } from "../issue-detail/deadline-alarm";
 
 interface IPeekOverviewProperties {
   workspaceSlug: string;
@@ -161,26 +162,37 @@ export const PeekOverviewProperties = observer(function PeekOverviewProperties(p
         </SidebarPropertyListItem>
 
         <SidebarPropertyListItem icon={DueDatePropertyIcon} label={t("common.order_by.due_date")}>
-          <div className="flex w-full items-center gap-2">
-            <DateDropdown
-              value={issue.target_date}
-              onChange={(val) =>
-                issueOperations.update(workspaceSlug, projectId, issueId, {
-                  target_date: val ? renderFormattedPayloadDate(val) : null,
-                })
-              }
-              placeholder={t("issue.add.due_date")}
-              buttonVariant="transparent-with-text"
-              minDate={minDate ?? undefined}
+          <div className="flex w-full flex-col items-stretch gap-1">
+            <div className="flex w-full items-center gap-2">
+              <DateDropdown
+                value={issue.target_date}
+                onChange={(val) =>
+                  issueOperations.update(workspaceSlug, projectId, issueId, {
+                    target_date: val ? renderFormattedPayloadDate(val) : null,
+                  })
+                }
+                placeholder={t("issue.add.due_date")}
+                buttonVariant="transparent-with-text"
+                minDate={minDate ?? undefined}
+                disabled={disabled}
+                className="group w-full grow"
+                buttonContainerClassName="w-full text-left h-7.5"
+                buttonClassName={cn("text-body-xs-medium", {
+                  "text-placeholder": !issue.target_date,
+                  "text-danger-primary": shouldHighlightIssueDueDate(issue.target_date, stateDetails?.group),
+                })}
+                hideIcon
+                clearIconClassName="h-3 w-3 hidden group-hover:inline text-primary"
+              />
+            </div>
+            <IssueDeadlineAlarmControl
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+              issueId={issueId}
+              issueName={issue.name}
+              issueIdentifier={`${projectDetails?.identifier ?? ""}-${issue.sequence_id}`}
+              targetDate={issue.target_date}
               disabled={disabled}
-              className="group w-full grow"
-              buttonContainerClassName="w-full text-left h-7.5"
-              buttonClassName={cn("text-body-xs-medium", {
-                "text-placeholder": !issue.target_date,
-                "text-danger-primary": shouldHighlightIssueDueDate(issue.target_date, stateDetails?.group),
-              })}
-              hideIcon
-              clearIconClassName="h-3 w-3 hidden group-hover:inline text-primary"
             />
           </div>
         </SidebarPropertyListItem>
