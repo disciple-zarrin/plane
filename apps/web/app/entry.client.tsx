@@ -12,6 +12,32 @@ import polyfills from "@/lib/polyfills";
 
 void polyfills;
 
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+  const syncAlarms = () => {
+    void import("@/services/web-push.service").then(async (m) => {
+      await m.syncPendingAlarmsFromServer();
+      await m.flushLocalAlarms();
+    });
+  };
+
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then(() => {
+        syncAlarms();
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") syncAlarms();
+  });
+  window.addEventListener("online", () => {
+    syncAlarms();
+  });
+}
+
 startTransition(() => {
   hydrateRoot(
     document,

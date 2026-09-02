@@ -24,6 +24,7 @@ import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-red
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // components
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
+import { IssueAlarmBell } from "@/components/issues/issue-alarm-bell";
 // local components
 import { WorkItemPreviewCard } from "../../preview-card";
 import type { TRenderQuickActions } from "../list/list-view-types";
@@ -140,6 +141,7 @@ export const CalendarIssueBlock = observer(
                         displayProperties={issuesFilter?.issueFilters?.displayProperties}
                       />
                     )}
+                    <IssueAlarmBell issueId={issue.id} />
                     <div className="truncate text-13 font-medium md:text-11 md:font-regular">{issue.name}</div>
                   </div>
                   {/* Wrapper exists only to stop clicks reaching the ControlLink; the
