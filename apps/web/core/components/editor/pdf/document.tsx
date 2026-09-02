@@ -269,13 +269,13 @@ type Props = {
 
 /** Pass HTML `id` through so Link src="#id" can jump (react-pdf-html drops ids by default). */
 function renderWithId(
-  Component: typeof View | typeof Text,
+  Component: any,
   // oxlint-disable-next-line typescript/no-explicit-any
   args: { style?: any; children?: React.ReactNode; element?: { attributes?: Record<string, string> } }
 ) {
   const { style, children, element } = args;
   const id = element?.attributes?.id;
-  return React.createElement(Component, { style, ...(id ? { id } : {}) }, children);
+  return React.createElement(Component as any, { style, ...(id ? { id } : {}) }, children);
 }
 
 const htmlRenderers = {

@@ -18,6 +18,7 @@ import { TourRoot } from "@/components/onboarding/tour/root";
 import { DashboardWidgets } from "./home-dashboard-widgets";
 import { UserGreetingsView } from "./user-greetings";
 import { HomePeekOverviewsRoot } from "../issues/peek-overview/peek-overviews";
+import { UpcomingAlarmsList } from "@/components/settings/profile/content/pages/notifications/upcoming-alarms";
 
 export const WorkspaceHomeView = observer(function WorkspaceHomeView() {
   // store hooks
@@ -57,6 +58,9 @@ export const WorkspaceHomeView = observer(function WorkspaceHomeView() {
         <ContentWrapper className="mx-auto scrollbar-hide gap-6 bg-surface-1 px-page-x">
           <div className="mx-auto w-full max-w-[800px]">
             {currentUser && <UserGreetingsView user={currentUser} />}
+            <div className="mb-4">
+              <UpcomingAlarmsList variant="home" />
+            </div>
             <DashboardWidgets />
           </div>
         </ContentWrapper>

@@ -54,7 +54,7 @@ function htmlToMarkdownPreservingDirection(html: string): string {
   }
 
   if (!matchedRanges.length) {
-    return convertHTMLToMarkdown({ description_html: html });
+    return convertHTMLToMarkdown({ description_html: html, metaData: {} as any });
   }
 
   let cursor = 0;
@@ -62,7 +62,7 @@ function htmlToMarkdownPreservingDirection(html: string): string {
     if (range.start > cursor) {
       const gap = cleaned.slice(cursor, range.start);
       if (stripHtmlToText(gap)) {
-        blocks.push(convertHTMLToMarkdown({ description_html: gap }));
+        blocks.push(convertHTMLToMarkdown({ description_html: gap, metaData: {} as any }));
       }
     }
     blocks.push(range.out.trim());
@@ -71,7 +71,7 @@ function htmlToMarkdownPreservingDirection(html: string): string {
   if (cursor < cleaned.length) {
     const gap = cleaned.slice(cursor);
     if (stripHtmlToText(gap)) {
-      blocks.push(convertHTMLToMarkdown({ description_html: gap }));
+      blocks.push(convertHTMLToMarkdown({ description_html: gap, metaData: {} as any }));
     }
   }
   return blocks.filter(Boolean).join("\n\n");
