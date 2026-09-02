@@ -7,7 +7,13 @@
 import { observer } from "mobx-react";
 // plane imports
 import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate, ICalendarWeek } from "@plane/types";
-import { cn, getOrderedDays, renderFormattedPayloadDate } from "@plane/utils";
+import {
+  cn,
+  getOrderedDays,
+  renderFormattedPayloadDate,
+  getCalendarStartOfWeek,
+  shouldShowCalendarDay,
+} from "@plane/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 // types
@@ -67,34 +73,25 @@ export const CalendarWeekDays = observer(function CalendarWeekDays(props: Props)
   } = props;
   // hooks
   const { data } = useUserProfile();
-  const startOfWeek = data?.start_of_the_week;
+  const startOfWeek = getCalendarStartOfWeek(data?.start_of_the_week);
 
   const calendarLayout = issuesFilterStore?.issueFilters?.displayFilters?.calendar?.layout ?? "month";
   const showWeekends = issuesFilterStore?.issueFilters?.displayFilters?.calendar?.show_weekends ?? false;
 
   if (!week) return null;
 
-  const shouldShowDay = (dayDate: Date) => {
-    if (showWeekends) return true;
-    const day = dayDate.getDay();
-    return !(day === 0 || day === 6);
-  };
-
   const sortedWeekDays = getOrderedDays(Object.values(week), (item) => item.date.getDay(), startOfWeek);
+  const visibleDays = sortedWeekDays.filter((date) => shouldShowCalendarDay(date.date, showWeekends));
 
   return (
     <div
       className={cn("grid divide-subtle-1 md:divide-x-[0.5px]", {
-        "grid-cols-7": showWeekends,
-        "grid-cols-5": !showWeekends,
         "h-full": calendarLayout !== "month",
       })}
+      style={{ gridTemplateColumns: `repeat(${visibleDays.length || 1}, minmax(0, 1fr))` }}
     >
-      {sortedWeekDays.map((date: ICalendarDate) => {
-        if (!shouldShowDay(date.date)) return null;
-
-        return (
-          <CalendarDayTile
+      {visibleDays.map((date: ICalendarDate) => (
+        <CalendarDayTile
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             issuesFilterStore={issuesFilterStore}
@@ -115,8 +112,7 @@ export const CalendarWeekDays = observer(function CalendarWeekDays(props: Props)
             canEditProperties={canEditProperties}
             isEpic={isEpic}
           />
-        );
-      })}
+      ))}
     </div>
   );
 });

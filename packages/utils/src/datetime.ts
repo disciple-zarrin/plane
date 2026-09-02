@@ -5,7 +5,14 @@
  */
 
 import { differenceInDays, format, formatDistanceToNow, isAfter, isEqual, isValid, parseISO } from "date-fns";
+import { faIR } from "date-fns/locale";
+import {
+  format as formatJalali,
+  addMonths as addJalaliMonths,
+  startOfMonth as startOfJalaliMonth,
+} from "date-fns-jalali";
 import { isNumber } from "lodash-es";
+import { isPersianLocale, localizeDigits } from "./persian-locale";
 
 // Format Date Helpers
 /**
@@ -28,13 +35,31 @@ export const renderFormattedDate = (
   if (!isValid(parsedDate)) return; // Return null for invalid dates
   let formattedDate;
   try {
-    // Format the date in the format provided or default format (MMM dd, yyyy)
-    formattedDate = format(parsedDate, formatToken);
+    if (isPersianLocale()) {
+      formattedDate = formatJalali(parsedDate, mapFormatTokenForJalali(formatToken));
+    } else {
+      formattedDate = format(parsedDate, formatToken);
+    }
   } catch (_e) {
-    // Format the date in format (MMM dd, yyyy) in case of any error
-    formattedDate = format(parsedDate, "MMM dd, yyyy");
+    formattedDate = isPersianLocale() ? formatJalali(parsedDate, "yyyy/MM/dd") : format(parsedDate, "MMM dd, yyyy");
   }
   return formattedDate;
+};
+
+/** Map common Gregorian format tokens to Jalali-friendly equivalents for FA UI. */
+const mapFormatTokenForJalali = (token: string): string => {
+  if (
+    token === "MMM dd, yyyy" ||
+    token === "MMMM dd, yyyy" ||
+    token === "dd MMM yyyy" ||
+    token === "dd MMMM yyyy" ||
+    token === "yyyy-MM-dd"
+  ) {
+    return "yyyy/MM/dd";
+  }
+  if (token === "MMM dd" || token === "dd MMM" || token === "MMMM dd" || token === "dd MMMM") return "MM/dd";
+  if (token === "MMM" || token === "MMMM") return "MMMM";
+  return "yyyy/MM/dd";
 };
 
 /**
@@ -50,8 +75,8 @@ export const renderFormattedDateWithoutYear = (date: string | Date): string => {
   if (!parsedDate) return "";
   // Check if the parsed date is valid before formatting
   if (!isValid(parsedDate)) return ""; // Return empty string for invalid dates
-  // Format the date in short format (MMM dd)
-  const formattedDate = format(parsedDate, "MMM dd");
+  // Format the date in short format (MMM dd) / Jalali MM/dd for FA
+  const formattedDate = isPersianLocale() ? formatJalali(parsedDate, "MM/dd") : format(parsedDate, "MMM dd");
   return formattedDate;
 };
 
@@ -89,6 +114,17 @@ export const renderFormattedTime = (date: string | Date, timeFormat: "12-hour" |
   if (!parsedDate) return "";
   // Check if the parsed date is valid
   if (!isValid(parsedDate)) return ""; // Return empty string for invalid dates
+  if (isPersianLocale()) {
+    try {
+      return new Intl.DateTimeFormat("fa-IR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: timeFormat === "12-hour",
+      }).format(parsedDate);
+    } catch {
+      /* fall through */
+    }
+  }
   // Format the date in 12 hour format if in12HourFormat is true
   if (timeFormat === "12-hour") {
     const formattedTime = format(parsedDate, "hh:mm a");
@@ -175,7 +211,10 @@ export const calculateTimeAgo = (time: string | number | Date | null): string =>
   // return if undefined
   if (!parsedTime) return ""; // Return empty string for invalid dates
   // Format the time in the form of amount of time passed since the event happened
-  const distance = formatDistanceToNow(parsedTime, { addSuffix: true });
+  const distance = formatDistanceToNow(parsedTime, {
+    addSuffix: true,
+    locale: isPersianLocale() ? faIR : undefined,
+  });
   return distance;
 };
 
@@ -498,18 +537,34 @@ export const formatDateRange = (
     return "";
   }
 
+  const fmt = (d: Date, token: string) =>
+    isPersianLocale() ? formatJalali(d, mapFormatTokenForJalali(token)) : format(d, token);
+
   // If only start date is provided
   if (parsedStartDate && !parsedEndDate) {
-    return format(parsedStartDate, "MMM dd, yyyy");
+    return fmt(parsedStartDate, "MMM dd, yyyy");
   }
 
   // If only end date is provided
   if (!parsedStartDate && parsedEndDate) {
-    return format(parsedEndDate, "MMM dd, yyyy");
+    return fmt(parsedEndDate, "MMM dd, yyyy");
   }
 
   // If both dates are provided
   if (parsedStartDate && parsedEndDate) {
+    if (isPersianLocale()) {
+      const start = formatJalali(parsedStartDate, "yyyy/MM/dd");
+      const end = formatJalali(parsedEndDate, "yyyy/MM/dd");
+      if (start === end) return start;
+      // Same Jalali year+month
+      const startYm = formatJalali(parsedStartDate, "yyyy/MM");
+      const endYm = formatJalali(parsedEndDate, "yyyy/MM");
+      if (startYm === endYm) {
+        return `${formatJalali(parsedStartDate, "yyyy/MM")}/${formatJalali(parsedStartDate, "dd")} - ${formatJalali(parsedEndDate, "dd")}`;
+      }
+      return `${start} - ${end}`;
+    }
+
     const startYear = parsedStartDate.getFullYear();
     const startMonth = parsedStartDate.getMonth();
     const endYear = parsedEndDate.getFullYear();
@@ -537,6 +592,84 @@ export const formatDateRange = (
 
   return "";
 };
+
+/**
+ * Start of calendar month in the active UI calendar (Jalali when FA, else Gregorian).
+ */
+export const startOfCalendarMonth = (date: Date): Date =>
+  isPersianLocale() ? startOfJalaliMonth(date) : new Date(date.getFullYear(), date.getMonth(), 1);
+
+/**
+ * Add months in the active UI calendar.
+ */
+export const addCalendarMonths = (date: Date, amount: number): Date =>
+  isPersianLocale() ? addJalaliMonths(date, amount) : new Date(date.getFullYear(), date.getMonth() + amount, 1);
+
+/**
+ * Calendar month/year label for headers (Jalali when FA).
+ */
+export const formatCalendarMonthYear = (date: Date): string => {
+  const label = isPersianLocale() ? formatJalali(date, "MMMM yyyy") : format(date, "MMMM yyyy");
+  return isPersianLocale() ? localizeDigits(label) : label;
+};
+
+/**
+ * Short month label for month pickers (index 0-11).
+ */
+export const formatCalendarMonthShort = (date: Date): string =>
+  isPersianLocale() ? formatJalali(date, "MMMM") : format(date, "MMM");
+
+/**
+ * Year label for month pickers.
+ */
+export const formatCalendarYear = (date: Date): number | string => {
+  if (!isPersianLocale()) return date.getFullYear();
+  return localizeDigits(formatJalali(date, "yyyy"));
+};
+
+/**
+ * 1-based Jalali month index for the given date (FA calendar helpers).
+ */
+export const getJalaliMonthIndex = (date: Date): number => Number(formatJalali(date, "M"));
+
+/**
+ * Format a date with Jalali tokens when FA; otherwise Gregorian date-fns tokens.
+ */
+export const formatCalendarDate = (date: Date, jalaliToken: string, gregorianToken: string): string => {
+  const label = isPersianLocale() ? formatJalali(date, jalaliToken) : format(date, gregorianToken);
+  return isPersianLocale() ? localizeDigits(label) : label;
+};
+
+/**
+ * Day-of-month number for calendar tiles (Jalali day when FA).
+ */
+export const getCalendarDayNumber = (date: Date): number =>
+  isPersianLocale() ? Number(formatJalali(date, "d")) : date.getDate();
+
+/**
+ * Day-of-month label for calendar tiles (Persian digits when FA).
+ */
+export const getCalendarDayLabel = (date: Date): string => localizeDigits(getCalendarDayNumber(date));
+
+/**
+ * Month label shown before day 1 in calendar tiles (full month name when FA).
+ */
+export const getCalendarMonthShortForDate = (date: Date): string =>
+  isPersianLocale() ? formatJalali(date, "MMMM") : format(date, "MMM");
+
+/**
+ * True when `date` is the first day of the active UI calendar month.
+ */
+export const isCalendarMonthStart = (date: Date): boolean => {
+  const start = startOfCalendarMonth(date);
+  return (
+    date.getFullYear() === start.getFullYear() &&
+    date.getMonth() === start.getMonth() &&
+    date.getDate() === start.getDate()
+  );
+};
+
+
 
 // Duration Helpers
 /**
