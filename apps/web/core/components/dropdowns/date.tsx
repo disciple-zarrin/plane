@@ -151,7 +151,7 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
         {BUTTON_VARIANTS_WITH_TEXT.includes(buttonVariant) && (
           <span
             key={currentLocale}
-            className={cn("flex-grow truncate text-left text-body-xs-medium", labelClassName)}
+            className={cn("flex-grow truncate text-start rtl:text-right text-body-xs-medium", labelClassName)}
           >
             {value ? renderFormattedDate(value, formatToken) : placeholder}
           </span>
