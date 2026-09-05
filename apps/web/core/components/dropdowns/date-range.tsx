@@ -9,14 +9,13 @@ import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
-import { ArrowRight, CalendarDays } from "lucide-react";
+import { ArrowNarrowRightOutline, CalendarOutline, CloseOutline, DueDateOutline } from "@makeplane/propel/icons";
 import { Combobox } from "@headlessui/react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 // ui
 import type { DateRange, Matcher } from "@plane/propel/calendar";
 import { Calendar } from "@plane/propel/calendar";
-import { CloseIcon, DueDatePropertyIcon } from "@plane/propel/icons";
 import { ComboDropDown } from "@plane/ui";
 import { cn, renderFormattedDate, getCalendarStartOfWeek } from "@plane/utils";
 // helpers
@@ -64,7 +63,7 @@ type Props = {
   };
   renderByDefault?: boolean;
   renderPlaceholder?: boolean;
-  customTooltipContent?: React.ReactNode;
+  customTooltipContent?: string;
   customTooltipHeading?: string;
   defaultOpen?: boolean;
   renderInPortal?: boolean;
@@ -177,15 +176,10 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
         isActive={isOpen}
         tooltipHeading={customTooltipHeading ?? t("project_cycles.date_range")}
         tooltipContent={
-          <>
-            {customTooltipContent ?? (
-              <>
-                {dateRange.from ? renderFormattedDate(dateRange.from) : ""}
-                {dateRange.from && dateRange.to ? " - " : ""}
-                {dateRange.to ? renderFormattedDate(dateRange.to) : ""}
-              </>
-            )}
-          </>
+          customTooltipContent ??
+          `${dateRange.from ? renderFormattedDate(dateRange.from) : ""}${
+            dateRange.from && dateRange.to ? " - " : ""
+          }${dateRange.to ? renderFormattedDate(dateRange.to) : ""}`
         }
         showTooltip={showTooltip}
         variant={buttonVariant}
@@ -194,7 +188,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
         {mergeDates ? (
           // Merged date display
           <div className="flex w-full items-center gap-1.5">
-            {!hideIcon.from && <CalendarDays className="h-3 w-3 flex-shrink-0" />}
+            {!hideIcon.from && <CalendarOutline className="h-3 w-3 flex-shrink-0" />}
             {dateRange.from || dateRange.to ? (
               <MergedDateDisplay
                 startDate={dateRange.from}
@@ -206,14 +200,14 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
                 <>
                   <span className="text-placeholder">{placeholder.from}</span>
                   {placeholder.from && placeholder.to && (
-                    <ArrowRight className="h-3 w-3 flex-shrink-0 text-placeholder rtl:rotate-180" />
+                    <ArrowNarrowRightOutline className="h-3 w-3 flex-shrink-0 text-placeholder rtl:rotate-180" />
                   )}
                   <span className="text-placeholder">{placeholder.to}</span>
                 </>
               )
             )}
             {isClearable && !disabled && hasDisplayedDates && (
-              <CloseIcon
+              <CloseOutline
                 className={cn("h-2.5 w-2.5 flex-shrink-0 cursor-pointer", clearIconClassName)}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -232,21 +226,21 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
                 buttonFromDateClassName
               )}
             >
-              {!hideIcon.from && <CalendarDays className="h-3 w-3 flex-shrink-0" />}
+              {!hideIcon.from && <CalendarOutline className="h-3 w-3 flex-shrink-0" />}
               {dateRange.from ? renderFormattedDate(dateRange.from) : renderPlaceholder ? placeholder.from : ""}
             </span>
-            <ArrowRight className="h-3 w-3 flex-shrink-0 rtl:rotate-180" />
+            <ArrowNarrowRightOutline className="h-3 w-3 flex-shrink-0 rtl:rotate-180" />
             <span
               className={cn(
                 "flex h-full flex-grow items-center justify-center gap-1 rounded-xs",
                 buttonToDateClassName
               )}
             >
-              {!hideIcon.to && <DueDatePropertyIcon className="h-3 w-3 flex-shrink-0" />}
+              {!hideIcon.to && <DueDateOutline className="h-3 w-3 flex-shrink-0" />}
               {dateRange.to ? renderFormattedDate(dateRange.to) : renderPlaceholder ? placeholder.to : ""}
             </span>
             {isClearable && !disabled && hasDisplayedDates && (
-              <CloseIcon
+              <CloseOutline
                 className={cn("ml-1 h-2.5 w-2.5 flex-shrink-0 cursor-pointer", clearIconClassName)}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -262,7 +256,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
   );
 
   const comboOptions = (
-    <Combobox.Options data-prevent-outside-click static>
+    <Combobox.Options as="ul" data-prevent-outside-click static>
       <div
         className="z-30 my-1 overflow-hidden rounded-md border-[0.5px] border-subtle-1 bg-surface-1"
         ref={setPopperElement}

@@ -5,7 +5,6 @@
  */
 
 import { observer } from "mobx-react";
-
 export const WorkspaceEditionBadge = observer(function WorkspaceEditionBadge() {
   return null;
 });

@@ -7,14 +7,14 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "@plane/i18n";
 import {
-  StatePropertyIcon,
-  MembersPropertyIcon,
-  PriorityPropertyIcon,
-  DueDatePropertyIcon,
-  LabelPropertyIcon,
-  DuplicatePropertyIcon,
-} from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
+  DueDateOutline,
+  DuplicateOfOutline,
+  LabelsOutline,
+  MembersOutline,
+  PriorityOutline,
+  StateOutline,
+} from "@makeplane/propel/icons";
+import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TInboxDuplicateIssueDetails, TIssue } from "@plane/types";
 import { ControlLink } from "@plane/ui";
 import { getDate, renderFormattedPayloadDate, generateWorkItemLink } from "@plane/utils";
@@ -71,7 +71,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
             {/* Intake State */}
             <div className="flex h-8 items-center gap-2">
               <div className="flex w-2/5 flex-shrink-0 items-center gap-1 text-13 text-tertiary">
-                <StatePropertyIcon className="h-4 w-4 flex-shrink-0" />
+                <StateOutline className="h-4 w-4 flex-shrink-0" />
                 <span>{t("common.state") || "وضعیت"}</span>
               </div>
               {issue?.state_id && (
@@ -92,7 +92,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
             {/* Assignee */}
             <div className="flex h-8 items-center gap-2">
               <div className="flex w-2/5 flex-shrink-0 items-center gap-1 text-13 text-tertiary">
-                <MembersPropertyIcon className="h-4 w-4 flex-shrink-0" />
+                <MembersOutline className="h-4 w-4 flex-shrink-0" />
                 <span>{t("common.assignees") || "مسئولان"}</span>
               </div>
               <MemberDropdown
@@ -120,7 +120,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
             {/* Priority */}
             <div className="flex h-8 items-center gap-2">
               <div className="flex w-2/5 flex-shrink-0 items-center gap-1 text-13 text-tertiary">
-                <PriorityPropertyIcon className="h-4 w-4 flex-shrink-0" />
+                <PriorityOutline className="h-4 w-4 flex-shrink-0" />
                 <span>{t("common.priority") || "اولویت"}</span>
               </div>
               <PriorityDropdown
@@ -142,7 +142,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
             {/* Due Date */}
             <div className="flex h-8 items-center gap-2">
               <div className="flex w-2/5 flex-shrink-0 items-center gap-1 text-13 text-tertiary">
-                <DueDatePropertyIcon className="h-4 w-4 flex-shrink-0" />
+                <DueDateOutline className="h-4 w-4 flex-shrink-0" />
                 <span>{t("common.due_date") || "تاریخ مهلت"}</span>
               </div>
               <DateDropdown
@@ -167,7 +167,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
             {/* Labels */}
             <div className="flex min-h-8 items-center gap-2">
               <div className="flex w-2/5 flex-shrink-0 items-center gap-1 text-13 text-tertiary">
-                <LabelPropertyIcon className="h-4 w-4 flex-shrink-0" />
+                <LabelsOutline className="h-4 w-4 flex-shrink-0" />
                 <span>{t("common.labels") || "برچسب‌ها"}</span>
               </div>
               <div className="h-full min-h-8 w-3/5 flex-grow pt-1">
@@ -190,7 +190,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
             {duplicateIssueDetails && (
               <div className="flex min-h-8 gap-2">
                 <div className="flex w-2/5 flex-shrink-0 gap-1 pt-2 text-13 text-tertiary">
-                  <DuplicatePropertyIcon className="h-4 w-4 flex-shrink-0" />
+                  <DuplicateOfOutline className="h-4 w-4 flex-shrink-0" />
                   <span>{t("inbox.duplicate_of") || "تکراری از"}</span>
                 </div>
 
@@ -201,7 +201,7 @@ export const InboxIssueContentProperties = observer(function InboxIssueContentPr
                   }}
                   target="_self"
                 >
-                  <Tooltip tooltipContent={`${duplicateIssueDetails?.name}`}>
+                  <Tooltip label={duplicateIssueDetails?.name ?? ""} layout="stacked">
                     <span className="flex cursor-pointer items-center gap-1 rounded-sm bg-layer-1 px-1.5 py-1 pb-0.5 text-11 text-secondary">
                       {`${currentProjectDetails?.identifier}-${duplicateIssueDetails?.sequence_id}`}
                     </span>

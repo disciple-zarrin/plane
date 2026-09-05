@@ -6,10 +6,17 @@
 
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-import { Box, PenTool, Rocket, Monitor, RefreshCw } from "lucide-react";
+import { PenTool } from "lucide-react";
+import {
+  CubeOutline,
+  MonitorOutline,
+  RefreshOutline,
+  RocketOutline,
+  TickOutline,
+  ViewsOutline,
+} from "@makeplane/propel/icons";
 // plane imports
 import { Button } from "@plane/propel/button";
-import { CheckIcon, ViewsIcon } from "@plane/propel/icons";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TUserProfile } from "@plane/types";
 import { EOnboardingSteps } from "@plane/types";
@@ -25,13 +32,13 @@ type Props = {
 };
 
 const ROLES = [
-  { id: "product-manager", label: "مدیر محصول (Product Manager)", icon: Box },
-  { id: "engineering-manager", label: "مدیر مهندسی (Engineering Manager)", icon: ViewsIcon },
+  { id: "product-manager", label: "مدیر محصول (Product Manager)", icon: CubeOutline },
+  { id: "engineering-manager", label: "مدیر مهندسی (Engineering Manager)", icon: ViewsOutline },
   { id: "designer", label: "طراح (Designer)", icon: PenTool },
-  { id: "developer", label: "توسعه‌دهنده / برنامه‌نویس (Developer)", icon: Monitor },
-  { id: "founder-executive", label: "مؤسس / مدیر ارشد (Founder/Executive)", icon: Rocket },
-  { id: "operations-manager", label: "مدیر عملیات (Operations Manager)", icon: RefreshCw },
-  { id: "others", label: "سایر موارد (Others)", icon: Box },
+  { id: "developer", label: "توسعه‌دهنده / برنامه‌نویس (Developer)", icon: MonitorOutline },
+  { id: "founder-executive", label: "مؤسس / مدیر ارشد (Founder/Executive)", icon: RocketOutline },
+  { id: "operations-manager", label: "مدیر عملیات (Operations Manager)", icon: RefreshOutline },
+  { id: "others", label: "سایر موارد (Others)", icon: CubeOutline },
 ];
 
 const defaultValues = {
@@ -124,7 +131,7 @@ export const RoleSetupStep = observer(function RoleSetupStep({ handleStepChange 
                     </div>
                     {isSelected && (
                       <div className="flex size-5 items-center justify-center rounded-full bg-accent-primary text-on-color">
-                        <CheckIcon className="size-3" />
+                        <TickOutline className="size-3 text-on-color" />
                       </div>
                     )}
                   </button>

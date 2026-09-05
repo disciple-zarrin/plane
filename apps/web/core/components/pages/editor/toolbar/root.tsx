@@ -8,7 +8,7 @@ import { observer } from "mobx-react";
 import { ArrowRightCircle } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import { Tooltip } from "@plane/propel/tooltip";
+import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { cn } from "@plane/utils";
 // components
 import { EditorRtlToggle } from "@/components/editor/rtl-toggle";
@@ -42,7 +42,7 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
     : t("page_navigation_pane.open_button");
 
   const paneToggleButton = (
-    <Tooltip tooltipContent={paneToggleLabel}>
+    <Tooltip label={paneToggleLabel}>
       <button
         type="button"
         className="grid size-6 shrink-0 place-items-center rounded-sm text-secondary transition-colors hover:bg-layer-transparent-hover hover:text-primary"

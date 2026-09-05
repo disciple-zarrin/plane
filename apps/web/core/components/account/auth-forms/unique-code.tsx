@@ -5,11 +5,12 @@
  */
 
 import { useEffect, useState } from "react";
-import { CircleCheck, XCircle } from "lucide-react";
+import { CloseCircleOutline, TickCircleOutline } from "@makeplane/propel/icons";
+import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { API_BASE_URL } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
-import { Input, Spinner } from "@plane/ui";
+import { Spinner } from "@plane/ui";
 // constants
 // helpers
 import { EAuthModes } from "@/helpers/authentication.helper";
@@ -99,48 +100,52 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
         <label htmlFor="email" className="block text-13 font-medium text-tertiary text-right">
           {t("auth.common.email.label")}
         </label>
-        <div className={`relative flex items-center rounded-md border border-strong bg-surface-1`}>
+        <InputGroup size="2xl">
           <Input
+            size="2xl"
             id="email"
             name="email"
             type="email"
             value={uniqueCodeFormData.email}
             onChange={(e) => handleFormChange("email", e.target.value)}
             placeholder={t("auth.common.email.placeholder")}
-            className="h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder text-right rtl:text-right pl-10 pr-3 rtl:pl-10 rtl:pr-3"
+            className="text-right rtl:text-right"
             autoComplete="off"
             disabled
           />
           {uniqueCodeFormData.email.length > 0 && (
             <button
               type="button"
-              className="absolute left-3 rtl:left-3 rtl:right-auto grid size-5 place-items-center"
+              className="grid size-5 place-items-center"
               aria-label={t("aria_labels.auth_forms.clear_email")}
               onClick={handleEmailClear}
             >
-              <XCircle className="size-5 stroke-placeholder" />
+              <CloseCircleOutline className="size-5 text-placeholder" />
             </button>
           )}
-        </div>
+        </InputGroup>
       </div>
 
       <div className="space-y-1">
         <label htmlFor="unique-code" className="block text-13 font-medium text-tertiary text-right">
           {t("auth.common.unique_code.label")}
         </label>
-        <Input
-          name="code"
-          id="unique-code"
-          value={uniqueCodeFormData.code}
-          onChange={(e) => handleFormChange("code", e.target.value)}
-          placeholder={t("auth.common.unique_code.placeholder")}
-          className="h-10 w-full border border-strong !bg-surface-1 px-3 text-center tracking-widest disable-autofill-style placeholder:text-placeholder"
-          autoComplete="off"
-          autoFocus
-        />
+        <InputGroup size="2xl">
+          <Input
+            size="2xl"
+            name="code"
+            id="unique-code"
+            value={uniqueCodeFormData.code}
+            onChange={(e) => handleFormChange("code", e.target.value)}
+            placeholder={t("auth.common.unique_code.placeholder")}
+            className="text-center tracking-widest"
+            autoComplete="off"
+            autoFocus
+          />
+        </InputGroup>
         <div className="flex w-full items-center justify-between px-1 pt-1 text-11">
           <p className="flex items-center gap-1 font-medium text-success-primary">
-            <CircleCheck height={12} width={12} />
+            <TickCircleOutline height={12} width={12} />
             {t("auth.common.unique_code.paste_code")}
           </p>
           <button

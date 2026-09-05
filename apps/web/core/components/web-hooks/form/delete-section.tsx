@@ -5,9 +5,8 @@
  */
 
 import { Disclosure, Transition } from "@headlessui/react";
-import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@plane/constants";
 import { Button } from "@plane/propel/button";
-import { ChevronDownIcon, ChevronUpIcon } from "@plane/propel/icons";
+import { ChevronDownOutline, ChevronUpOutline } from "@makeplane/propel/icons";
 
 type Props = {
   openDeleteModal: () => void;
@@ -22,10 +21,11 @@ export function WebhookDeleteSection(props: Props) {
         <div className="w-full">
           <Disclosure.Button as="button" type="button" className="flex w-full items-center justify-between py-4">
             <span className="text-16 tracking-tight">منطقه حساس و خطرناک</span>
-            {open ? <ChevronUpIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
+            {open ? <ChevronUpOutline className="h-5 w-5" /> : <ChevronDownOutline className="h-5 w-5" />}
           </Disclosure.Button>
 
           <Transition
+            as="div"
             show={open}
             enter="transition duration-100 ease-out"
             enterFrom="transform opacity-0"
@@ -40,12 +40,7 @@ export function WebhookDeleteSection(props: Props) {
                   پس از حذف وب‌هوک، امکان بازیابی آن وجود نخواهد داشت و رویدادهای بعدی به این وب‌هوک ارسال نخواهند شد.
                 </span>
                 <div>
-                  <Button
-                    variant="error-fill"
-                    size="lg"
-                    onClick={openDeleteModal}
-                    data-ph-element={WORKSPACE_SETTINGS_TRACKER_ELEMENTS.WEBHOOK_DELETE_BUTTON}
-                  >
+                  <Button variant="error-fill" size="lg" onClick={openDeleteModal}>
                     حذف وب‌هوک
                   </Button>
                 </div>

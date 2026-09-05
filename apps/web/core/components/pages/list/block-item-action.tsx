@@ -6,11 +6,11 @@
 
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
-import { ArrowUpToLine, Earth, Info, Minus } from "lucide-react";
+import { ExportOutline, GlobeOutline, InfoOutline, LockOutline, MinusOutline } from "@makeplane/propel/icons";
 // plane imports
-import { LockIcon } from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
-import { Avatar, FavoriteStar } from "@plane/ui";
+import { Avatar } from "@makeplane/propel/components/avatar";
+import { Tooltip } from "@makeplane/propel/components/tooltip";
+import { FavoriteStar } from "@plane/ui";
 import { renderFormattedDate, getFileURL } from "@plane/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
@@ -25,7 +25,7 @@ import { ExportPageModal } from "../modals/export-page-modal";
 
 type Props = {
   page: TPageInstance;
-  parentRef: React.RefObject<HTMLElement>;
+  parentRef: React.RefObject<HTMLElement | null>;
   storeType: EPageStoreType;
 };
 
@@ -45,7 +45,7 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
         key: "export" as const,
         action: () => setIsExportModalOpen(true),
         title: "خروجی (PDF / Word / Markdown)",
-        icon: ArrowUpToLine,
+        icon: ExportOutline,
         shouldRender: true,
       },
     ],
@@ -64,20 +64,27 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
         isRtl={Boolean(page.view_props?.is_rtl)}
       />
       <div className="cursor-default">
-        <Tooltip tooltipHeading="Owned by" tooltipContent={ownerDetails?.display_name}>
-          <Avatar src={getFileURL(ownerDetails?.avatar_url ?? "")} name={ownerDetails?.display_name} />
+        <Tooltip label={`Owned by: ${ownerDetails?.display_name ?? ""}`} layout="stacked">
+          <Avatar
+            alt={ownerDetails?.display_name}
+            fallback={ownerDetails?.display_name?.[0]?.toUpperCase()}
+            src={getFileURL(ownerDetails?.avatar_url ?? "")}
+            size="xs"
+          />
         </Tooltip>
       </div>
       <div className="cursor-default text-tertiary">
-        <Tooltip tooltipContent={access === 0 ? "Public" : "Private"}>
-          {access === 0 ? <Earth className="h-4 w-4" /> : <LockIcon className="h-4 w-4" />}
+        <Tooltip label={access === 0 ? "Public" : "Private"}>
+          {access === 0 ? <GlobeOutline className="h-4 w-4" /> : <LockOutline className="h-4 w-4" />}
         </Tooltip>
       </div>
-      <Minus className="-mx-3 h-5 w-5 rotate-90 text-placeholder" strokeWidth={1} />
+      {/* vertical divider */}
+      <MinusOutline className="-mx-3 h-5 w-5 rotate-90 text-placeholder" />
 
-      <Tooltip tooltipContent={`Created on ${renderFormattedDate(created_at)}`}>
+      {/* page info */}
+      <Tooltip label={`Created on ${renderFormattedDate(created_at)}`} layout="stacked">
         <span className="grid h-4 w-4 cursor-default place-items-center">
-          <Info className="h-4 w-4 text-tertiary" />
+          <InfoOutline className="h-4 w-4 text-tertiary" />
         </span>
       </Tooltip>
 

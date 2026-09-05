@@ -8,13 +8,15 @@ import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // icons
-import { CircleAlert, XCircle } from "lucide-react";
+import { CloseCircleOutline, WarningCircleOutline } from "@makeplane/propel/icons";
 // plane imports
+import { Field } from "@makeplane/propel/components/field";
+import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import type { IEmailCheckData } from "@plane/types";
-import { Input, Spinner } from "@plane/ui";
-import { cn, checkEmailValidity } from "@plane/utils";
+import { Spinner } from "@plane/ui";
+import { checkEmailValidity } from "@plane/utils";
 // helpers
 type TAuthEmailForm = {
   defaultEmail: string;
@@ -54,48 +56,48 @@ export const AuthEmailForm = observer(function AuthEmailForm(props: TAuthEmailFo
         <label htmlFor="email" className="block text-13 font-medium text-tertiary text-right">
           {t("auth.common.email.label")}
         </label>
-        <div
-          className={cn(
-            `relative flex items-center rounded-md border bg-surface-1`,
-            !isFocused && Boolean(emailError?.email) ? `border-danger-strong` : `border-strong`
-          )}
-          onFocus={() => {
-            setIsFocused(true);
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-          }}
-        >
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("auth.common.email.placeholder")}
-            className={`h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder autofill:bg-danger-primary focus:bg-none active:bg-transparent text-right rtl:text-right pl-10 pr-3 rtl:pl-10 rtl:pr-3`}
-            autoComplete="off"
-            autoFocus
-            ref={inputRef}
-          />
-          {email.length > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("");
-                inputRef.current?.focus();
-              }}
-              className="absolute left-3 rtl:left-3 rtl:right-auto grid size-5 place-items-center"
-              aria-label={t("aria_labels.auth_forms.clear_email")}
-              tabIndex={-1}
-            >
-              <XCircle className="size-5 stroke-placeholder" />
-            </button>
-          )}
-        </div>
+        <Field name="email" invalid={!isFocused && Boolean(emailError?.email)}>
+          <InputGroup
+            size="2xl"
+            onFocus={() => {
+              setIsFocused(true);
+            }}
+            onBlur={() => {
+              setIsFocused(false);
+            }}
+          >
+            <Input
+              size="2xl"
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("auth.common.email.placeholder")}
+              className="text-right rtl:text-right"
+              autoComplete="off"
+              autoFocus
+              ref={inputRef}
+            />
+            {email.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("");
+                  inputRef.current?.focus();
+                }}
+                className="grid size-5 place-items-center"
+                aria-label={t("aria_labels.auth_forms.clear_email")}
+                tabIndex={-1}
+              >
+                <CloseCircleOutline className="size-5 text-placeholder" />
+              </button>
+            )}
+          </InputGroup>
+        </Field>
         {emailError?.email && !isFocused && (
           <p className="flex items-center gap-1 px-0.5 text-11 text-danger-primary text-right justify-start">
-            <CircleAlert height={12} width={12} />
+            <WarningCircleOutline height={12} width={12} />
             {t(emailError.email)}
           </p>
         )}

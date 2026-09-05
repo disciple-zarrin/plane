@@ -7,7 +7,7 @@
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { DayPicker as PersianDayPicker } from "react-day-picker/persian";
-import { ChevronLeftIcon } from "../icons/arrows/chevron-left";
+import { ChevronLeftOutline } from "@makeplane/propel/icons";
 import { isPersianLocale } from "@plane/utils";
 
 import { cn } from "../utils";
@@ -39,7 +39,7 @@ export function Calendar({ className, showOutsideDays = true, ...props }: Calend
       {...(usePersian ? { numerals: "arabext" as const } : {})}
       components={{
         Chevron: ({ className, ...chevronProps }: any) => (
-          <ChevronLeftIcon
+          <ChevronLeftOutline
             className={cn(
               "size-4",
               {
