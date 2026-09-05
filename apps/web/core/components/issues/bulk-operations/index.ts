@@ -5,3 +5,8 @@
  */
 
 export * from "./root";
+export * from "./bulk-action-bar";
+export * from "./selection-overlay";
+export * from "./move-issues-to-project-modal";
+export * from "./bulk-delete-confirmation-modal";
+export * from "./use-bulk-context-menu-items";

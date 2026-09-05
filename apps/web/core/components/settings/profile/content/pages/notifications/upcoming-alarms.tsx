@@ -146,10 +146,7 @@ export function UpcomingAlarmsList({ variant = "settings" }: Props) {
           {alarms.map((alarm) => (
             <li key={alarm.issue_id} className="flex items-center gap-3 py-2.5">
               <div className="min-w-0 flex-1">
-                <Link
-                  to={alarm.url}
-                  className="block truncate text-12 font-medium text-primary hover:underline"
-                >
+                <Link to={alarm.url} className="block truncate text-12 font-medium text-primary hover:underline">
                   {alarm.issue_identifier} · {alarm.issue_name}
                 </Link>
                 <p className="text-11 text-tertiary">{formatFireAt(alarm.fire_at)}</p>
@@ -157,7 +154,7 @@ export function UpcomingAlarmsList({ variant = "settings" }: Props) {
               <ToggleSwitch
                 value={!!alarm.enabled}
                 disabled={busyId === alarm.issue_id}
-                onChange={(v) => void toggle(alarm, v)}
+                onChange={(v: boolean) => void toggle(alarm, v)}
                 size="sm"
               />
             </li>

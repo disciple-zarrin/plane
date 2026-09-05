@@ -16,8 +16,11 @@ export type IMultipleSelectStore = {
   // computed functions
   isSelectionActive: boolean;
   selectedEntityIds: string[];
+  selectedIssueIds: string[];
+  selectedCount: number;
   // helper actions
   getIsEntitySelected: (entityID: string) => boolean;
+  isSelected: (entityID: string) => boolean;
   getIsEntityActive: (entityID: string) => boolean;
   getLastSelectedEntityDetails: () => TEntityDetails | null;
   getPreviousActiveEntity: () => TEntityDetails | null;
@@ -27,6 +30,11 @@ export type IMultipleSelectStore = {
   // entity actions
   updateSelectedEntityDetails: (entityDetails: TEntityDetails, action: "add" | "remove") => void;
   bulkUpdateSelectedEntityDetails: (entitiesList: TEntityDetails[], action: "add" | "remove") => void;
+  selectIssue: (entityID: string, groupID?: string) => void;
+  deselectIssue: (entityID: string) => void;
+  toggleIssue: (entityID: string, groupID?: string) => void;
+  selectIssues: (entities: TEntityDetails[]) => void;
+  setSelection: (entities: TEntityDetails[]) => void;
   updateLastSelectedEntityDetails: (entityDetails: TEntityDetails | null) => void;
   updatePreviousActiveEntity: (entityDetails: TEntityDetails | null) => void;
   updateNextActiveEntity: (entityDetails: TEntityDetails | null) => void;
@@ -62,6 +70,8 @@ export class MultipleSelectStore implements IMultipleSelectStore {
       // computed functions
       isSelectionActive: computed,
       selectedEntityIds: computed,
+      selectedIssueIds: computed,
+      selectedCount: computed,
       // actions
       updateSelectedEntityDetails: action,
       bulkUpdateSelectedEntityDetails: action,
@@ -70,6 +80,11 @@ export class MultipleSelectStore implements IMultipleSelectStore {
       updateNextActiveEntity: action,
       updateActiveEntityDetails: action,
       clearSelection: action,
+      selectIssue: action,
+      deselectIssue: action,
+      toggleIssue: action,
+      selectIssues: action,
+      setSelection: action,
     });
 
     this.issueService = new IssueService();
@@ -82,6 +97,43 @@ export class MultipleSelectStore implements IMultipleSelectStore {
   get selectedEntityIds() {
     return this.selectedEntityDetails.map((en) => en.entityID);
   }
+
+  get selectedCount() {
+    return this.selectedEntityDetails.length;
+  }
+
+  get selectedIssueIds() {
+    return this.selectedEntityIds;
+  }
+
+  isSelected = (entityID: string): boolean => this.getIsEntitySelected(entityID);
+
+  selectIssue = (entityID: string, groupID: string = "") => {
+    this.updateSelectedEntityDetails({ entityID, groupID }, "add");
+  };
+
+  deselectIssue = (entityID: string) => {
+    this.updateSelectedEntityDetails({ entityID, groupID: "" }, "remove");
+  };
+
+  toggleIssue = (entityID: string, groupID: string = "") => {
+    if (this.getIsEntitySelected(entityID)) {
+      this.deselectIssue(entityID);
+    } else {
+      this.selectIssue(entityID, groupID);
+    }
+  };
+
+  selectIssues = (entities: TEntityDetails[]) => {
+    this.bulkUpdateSelectedEntityDetails(entities, "add");
+  };
+
+  setSelection = (entities: TEntityDetails[]) => {
+    runInAction(() => {
+      this.selectedEntityDetails = [...entities];
+      this.updateLastSelectedEntityDetails(entities[entities.length - 1] ?? null);
+    });
+  };
 
   // helper actions
   /**
@@ -138,10 +190,10 @@ export class MultipleSelectStore implements IMultipleSelectStore {
   /**
    * @description add or remove entities
    * @param {TEntityDetails} entityDetails
-   * @param {"add" | "remove"} action
+   * @param {"add" | "remove"} operation
    */
-  updateSelectedEntityDetails = (entityDetails: TEntityDetails, action: "add" | "remove") => {
-    if (action === "add") {
+  updateSelectedEntityDetails = (entityDetails: TEntityDetails, operation: "add" | "remove") => {
+    if (operation === "add") {
       runInAction(() => {
         if (this.getIsEntitySelected(entityDetails.entityID)) {
           remove(this.selectedEntityDetails, (en) => en.entityID === entityDetails.entityID);
@@ -162,10 +214,10 @@ export class MultipleSelectStore implements IMultipleSelectStore {
   /**
    * @description add or remove multiple entities
    * @param {TEntityDetails[]} entitiesList
-   * @param {"add" | "remove"} action
+   * @param {"add" | "remove"} operation
    */
-  bulkUpdateSelectedEntityDetails = (entitiesList: TEntityDetails[], action: "add" | "remove") => {
-    if (action === "add") {
+  bulkUpdateSelectedEntityDetails = (entitiesList: TEntityDetails[], operation: "add" | "remove") => {
+    if (operation === "add") {
       runInAction(() => {
         let newEntities: TEntityDetails[] = [];
         newEntities = differenceWith(this.selectedEntityDetails, entitiesList, isEqual);

@@ -10,11 +10,13 @@ import json
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection, transaction
 from django.db.models import (
     Count,
     Exists,
     F,
     Func,
+    Max,
     OuterRef,
     Prefetch,
     Q,
@@ -54,15 +56,20 @@ from plane.db.models import (
     IssueLink,
     IssueReaction,
     IssueRelation,
+    IssueSequence,
     IssueSubscriber,
+    Label,
     ProjectUserProperty,
     ModuleIssue,
     Project,
     ProjectMember,
+    State,
     UserRecentVisit,
+    WorkspaceMember,
 )
 from plane.utils.filters import ComplexFilterBackend, IssueFilterSet
 from plane.utils.global_paginator import paginate
+from plane.utils.uuid import convert_uuid_to_integer
 from plane.utils.grouper import (
     issue_group_values,
     issue_on_results,
@@ -771,14 +778,18 @@ class ProjectUserDisplayPropertyEndpoint(BaseAPIView):
 
 
 class BulkDeleteIssuesEndpoint(BaseAPIView):
-    @allow_permission([ROLE.ADMIN])
-    def delete(self, request, slug, project_id):
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
+    def delete(self, request, slug, project_id=None):
         issue_ids = request.data.get("issue_ids", [])
 
         if not len(issue_ids):
             return Response({"error": "Issue IDs are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        issues = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk__in=issue_ids)
+        filters = {"workspace__slug": slug, "pk__in": issue_ids}
+        if project_id:
+            filters["project_id"] = project_id
+
+        issues = Issue.issue_objects.filter(**filters)
 
         total_issues = len(issues)
 
@@ -793,6 +804,164 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
         return Response(
             {"message": f"{total_issues} issues were deleted"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class BulkMoveIssuesEndpoint(BaseAPIView):
+    @allow_permission([ROLE.ADMIN, ROLE.MEMBER], level="WORKSPACE")
+    def post(self, request, slug, project_id=None):
+        issue_ids = request.data.get("issue_ids", [])
+        destination_project_id = request.data.get("destination_project_id")
+
+        if not issue_ids or not len(issue_ids):
+            return Response({"error": "Issue IDs are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not destination_project_id:
+            return Response({"error": "Destination project ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        destination_project = Project.objects.filter(workspace__slug=slug, pk=destination_project_id).first()
+        if not destination_project:
+            return Response({"error": "Destination project not found in this workspace."}, status=status.HTTP_404_NOT_FOUND)
+
+        is_workspace_admin = WorkspaceMember.objects.filter(
+            workspace__slug=slug, member=request.user, role=ROLE.ADMIN.value, is_active=True
+        ).exists()
+
+        if not is_workspace_admin:
+            has_dest_permission = ProjectMember.objects.filter(
+                workspace__slug=slug,
+                project=destination_project,
+                member=request.user,
+                role__in=[ROLE.ADMIN.value, ROLE.MEMBER.value],
+                is_active=True,
+            ).exists()
+            if not has_dest_permission:
+                return Response(
+                    {"error": "You do not have permission to move issues to the destination project."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+        issues = list(
+            Issue.issue_objects.filter(workspace__slug=slug, pk__in=issue_ids).select_related("project", "state")
+        )
+
+        if not issues:
+            return Response({"error": "No valid issues found to move."}, status=status.HTTP_400_BAD_REQUEST)
+
+        source_project_ids = {issue.project_id for issue in issues}
+        if not is_workspace_admin:
+            user_source_projects = set(
+                ProjectMember.objects.filter(
+                    workspace__slug=slug,
+                    project_id__in=source_project_ids,
+                    member=request.user,
+                    role__in=[ROLE.ADMIN.value, ROLE.MEMBER.value],
+                    is_active=True,
+                ).values_list("project_id", flat=True)
+            )
+            unauthorized_projects = source_project_ids - user_source_projects
+            if unauthorized_projects:
+                return Response(
+                    {"error": "You do not have permission to move issues from one or more source projects."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+        issues_to_move = [issue for issue in issues if issue.project_id != destination_project.id]
+        if not issues_to_move:
+            return Response(
+                {"message": "Selected issues are already in the destination project.", "count": 0, "moved_issue_ids": []},
+                status=status.HTTP_200_OK,
+            )
+
+        with transaction.atomic():
+            lock_key = convert_uuid_to_integer(destination_project.id)
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_key])
+
+            last_sequence = IssueSequence.objects.filter(project=destination_project).aggregate(
+                largest=Max("sequence")
+            )["largest"] or 0
+
+            dest_states = list(State.objects.filter(project=destination_project))
+            dest_default_state = destination_project.default_state or next((s for s in dest_states if s.default), None) or (dest_states[0] if dest_states else None)
+            dest_state_by_group = {s.group: s for s in dest_states}
+            dest_state_by_name = {s.name.lower(): s for s in dest_states}
+
+            dest_member_ids = set(
+                ProjectMember.objects.filter(project=destination_project, is_active=True).values_list("member_id", flat=True)
+            )
+
+            dest_labels_by_name = {l.name.lower(): l for l in Label.objects.filter(project=destination_project)}
+
+            issue_pks_to_move = [issue.id for issue in issues_to_move]
+
+            CycleIssue.objects.filter(issue_id__in=issue_pks_to_move).delete()
+            ModuleIssue.objects.filter(issue_id__in=issue_pks_to_move).delete()
+
+            IssueAssignee.objects.filter(issue_id__in=issue_pks_to_move).exclude(assignee_id__in=dest_member_ids).delete()
+
+            for issue_label in IssueLabel.objects.filter(issue_id__in=issue_pks_to_move).select_related("label"):
+                dest_label = dest_labels_by_name.get(issue_label.label.name.lower()) if issue_label.label else None
+                if dest_label:
+                    issue_label.label = dest_label
+                    issue_label.project = destination_project
+                    issue_label.save()
+                else:
+                    issue_label.delete()
+
+            IssueSequence.objects.filter(issue_id__in=issue_pks_to_move).delete()
+
+            new_sequences = []
+            moved_issue_ids = []
+
+            for index, issue in enumerate(issues_to_move):
+                old_project_id = issue.project_id
+                updated_seq = last_sequence + index + 1
+                issue.sequence_id = updated_seq
+                issue.project = destination_project
+
+                if issue.state:
+                    mapped_state = dest_state_by_name.get(issue.state.name.lower()) or dest_state_by_group.get(issue.state.group) or dest_default_state
+                    issue.state = mapped_state
+                else:
+                    issue.state = dest_default_state
+
+                if issue.parent_id and issue.parent_id not in issue_pks_to_move:
+                    issue.parent = None
+
+                issue.save()
+                new_sequences.append(
+                    IssueSequence(
+                        issue=issue,
+                        sequence=updated_seq,
+                        project=destination_project,
+                        workspace=destination_project.workspace,
+                    )
+                )
+                moved_issue_ids.append(str(issue.id))
+
+                issue_activity.delay(
+                    type="issue.activity.updated",
+                    requested_data=json.dumps({"project": str(destination_project.id), "old_project": str(old_project_id)}),
+                    actor_id=str(request.user.id),
+                    issue_id=str(issue.id),
+                    project_id=str(destination_project.id),
+                    current_instance=None,
+                    epoch=int(timezone.now().timestamp()),
+                    notification=True,
+                    origin=base_host(request=request, is_app=True),
+                )
+
+            IssueSequence.objects.bulk_create(new_sequences)
+
+        return Response(
+            {
+                "message": f"{len(issues_to_move)} issues moved to {destination_project.name}",
+                "count": len(issues_to_move),
+                "destination_project_id": str(destination_project.id),
+                "moved_issue_ids": moved_issue_ids,
+            },
             status=status.HTTP_200_OK,
         )
 

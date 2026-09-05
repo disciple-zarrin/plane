@@ -66,8 +66,6 @@ function BorderButton(props: ButtonProps) {
     showTooltip,
   } = props;
 
-  const priorityDetails = ISSUE_PRIORITIES.find((p) => p.key === priority);
-
   const priorityClasses = {
     urgent: "bg-layer-2 border-priority-urgent px-1",
     high: "bg-layer-2 border-priority-high",
@@ -270,7 +268,6 @@ function TransparentButton(props: ButtonProps) {
     <Tooltip
       label={`${t("priority")}: ${getPriorityTitle(priority, t("common.none") ?? "هیچ‌کدام")}`}
       disabled={!showTooltip || isMobile}
-      renderByDefault={renderToolTipByDefault}
     >
       <div
         className={cn(
@@ -454,6 +451,7 @@ export function PriorityDropdown(props: Props) {
   );
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <ComboDropDown
       as="div"
       ref={dropdownRef}

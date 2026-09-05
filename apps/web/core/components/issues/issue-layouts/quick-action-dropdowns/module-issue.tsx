@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { omit } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
@@ -12,17 +12,23 @@ import { useParams } from "next/navigation";
 import { ARCHIVABLE_STATE_GROUPS, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import type { TIssue } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
-import { ContextMenu, CustomMenu } from "@plane/ui";
+import { ContextMenu, CustomMenu, type TContextMenuItem } from "@plane/ui";
 import { cn } from "@plane/utils";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useUserPermissions } from "@/hooks/store/user";
+import { useMultipleSelectStore } from "@/hooks/store/use-multiple-select-store";
 // helper
 import { ArchiveIssueModal } from "../../archive-issue-modal";
 import { DeleteIssueModal } from "../../delete-issue-modal";
 import { CreateUpdateIssueModal } from "../../issue-modal/modal";
+import {
+  BulkDeleteIssuesConfirmationModal,
+  MoveIssuesToProjectModal,
+  useBulkContextMenuItems,
+} from "../../bulk-operations";
 import type { IQuickActionProps } from "../list/list-view-types";
 import type { MenuItemFactoryProps } from "./helper";
 import { useModuleIssueMenuItems } from "./helper";
@@ -108,6 +114,33 @@ export const ModuleIssueQuickActions = observer(function ModuleIssueQuickActions
       },
     };
   });
+
+  // bulk selection state
+  const { isSelectionActive, selectedEntityIds, getIsEntitySelected } = useMultipleSelectStore();
+  const isSelected = getIsEntitySelected(issue.id);
+  const isBulkSelection = isSelectionActive && isSelected && selectedEntityIds.length > 1;
+
+  const [bulkMoveModal, setBulkMoveModal] = useState(false);
+  const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
+
+  const bulkMenuItems = useBulkContextMenuItems({
+    issueIds: selectedEntityIds,
+    projectId: issue.project_id,
+    openMoveModal: () => setBulkMoveModal(true),
+    openDeleteModal: () => setBulkDeleteModal(true),
+  });
+
+  const BULK_CONTEXT_ITEMS = useMemo(
+    () =>
+      bulkMenuItems.map((item: TContextMenuItem) => ({
+        ...item,
+        onClick: () => {
+          item.action();
+        },
+      })),
+    [bulkMenuItems]
+  );
+
   return (
     <>
       {/* Modals */}
@@ -136,7 +169,24 @@ export const ModuleIssueQuickActions = observer(function ModuleIssueQuickActions
         storeType={EIssuesStoreType.MODULE}
       />
 
-      <ContextMenu parentRef={parentRef} items={CONTEXT_MENU_ITEMS} />
+      {isBulkSelection && (
+        <>
+          <MoveIssuesToProjectModal
+            isOpen={bulkMoveModal}
+            onClose={() => setBulkMoveModal(false)}
+            issueIds={selectedEntityIds}
+            sourceProjectId={issue.project_id}
+          />
+          <BulkDeleteIssuesConfirmationModal
+            isOpen={bulkDeleteModal}
+            handleClose={() => setBulkDeleteModal(false)}
+            issueIds={selectedEntityIds}
+            projectId={issue.project_id}
+          />
+        </>
+      )}
+
+      <ContextMenu parentRef={parentRef} items={isBulkSelection ? BULK_CONTEXT_ITEMS : CONTEXT_MENU_ITEMS} />
       <CustomMenu
         ellipsis
         placement={placements}

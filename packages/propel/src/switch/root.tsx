@@ -62,4 +62,4 @@ function Switch({ value, onChange, label, size = "sm", disabled, className }: IT
 
 Switch.displayName = "plane-ui-switch";
 
-export { Switch };
+export { Switch, Switch as ToggleSwitch };

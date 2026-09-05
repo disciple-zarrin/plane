@@ -867,5 +867,23 @@
       "description": "تسک‌ها را به فایل JSON خروجی بگیرید.",
       "short_description": "خروجی به صورت JSON"
     }
+  },
+  "issues": {
+    "bulk": {
+      "selected": "مورد انتخاب شده",
+      "move_to_project": "انتقال به پروژه",
+      "move_description": "پروژه مقصد را برای انتقال {count} تسک انتخاب کنید.",
+      "move_success": "{count} تسک با موفقیت منتقل شدند.",
+      "same_project_warning": "تسک‌های انتخاب شده در حال حاضر در این پروژه قرار دارند.",
+      "delete_title": "حذف تسک‌ها",
+      "delete_confirmation": "آیا از حذف {count} تسک انتخاب شده اطمینان دارید؟ این عملیات قابل بازگشت نیست.",
+      "delete_success": "{count} تسک با موفقیت حذف شدند.",
+      "change_state": "تغییر وضعیت",
+      "state_updated": "وضعیت برای {count} تسک بروزرسانی شد.",
+      "change_priority": "تغییر اولویت",
+      "priority_updated": "اولویت برای {count} تسک بروزرسانی شد.",
+      "assignees_updated": "مسئولین برای {count} تسک بروزرسانی شدند.",
+      "archive_success": "{count} تسک با موفقیت بایگانی شدند."
+    }
   }
 }

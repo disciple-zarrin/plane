@@ -28,3 +28,4 @@ export * from "./tables";
 export * from "./tag";
 export * from "./utils";
 export * from "./oauth";
+export { Switch as ToggleSwitch } from "@plane/propel/switch";

@@ -63,7 +63,7 @@ export const TEXT_DIRECTION_ITEMS: ToolbarMenuItem<"text-direction">[] = [
     itemKey: "text-direction",
     renderKey: "text-direction-ltr",
     name: "LTR",
-    icon: AlignLeft,
+    icon: AlignLeftOutline,
     editors: ["lite", "document"],
     extraProps: {
       direction: "ltr",
@@ -73,7 +73,7 @@ export const TEXT_DIRECTION_ITEMS: ToolbarMenuItem<"text-direction">[] = [
     itemKey: "text-direction",
     renderKey: "text-direction-rtl",
     name: "RTL",
-    icon: AlignRight,
+    icon: AlignRightOutline,
     editors: ["lite", "document"],
     extraProps: {
       direction: "rtl",

@@ -109,6 +109,12 @@ export interface IBaseIssuesStore {
     removeModuleIds: string[]
   ): Promise<void>;
   updateIssueDates(workspaceSlug: string, updates: IBlockUpdateDependencyData[], projectId?: string): Promise<void>;
+  moveBulkIssues?: (
+    workspaceSlug: string,
+    issueIds: string[],
+    destinationProjectId: string,
+    sourceProjectId?: string
+  ) => Promise<any>;
 }
 
 // This constant maps the group by keys to the respective issue property that the key relies on
@@ -687,6 +693,41 @@ export abstract class BaseIssuesStore implements IBaseIssuesStore {
         this.rootIssueStore.issues.removeIssue(issueId);
       });
     });
+    return response;
+  }
+
+  /**
+   * Move issues in bulk to another project
+   * @param workspaceSlug
+   * @param issueIds
+   * @param destinationProjectId
+   * @param sourceProjectId
+   */
+  async moveBulkIssues(
+    workspaceSlug: string,
+    issueIds: string[],
+    destinationProjectId: string,
+    sourceProjectId?: string
+  ) {
+    const response = await this.issueService.bulkMoveIssues(
+      workspaceSlug,
+      {
+        issue_ids: issueIds,
+        destination_project_id: destinationProjectId,
+      },
+      sourceProjectId
+    );
+
+    runInAction(() => {
+      issueIds.forEach((issueId) => {
+        this.removeIssueFromList(issueId);
+        this.rootIssueStore.issues.removeIssue(issueId);
+      });
+    });
+
+    if (sourceProjectId) {
+      this.fetchParentStats(workspaceSlug, sourceProjectId);
+    }
     return response;
   }
 

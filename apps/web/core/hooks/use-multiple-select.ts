@@ -29,11 +29,15 @@ export type TSelectionSnapshot = {
 export type TSelectionHelper = {
   handleClearSelection: () => void;
   handleEntityClick: (event: React.MouseEvent, entityID: string, groupId: string) => void;
+  handleSelectOnly: (entityID: string, groupId?: string) => void;
+  handleToggleEntity: (entityID: string, groupId?: string) => void;
+  handleSetSelection: (entities: TEntityDetails[]) => void;
   getIsEntitySelected: (entityID: string) => boolean;
   getIsEntityActive: (entityID: string) => boolean;
   handleGroupClick: (groupID: string) => void;
   isGroupSelected: (groupID: string) => "empty" | "partial" | "complete";
   isSelectionDisabled: boolean;
+  entitiesList: TEntityDetails[];
 };
 
 export const useMultipleSelect = (props: Props) => {
@@ -45,6 +49,7 @@ export const useMultipleSelect = (props: Props) => {
     selectedEntityIds,
     updateSelectedEntityDetails,
     bulkUpdateSelectedEntityDetails,
+    setSelection,
     getActiveEntityDetails,
     updateActiveEntityDetails,
     getPreviousActiveEntity,
@@ -71,13 +76,12 @@ export const useMultipleSelect = (props: Props) => {
 
   const entitiesList: TEntityDetails[] = useMemo(
     () =>
-      groups
-        ?.flatMap((groupID) =>
-          entities?.[groupID]?.map((entityID) => ({
-            entityID,
-            groupID,
-          }))
-        ),
+      groups?.flatMap((groupID) =>
+        entities?.[groupID]?.map((entityID) => ({
+          entityID,
+          groupID,
+        }))
+      ),
     [entities, groups]
   );
 
@@ -382,6 +386,32 @@ export const useMultipleSelect = (props: Props) => {
     });
   }, [disabled, entitiesList, getEntityDetailsFromEntityID, handleEntitySelection, selectedEntityIds]);
 
+  const handleSelectOnly = useCallback(
+    (entityID: string, groupID: string = "") => {
+      if (disabled) return;
+      clearSelection();
+      updateSelectedEntityDetails({ entityID, groupID }, "add");
+      handleActiveEntityChange({ entityID, groupID }, false);
+    },
+    [clearSelection, disabled, handleActiveEntityChange, updateSelectedEntityDetails]
+  );
+
+  const handleToggleEntity = useCallback(
+    (entityID: string, groupID: string = "") => {
+      if (disabled) return;
+      handleEntitySelection({ entityID, groupID }, false);
+    },
+    [disabled, handleEntitySelection]
+  );
+
+  const handleSetSelection = useCallback(
+    (newEntities: TEntityDetails[]) => {
+      if (disabled) return;
+      setSelection(newEntities);
+    },
+    [disabled, setSelection]
+  );
+
   /**
    * @description helper functions for selection
    */
@@ -389,19 +419,27 @@ export const useMultipleSelect = (props: Props) => {
     () => ({
       handleClearSelection: clearSelection,
       handleEntityClick,
+      handleSelectOnly,
+      handleToggleEntity,
+      handleSetSelection,
       getIsEntitySelected,
       getIsEntityActive,
       handleGroupClick,
       isGroupSelected,
       isSelectionDisabled: disabled,
+      entitiesList,
     }),
     [
       clearSelection,
       disabled,
+      entitiesList,
       getIsEntityActive,
       getIsEntitySelected,
       handleEntityClick,
       handleGroupClick,
+      handleSelectOnly,
+      handleSetSelection,
+      handleToggleEntity,
       isGroupSelected,
     ]
   );

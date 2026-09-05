@@ -26,8 +26,10 @@ import type {
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
 // hooks
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
+import type { TSelectionHelper } from "@/hooks/use-multiple-select";
+import { useMarqueeSelection } from "@/hooks/use-marquee-selection";
 // plane web components
-import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
+import { IssueBulkOperationsRoot, IssueSelectionOverlay } from "@/components/issues/bulk-operations";
 // plane web hooks
 import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // utils
@@ -111,7 +113,7 @@ export const List = observer(function List(props: IList) {
 
   const getGroupIndex = (groupId: string | undefined) => groups.findIndex(({ id }) => id === groupId);
 
-  const is_list = group_by === null ? true : false;
+  const is_list = group_by === null;
 
   // create groupIds array and entities object for bulk ops
   const groupIds = groups.map((g) => g.id);
@@ -137,46 +139,69 @@ export const List = observer(function List(props: IList) {
           disabled={!isBulkOperationsEnabled || isEpic}
         >
           {(helpers) => (
-            <>
-              <div
-                ref={containerRef}
-                className="vertical-scrollbar relative scrollbar-lg size-full overflow-auto bg-surface-1"
-              >
-                {groups.map((group: IGroupByColumn) => (
-                  <ListGroup
-                    key={group.id}
-                    groupIssueIds={groupedIssueIds?.[group.id]}
-                    issuesMap={issuesMap}
-                    group_by={group_by}
-                    group={group}
-                    updateIssue={updateIssue}
-                    quickActions={quickActions}
-                    orderBy={orderBy}
-                    getGroupIndex={getGroupIndex}
-                    handleOnDrop={handleOnDrop}
-                    displayProperties={displayProperties}
-                    enableIssueQuickAdd={enableIssueQuickAdd}
-                    showEmptyGroup={showEmptyGroup}
-                    canEditProperties={canEditProperties}
-                    quickAddCallback={quickAddCallback}
-                    disableIssueCreation={disableIssueCreation}
-                    addIssuesToView={addIssuesToView}
-                    isCompletedCycle={isCompletedCycle}
-                    loadMoreIssues={loadMoreIssues}
-                    containerRef={containerRef}
-                    selectionHelpers={helpers}
-                    handleCollapsedGroups={handleCollapsedGroups}
-                    collapsedGroups={collapsedGroups}
-                    isEpic={isEpic}
-                  />
-                ))}
-              </div>
-
-              <IssueBulkOperationsRoot selectionHelpers={helpers} />
-            </>
+            <ListInner
+              containerRef={containerRef}
+              selectionHelpers={helpers}
+              disabled={!isBulkOperationsEnabled || isEpic}
+            >
+              {groups.map((group: IGroupByColumn) => (
+                <ListGroup
+                  key={group.id}
+                  groupIssueIds={groupedIssueIds?.[group.id]}
+                  issuesMap={issuesMap}
+                  group_by={group_by}
+                  group={group}
+                  updateIssue={updateIssue}
+                  quickActions={quickActions}
+                  orderBy={orderBy}
+                  getGroupIndex={getGroupIndex}
+                  handleOnDrop={handleOnDrop}
+                  displayProperties={displayProperties}
+                  enableIssueQuickAdd={enableIssueQuickAdd}
+                  showEmptyGroup={showEmptyGroup}
+                  canEditProperties={canEditProperties}
+                  quickAddCallback={quickAddCallback}
+                  disableIssueCreation={disableIssueCreation}
+                  addIssuesToView={addIssuesToView}
+                  isCompletedCycle={isCompletedCycle}
+                  loadMoreIssues={loadMoreIssues}
+                  containerRef={containerRef}
+                  selectionHelpers={helpers}
+                  handleCollapsedGroups={handleCollapsedGroups}
+                  collapsedGroups={collapsedGroups}
+                  isEpic={isEpic}
+                />
+              ))}
+            </ListInner>
           )}
         </MultipleSelectGroup>
       )}
     </div>
+  );
+});
+
+type ListInnerProps = {
+  containerRef: React.MutableRefObject<HTMLDivElement | null>;
+  selectionHelpers: TSelectionHelper;
+  disabled: boolean;
+  children: React.ReactNode;
+};
+
+const ListInner = observer(function ListInner(props: ListInnerProps) {
+  const { containerRef, selectionHelpers, disabled, children } = props;
+  const { marqueeRect } = useMarqueeSelection({
+    containerRef,
+    selectionHelpers,
+    disabled,
+  });
+
+  return (
+    <>
+      <div ref={containerRef} className="vertical-scrollbar relative scrollbar-lg size-full overflow-auto bg-surface-1">
+        {children}
+      </div>
+      <IssueSelectionOverlay rect={marqueeRect} />
+      <IssueBulkOperationsRoot selectionHelpers={selectionHelpers} />
+    </>
   );
 });

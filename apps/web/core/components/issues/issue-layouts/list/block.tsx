@@ -173,24 +173,38 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
     <ControlLink
       id={`issue-${issue.id}`}
       href={workItemLink}
+      onClickCapture={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          selectionHelpers.handleEntityClick(e, issue.id, groupId);
+        }
+      }}
       onClick={() => handleIssuePeekOverview(issue)}
       className="w-full cursor-pointer"
       disabled={!!issue?.tempId || issue?.is_draft}
     >
       <Row
         ref={issueRef}
+        data-issue-id={issue.id}
+        data-issue-group-id={groupId}
         className={cn(
           "group/list-block relative flex min-h-11 flex-col gap-3 bg-layer-transparent py-3 text-13 transition-colors hover:bg-layer-transparent-hover",
           {
             "border-accent-strong": getIsIssuePeeked(issue.id) && peekIssue?.nestingLevel === nestingLevel,
             "border-strong-1": isIssueActive,
             "last:border-b-transparent": !getIsIssuePeeked(issue.id) && !isIssueActive,
-            "bg-accent-primary/5 hover:bg-accent-primary/10": isIssueSelected,
+            "ring-accent-primary/30 bg-accent-primary/10 ring-1 ring-inset hover:bg-accent-primary/15": isIssueSelected,
             "bg-layer-1": isCurrentBlockDragging,
             "md:flex-row md:items-center": isSidebarCollapsed,
             "lg:flex-row lg:items-center": !isSidebarCollapsed,
           }
         )}
+        onContextMenu={() => {
+          if (!selectionHelpers.getIsEntitySelected(issue.id)) {
+            selectionHelpers.handleSelectOnly(issue.id, groupId);
+          }
+        }}
         onDragStart={() => {
           if (!isDraggingAllowed) {
             setToast({

@@ -867,5 +867,23 @@
       "description": "Export work items to a JSON file.",
       "short_description": "Export as json"
     }
+  },
+  "issues": {
+    "bulk": {
+      "selected": "items selected",
+      "move_to_project": "Move to project",
+      "move_description": "Select destination project to move {count} work items.",
+      "move_success": "{count} work items moved successfully.",
+      "same_project_warning": "Selected work items are already in this project.",
+      "delete_title": "Delete work items",
+      "delete_confirmation": "Are you sure you want to delete {count} selected work items? This action cannot be undone.",
+      "delete_success": "{count} work items deleted successfully.",
+      "change_state": "Change state",
+      "state_updated": "State updated for {count} work items.",
+      "change_priority": "Change priority",
+      "priority_updated": "Priority updated for {count} work items.",
+      "assignees_updated": "Assignees updated for {count} work items.",
+      "archive_success": "{count} work items archived successfully."
+    }
   }
 }

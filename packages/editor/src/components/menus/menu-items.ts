@@ -5,6 +5,7 @@
  */
 
 import type { Editor } from "@tiptap/react";
+import {
   AlignCenterOutline,
   AlignLeftOutline,
   BoldOutline,

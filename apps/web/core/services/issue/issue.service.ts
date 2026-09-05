@@ -344,6 +344,29 @@ export class IssueService extends APIService {
       });
   }
 
+  async bulkMoveIssues(
+    workspaceSlug: string,
+    data: {
+      issue_ids: string[];
+      destination_project_id: string;
+    },
+    projectId?: string
+  ): Promise<{
+    message: string;
+    count: number;
+    destination_project_id: string;
+    moved_issue_ids: string[];
+  }> {
+    const url = projectId
+      ? `/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-move-issues/`
+      : `/api/workspaces/${workspaceSlug}/bulk-move-issues/`;
+    return this.post(url, data)
+      .then(async (response) => response?.data)
+      .catch((error) => {
+        throw error?.response?.data;
+      });
+  }
+
   async bulkDeleteIssues(
     workspaceSlug: string,
     projectId: string,
