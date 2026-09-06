@@ -186,15 +186,15 @@ function WorklogsPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Card spacing={ECardSpacing.SM}>
             <p className="text-body-xs-regular text-tertiary">جمع کل بازه</p>
-            <p className="mt-1 text-h3-medium tabular-nums text-primary">{formatHours(totalMinutesAll)}</p>
+            <p className="mt-1 text-h3-medium text-primary tabular-nums">{formatHours(totalMinutesAll)}</p>
           </Card>
           <Card spacing={ECardSpacing.SM}>
             <p className="text-body-xs-regular text-tertiary">انتخاب‌شده</p>
-            <p className="mt-1 text-h3-medium tabular-nums text-accent-primary">{formatHours(selectedMinutes)}</p>
+            <p className="mt-1 text-h3-medium text-accent-primary tabular-nums">{formatHours(selectedMinutes)}</p>
           </Card>
           <Card spacing={ECardSpacing.SM}>
             <p className="text-body-xs-regular text-tertiary">تعداد افراد</p>
-            <p className="mt-1 text-h3-medium tabular-nums text-primary">{summary.length}</p>
+            <p className="mt-1 text-h3-medium text-primary tabular-nums">{summary.length}</p>
           </Card>
         </div>
 
@@ -202,7 +202,7 @@ function WorklogsPage() {
           <label className="space-y-1 text-body-xs-regular text-tertiary">
             از
             <input
-              className="block rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+              className="focus:border-accent-primary block rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none"
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
@@ -211,7 +211,7 @@ function WorklogsPage() {
           <label className="space-y-1 text-body-xs-regular text-tertiary">
             تا
             <input
-              className="block rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+              className="focus:border-accent-primary block rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none"
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
@@ -230,7 +230,7 @@ function WorklogsPage() {
               "rounded-full border px-3 py-1.5 text-body-xs-medium transition-colors",
               selectedActor === "all"
                 ? "border-accent-primary bg-accent-primary/10 text-accent-primary"
-                : "border-subtle bg-surface-1 text-secondary hover:border-accent-primary/40"
+                : "hover:border-accent-primary/40 border-subtle bg-surface-1 text-secondary"
             )}
           >
             همه افراد
@@ -244,7 +244,7 @@ function WorklogsPage() {
                 "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-body-xs-medium transition-colors",
                 selectedActor === p.actor_id
                   ? "border-accent-primary bg-accent-primary/10 text-accent-primary"
-                  : "border-subtle bg-surface-1 text-secondary hover:border-accent-primary/40"
+                  : "hover:border-accent-primary/40 border-subtle bg-surface-1 text-secondary"
               )}
             >
               <span
@@ -252,7 +252,7 @@ function WorklogsPage() {
                 style={{ backgroundColor: PERSON_COLORS[i % PERSON_COLORS.length] }}
               />
               {p.display_name}
-              <span className="tabular-nums text-tertiary">({formatHours(p.total_minutes)})</span>
+              <span className="text-tertiary tabular-nums">({formatHours(p.total_minutes)})</span>
             </button>
           ))}
         </div>
@@ -312,7 +312,7 @@ function WorklogsPage() {
                           <div className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: g.color }} />
                           <span className="truncate text-secondary">{g.name}</span>
                         </div>
-                        <span className="shrink-0 tabular-nums text-primary">{formatHours(g.total_minutes)}</span>
+                        <span className="shrink-0 text-primary tabular-nums">{formatHours(g.total_minutes)}</span>
                       </div>
                     ))}
                   </div>
@@ -355,7 +355,7 @@ function WorklogsPage() {
                         <span className="text-primary">{r.display_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 tabular-nums text-primary">{formatHours(r.total_minutes)}</td>
+                    <td className="px-4 py-2.5 text-primary tabular-nums">{formatHours(r.total_minutes)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -389,8 +389,10 @@ function WorklogsPage() {
                 )}
                 {rows.map((r) => (
                   <tr key={r.id} className="border-t border-subtle hover:bg-surface-2/50">
-                    <td className="whitespace-nowrap px-4 py-2.5 text-secondary">{r.logged_at}</td>
-                    <td className="px-4 py-2.5 text-primary">{r.actor_detail?.display_name || r.actor_detail?.email}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap text-secondary">{r.logged_at}</td>
+                    <td className="px-4 py-2.5 text-primary">
+                      {r.actor_detail?.display_name || r.actor_detail?.email}
+                    </td>
                     <td className="px-4 py-2.5">
                       {workspaceSlug && r.project && r.issue ? (
                         <Link
@@ -407,7 +409,7 @@ function WorklogsPage() {
                       {r.issue_name || "—"}
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="rounded bg-accent-primary/10 px-1.5 py-0.5 text-11 tabular-nums text-accent-primary">
+                      <span className="rounded bg-accent-primary/10 px-1.5 py-0.5 text-11 text-accent-primary tabular-nums">
                         {formatHours(r.duration_minutes)}
                       </span>
                     </td>

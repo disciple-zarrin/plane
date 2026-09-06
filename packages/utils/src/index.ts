@@ -13,6 +13,7 @@ export * from "./common";
 export * from "./cycle";
 export * from "./datetime";
 export * from "./persian-locale";
+export * from "./state-localization";
 export * from "./distribution-update";
 export * from "./editor";
 export * from "./emoji";

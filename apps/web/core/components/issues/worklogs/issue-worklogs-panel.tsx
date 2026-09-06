@@ -151,8 +151,13 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
             onClick={() => !disabled && setOpen((v) => !v)}
             disabled={disabled}
           >
-            <span className="tabular-nums text-primary">{loading ? "…" : formatHours(totalMinutes)}</span>
-            {!disabled && (open ? <ChevronUp className="size-3.5 text-tertiary" /> : <ChevronDown className="size-3.5 text-tertiary" />)}
+            <span className="text-primary tabular-nums">{loading ? "…" : formatHours(totalMinutes)}</span>
+            {!disabled &&
+              (open ? (
+                <ChevronUp className="size-3.5 text-tertiary" />
+              ) : (
+                <ChevronDown className="size-3.5 text-tertiary" />
+              ))}
           </button>
           {!disabled && (
             <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
@@ -167,11 +172,11 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           <div className="flex items-center justify-between gap-2 rounded-md border border-subtle bg-surface-2/60 px-3 py-2">
             <div className="text-body-xs-regular text-tertiary">جمع فعلی</div>
             <div className="flex items-center gap-2 text-body-xs-medium">
-              <span className="tabular-nums text-primary">{formatHours(totalMinutes)}</span>
+              <span className="text-primary tabular-nums">{formatHours(totalMinutes)}</span>
               {addMinutes > 0 && (
                 <>
                   <span className="text-tertiary">→</span>
-                  <span className="tabular-nums text-accent-primary">{formatHours(projectedTotal)}</span>
+                  <span className="text-accent-primary tabular-nums">{formatHours(projectedTotal)}</span>
                 </>
               )}
             </div>
@@ -187,7 +192,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
                   "rounded-full border border-subtle px-2.5 py-1 text-11 transition-colors",
                   addMinutes === q.minutes
                     ? "border-accent-primary bg-accent-primary/10 text-accent-primary"
-                    : "bg-surface-2 text-secondary hover:border-accent-primary/40"
+                    : "hover:border-accent-primary/40 bg-surface-2 text-secondary"
                 )}
               >
                 +{q.label}
@@ -199,7 +204,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
             <label className="space-y-1 text-11 text-tertiary">
               ساعت
               <input
-                className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+                className="focus:border-accent-primary w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none"
                 type="number"
                 min={0}
                 step={1}
@@ -210,7 +215,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
             <label className="space-y-1 text-11 text-tertiary">
               دقیقه
               <input
-                className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+                className="focus:border-accent-primary w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none"
                 type="number"
                 min={0}
                 max={59}
@@ -224,7 +229,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           <label className="block space-y-1 text-11 text-tertiary">
             تاریخ
             <input
-              className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+              className="focus:border-accent-primary w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none"
               type="date"
               value={loggedAt}
               onChange={(e) => setLoggedAt(e.target.value)}
@@ -234,7 +239,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           <label className="block space-y-1 text-11 text-tertiary">
             توضیح (اختیاری)
             <textarea
-              className="w-full resize-none rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
+              className="focus:border-accent-primary w-full resize-none rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none"
               rows={2}
               placeholder="چه کاری انجام شد؟"
               value={description}
@@ -265,7 +270,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5 text-body-xs-medium text-primary">
                   <span className="truncate">{log.actor_detail?.display_name || log.actor_detail?.email || "—"}</span>
-                  <span className="rounded bg-accent-primary/10 px-1.5 py-0.5 text-11 tabular-nums text-accent-primary">
+                  <span className="rounded bg-accent-primary/10 px-1.5 py-0.5 text-11 text-accent-primary tabular-nums">
                     {formatHours(log.duration_minutes)}
                   </span>
                 </div>
@@ -277,7 +282,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
               {!disabled && (
                 <button
                   type="button"
-                  className="shrink-0 rounded p-1 text-tertiary opacity-0 transition-opacity hover:bg-surface-1 hover:text-danger-primary group-hover:opacity-100"
+                  className="shrink-0 rounded p-1 text-tertiary opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-1 hover:text-danger-primary"
                   onClick={() => onDelete(log)}
                   title="حذف"
                 >

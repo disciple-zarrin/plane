@@ -169,7 +169,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
         <input type="hidden" value={passwordFormData.email} name="email" />
         {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
         <div className="space-y-1">
-          <label htmlFor="email" className="block text-13 font-medium text-tertiary text-right">
+          <label htmlFor="email" className="block text-right text-13 font-medium text-tertiary">
             {t("auth.common.email.label")}
           </label>
           <InputGroup size="2xl">
@@ -181,7 +181,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               value={passwordFormData.email}
               onChange={(e) => handleFormChange("email", e.target.value)}
               placeholder={t("auth.common.email.placeholder")}
-              className="text-right rtl:text-right"
               disabled
             />
             {passwordFormData.email.length > 0 && (
@@ -198,7 +197,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="block text-13 font-medium text-tertiary text-right">
+          <label htmlFor="password" className="block text-right text-13 font-medium text-tertiary">
             {mode === EAuthModes.SIGN_IN ? t("auth.common.password.label") : t("auth.common.password.set_password")}
           </label>
           <InputGroup size="2xl">
@@ -210,7 +209,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               value={passwordFormData.password}
               onChange={(e) => handleFormChange("password", e.target.value)}
               placeholder={t("auth.common.password.placeholder")}
-              className="text-right rtl:text-right"
               onFocus={() => setIsPasswordInputFocused(true)}
               onBlur={() => setIsPasswordInputFocused(false)}
               autoComplete="off"
@@ -236,7 +234,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
 
         {mode === EAuthModes.SIGN_UP && (
           <div className="space-y-1">
-            <label htmlFor="confirm-password" className="block text-13 font-medium text-tertiary text-right">
+            <label htmlFor="confirm-password" className="block text-right text-13 font-medium text-tertiary">
               {t("auth.common.password.confirm_password.label")}
             </label>
             <InputGroup size="2xl">
@@ -248,7 +246,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
                 value={passwordFormData.confirm_password}
                 onChange={(e) => handleFormChange("confirm_password", e.target.value)}
                 placeholder={t("auth.common.password.confirm_password.placeholder")}
-                className="text-right rtl:text-right"
                 onFocus={() => setIsRetryPasswordInputFocused(true)}
                 onBlur={() => setIsRetryPasswordInputFocused(false)}
                 autoComplete="off"
@@ -273,7 +270,9 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
             {!!passwordFormData.confirm_password &&
               passwordFormData.password !== passwordFormData.confirm_password &&
               renderPasswordMatchError && (
-                <span className="block text-13 text-danger-primary text-right">{t("auth.common.password.errors.match")}</span>
+                <span className="block text-right text-13 text-danger-primary">
+                  {t("auth.common.password.errors.match")}
+                </span>
               )}
           </div>
         )}

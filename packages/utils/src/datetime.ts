@@ -669,8 +669,6 @@ export const isCalendarMonthStart = (date: Date): boolean => {
   );
 };
 
-
-
 // Duration Helpers
 /**
  * @returns {string} formatted duration in human readable format

@@ -92,26 +92,26 @@ export const CalendarWeekDays = observer(function CalendarWeekDays(props: Props)
     >
       {visibleDays.map((date: ICalendarDate) => (
         <CalendarDayTile
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            issuesFilterStore={issuesFilterStore}
-            key={renderFormattedPayloadDate(date.date)}
-            date={date}
-            issues={issues}
-            groupedIssueIds={groupedIssueIds}
-            loadMoreIssues={loadMoreIssues}
-            getPaginationData={getPaginationData}
-            getGroupIssueCount={getGroupIssueCount}
-            quickActions={quickActions}
-            enableQuickIssueCreate={enableQuickIssueCreate}
-            disableIssueCreation={disableIssueCreation}
-            quickAddCallback={quickAddCallback}
-            addIssuesToView={addIssuesToView}
-            readOnly={readOnly}
-            handleDragAndDrop={handleDragAndDrop}
-            canEditProperties={canEditProperties}
-            isEpic={isEpic}
-          />
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          issuesFilterStore={issuesFilterStore}
+          key={renderFormattedPayloadDate(date.date)}
+          date={date}
+          issues={issues}
+          groupedIssueIds={groupedIssueIds}
+          loadMoreIssues={loadMoreIssues}
+          getPaginationData={getPaginationData}
+          getGroupIssueCount={getGroupIssueCount}
+          quickActions={quickActions}
+          enableQuickIssueCreate={enableQuickIssueCreate}
+          disableIssueCreation={disableIssueCreation}
+          quickAddCallback={quickAddCallback}
+          addIssuesToView={addIssuesToView}
+          readOnly={readOnly}
+          handleDragAndDrop={handleDragAndDrop}
+          canEditProperties={canEditProperties}
+          isEpic={isEpic}
+        />
       ))}
     </div>
   );

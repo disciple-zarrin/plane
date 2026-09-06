@@ -139,14 +139,12 @@ export function IssueDeadlineAlarmControl(props: Props) {
               className="w-full rounded border border-subtle bg-surface-1 px-2 py-1 text-12 text-primary"
               disabled={disabled || saving || !alarm.enabled}
               value={alarm.hours_before ?? 2}
-              onChange={(e) =>
-                void persist({ hours_before: Number(e.target.value) || 0, enabled: alarm.enabled })
-              }
+              onChange={(e) => void persist({ hours_before: Number(e.target.value) || 0, enabled: alarm.enabled })}
             />
           )}
           <p className="text-[10px] text-tertiary">
-            می‌تونی روی مک ست کنی؛ یک‌بار موبایل را آنلاین باز کن تا زنگ‌ها همگام شوند، بعد آفلاین هم در همان زمان روی
-            گوشی زنگ می‌زند (Chrome/Android بهترین پشتیبانی را دارد). اول روی موبایل «فعال‌سازی» Web Push را بزن.
+            می‌تونی روی مک ست کنی؛ یک‌بار موبایل را آنلاین باز کن تا زنگ‌ها همگام شوند، بعد آفلاین هم در همان زمان روی گوشی
+            زنگ می‌زند (Chrome/Android بهترین پشتیبانی را دارد). اول روی موبایل «فعال‌سازی» Web Push را بزن.
           </p>
         </div>
       )}

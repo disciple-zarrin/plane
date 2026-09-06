@@ -7,7 +7,7 @@
 import { setToast, TOAST_TYPE } from "@plane/propel/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { TIdentifierTextProps, TIdentifierTextVariant, TIssueIdentifierSize } from "@plane/types";
-import { cn } from "@plane/utils";
+import { cn, isPersianLocale } from "@plane/utils";
 
 const SIZE_MAP: Record<TIssueIdentifierSize, string> = {
   xs: "text-caption-sm-regular",
@@ -35,7 +35,7 @@ export function IdentifierText(props: TIdentifierTextProps) {
         .then(() => {
           setToast({
             type: TOAST_TYPE.SUCCESS,
-            title: "Work item ID copied to clipboard",
+            title: isPersianLocale() ? "شناسه تسک در کلیپ‌بورد کپی شد" : "Work item ID copied to clipboard",
           });
           return;
         })
@@ -49,16 +49,20 @@ export function IdentifierText(props: TIdentifierTextProps) {
   const variantClassName = VARIANT_MAP[variant];
 
   return (
-    <Tooltip label="Click to copy" disabled={!enableClickToCopyIdentifier}>
+    <Tooltip
+      label={isPersianLocale() ? "برای کپی کلیک کنید" : "Click to copy"}
+      disabled={!enableClickToCopyIdentifier}
+    >
       <button
         type="button"
+        dir="ltr"
         className={cn("text-12 font-medium whitespace-nowrap text-tertiary", textSizeClassName, variantClassName, {
           "cursor-pointer": enableClickToCopyIdentifier,
         })}
         onClick={handleCopyIssueIdentifier}
         disabled={!enableClickToCopyIdentifier}
       >
-        {identifier}
+        <bdi>{identifier}</bdi>
       </button>
     </Tooltip>
   );

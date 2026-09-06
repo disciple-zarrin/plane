@@ -54,8 +54,7 @@ export const SidebarWorkspaceMenuItem = observer(function SidebarWorkspaceMenuIt
   }
 
   const isActive =
-    item.href === pathname ||
-    (item.key === "wiki" && typeof pathname === "string" && pathname.includes("/wiki"));
+    item.href === pathname || (item.key === "wiki" && typeof pathname === "string" && pathname.includes("/wiki"));
 
   return (
     <Link href={item.href} onClick={() => handleLinkClick()}>
@@ -66,9 +65,7 @@ export const SidebarWorkspaceMenuItem = observer(function SidebarWorkspaceMenuIt
               "rotate-180": item.key === "active_cycles",
             })}
           />
-          <p className="text-13 leading-5 font-medium">
-            {item.key === "wiki" ? "ویکی" : t(item.labelTranslationKey)}
-          </p>
+          <p className="text-13 leading-5 font-medium">{item.key === "wiki" ? "ویکی" : t(item.labelTranslationKey)}</p>
         </div>
         {item.key !== "wiki" && (
           <div className="flex-shrink-0">

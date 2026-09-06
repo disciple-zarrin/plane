@@ -16,7 +16,7 @@ import {
   WORKSPACE_SIDEBAR_STATIC_PINNED_NAVIGATION_ITEMS_LINKS,
 } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import { cn } from "@plane/utils";
+import { cn, isPersianLocale } from "@plane/utils";
 // components
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // store hooks
@@ -131,6 +131,7 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
               <ChevronRightOutline
                 className={cn("size-3 flex-shrink-0 transition-all", {
                   "rotate-90": isWorkspaceMenuOpen,
+                  "rtl:rotate-180": !isWorkspaceMenuOpen,
                 })}
               />
             </Disclosure.Button>
@@ -170,7 +171,11 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
                     )}
                   >
                     <MoreHorizontalOutline className="size-4 flex-shrink-0" />
-                    <span>{isExtendedSidebarOpened ? "Hide" : "More"}</span>
+                    <span>
+                      {isExtendedSidebarOpened
+                        ? (isPersianLocale() ? "مخفی کردن" : "Hide")
+                        : (isPersianLocale() ? "بیشتر" : "More")}
+                    </span>
                   </button>
                 </SidebarNavItem>
               </>

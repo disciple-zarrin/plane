@@ -10,7 +10,7 @@ import type { EditorRefApi } from "@plane/editor";
 import { cn } from "@plane/utils";
 
 type Props = {
-  editorRef: React.RefObject<EditorRefApi>;
+  editorRef: React.RefObject<EditorRefApi | null>;
   className?: string;
 };
 

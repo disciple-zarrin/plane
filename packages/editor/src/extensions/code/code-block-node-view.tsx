@@ -12,7 +12,7 @@ import { ChevronDown } from "lucide-react";
 // ui
 import { Tooltip } from "@plane/propel/tooltip";
 // plane utils
-import { cn } from "@plane/utils";
+import { cn, isPersianLocale } from "@plane/utils";
 // types
 import type { TCodeBlockAttributes } from "./types";
 import { ECodeBlockAttributeNames } from "./types";
@@ -87,7 +87,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
       {/* Header bar / Actions */}
       <div
         contentEditable={false}
-        className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover/code:opacity-100 focus-within:opacity-100"
+        className="absolute top-2 end-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover/code:opacity-100 focus-within:opacity-100"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
@@ -112,20 +112,16 @@ export function CodeBlockComponent(props: NodeViewProps) {
 
           {isLangOpen && (
             <div
-              className="shadow-lg absolute top-8 right-0 z-50 max-h-56 w-36 overflow-y-auto rounded-lg border border-subtle bg-layer-1 p-1 ring-1 ring-black/5 dark:ring-white/10"
+              className="shadow-lg absolute top-8 end-0 z-50 max-h-56 w-36 overflow-y-auto rounded-lg border border-subtle bg-layer-1 p-1 ring-1 ring-black/5 dark:ring-white/10"
               onMouseDown={(e) => e.stopPropagation()}
             >
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.value}
                   type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
                   onClick={() => handleSelectLanguage(lang.value)}
                   className={cn(
-                    "text-xs flex w-full items-center justify-between rounded px-2 py-1 text-left transition hover:bg-layer-2",
+                    "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs transition",
                     currentLang.toLowerCase() === lang.value.toLowerCase()
                       ? "bg-accent-primary/10 font-semibold text-accent-primary"
                       : "text-secondary hover:text-primary"
@@ -142,7 +138,7 @@ export function CodeBlockComponent(props: NodeViewProps) {
         </div>
 
         {/* Copy Button */}
-        <Tooltip tooltipContent="Copy code">
+        <Tooltip tooltipContent={isPersianLocale() ? "کپی کد" : "Copy code"}>
           <button
             type="button"
             onMouseDown={(e) => {
@@ -166,8 +162,8 @@ export function CodeBlockComponent(props: NodeViewProps) {
         </Tooltip>
       </div>
 
-      <pre className="font-mono text-sm rounded-xl border border-subtle bg-layer-3 p-4 pt-8 text-primary">
-        <NodeViewContent as="code" className="whitespace-pre-wrap" />
+      <pre dir="ltr" className="font-mono text-sm rounded-xl border border-subtle bg-layer-3 p-4 pt-8 text-primary text-left">
+        <NodeViewContent as="code" dir="ltr" className="whitespace-pre-wrap text-left" />
       </pre>
     </NodeViewWrapper>
   );

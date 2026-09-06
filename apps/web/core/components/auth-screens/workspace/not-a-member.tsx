@@ -18,7 +18,8 @@ export function NotAWorkspaceMember() {
           <div className="space-y-2">
             <h3 className="text-16 font-semibold">دسترسی غیرمجاز!</h3>
             <p className="mx-auto w-1/2 text-13 text-secondary">
-              شما عضو این فضای کاری نیستید. لطفاً برای دریافت دعوت‌نامه با مدیر فضای کاری تماس بگیرید یا دعوت‌نامه‌های در انتظار خود را بررسی کنید.
+              شما عضو این فضای کاری نیستید. لطفاً برای دریافت دعوت‌نامه با مدیر فضای کاری تماس بگیرید یا دعوت‌نامه‌های در
+              انتظار خود را بررسی کنید.
             </p>
           </div>
           <div className="flex items-center justify-center gap-2">

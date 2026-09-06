@@ -103,14 +103,14 @@ export function SetPasswordRoot({ onPasswordChange, onConfirmPasswordChange, dis
             value={passwordState.password}
             onChange={(value) => handlePasswordChange("password", value)}
             placeholder="تعیین رمز عبور"
-            className="transition-all duration-200 text-right"
+            className="text-right transition-all duration-200"
           />
           {passwordState.password.length > 0 && <PasswordStrengthIndicator password={passwordState.password} />}
         </div>
 
         <div className="flex flex-col gap-2 pb-2">
           {/* Confirm password label */}
-          <div className="transform text-13 font-medium text-tertiary transition-all delay-75 duration-300 ease-in-out text-right">
+          <div className="transform text-right text-13 font-medium text-tertiary transition-all delay-75 duration-300 ease-in-out">
             تکرار رمز عبور
           </div>
 
@@ -121,10 +121,14 @@ export function SetPasswordRoot({ onPasswordChange, onConfirmPasswordChange, dis
               value={passwordState.confirmPassword}
               onChange={(value) => handlePasswordChange("confirmPassword", value)}
               placeholder="تکرار رمز عبور"
-              className="transition-all duration-200 text-right"
+              className="text-right transition-all duration-200"
             />
-            {hasPasswordMismatch && <p className="mt-1 text-11 text-danger-primary text-right">رمزهای عبور مطابقت ندارند</p>}
-            {isPasswordValid && <p className="mt-1 text-11 text-success-primary text-right">✓ رمزهای عبور مطابقت دارند</p>}
+            {hasPasswordMismatch && (
+              <p className="mt-1 text-right text-11 text-danger-primary">رمزهای عبور مطابقت ندارند</p>
+            )}
+            {isPasswordValid && (
+              <p className="mt-1 text-right text-11 text-success-primary">✓ رمزهای عبور مطابقت دارند</p>
+            )}
           </div>
         </div>
       </div>

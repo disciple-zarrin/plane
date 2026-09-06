@@ -86,13 +86,15 @@ export const shouldFilterPage = (page: TPage, filters: TPageFilterProps | undefi
   return fallsInFilters;
 };
 
+import { isPersianLocale } from "./persian-locale";
+
 /**
- * @description returns the name of the project after checking for untitled page
+ * @description returns the name of the page after checking for untitled page
  * @param {string | undefined} name
  * @returns {string}
  */
 export const getPageName = (name: string | undefined) => {
   if (name === undefined) return "";
-  if (!name || name.trim() === "") return "Untitled";
+  if (!name || name.trim() === "") return isPersianLocale() ? "بدون عنوان" : "Untitled";
   return name;
 };

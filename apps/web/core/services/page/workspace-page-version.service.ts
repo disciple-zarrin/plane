@@ -21,7 +21,11 @@ export class WorkspacePageVersionService extends APIService {
     return this.get(`/api/workspaces/${workspaceSlug}/pages/${pageId}/versions/${versionId}/`).then((r) => r?.data);
   }
 
-  async restoreVersion(workspaceSlug: string, pageId: string, versionId: string): Promise<{ description_html: string }> {
+  async restoreVersion(
+    workspaceSlug: string,
+    pageId: string,
+    versionId: string
+  ): Promise<{ description_html: string }> {
     return this.post(`/api/workspaces/${workspaceSlug}/pages/${pageId}/versions/${versionId}/restore/`).then(
       (r) => r?.data
     );

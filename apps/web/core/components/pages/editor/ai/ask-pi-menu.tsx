@@ -105,7 +105,7 @@ export function AskPiMenu(props: Props) {
           </span>
           <input
             type="text"
-            className="w-full border-none bg-transparent text-13 outline-none placeholder:text-placeholder text-right"
+            className="w-full border-none bg-transparent text-right text-13 outline-none placeholder:text-placeholder"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="به هوش مصنوعی بگویید چه کاری انجام دهد..."

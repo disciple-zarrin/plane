@@ -28,7 +28,7 @@ export const EditorPageMention = observer(function EditorPageMention(props: Prop
       to={href}
       contentEditable={false}
       className={cn(
-        "not-prose my-0.5 inline-flex min-w-[14rem] max-w-full items-center gap-2 rounded-md px-2 py-1.5",
+        "not-prose my-0.5 inline-flex max-w-full min-w-[14rem] items-center gap-2 rounded-md px-2 py-1.5",
         "bg-surface-1 text-body-sm-medium text-primary no-underline",
         "hover:bg-layer-transparent-hover"
       )}

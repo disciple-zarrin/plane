@@ -235,12 +235,7 @@ self.addEventListener("push", (event) => {
     silent: false,
     vibrate: data.type === "deadline_alarm" || data.type === "assign" ? [200, 100, 200, 100, 400] : undefined,
   };
-  event.waitUntil(
-    Promise.all([
-      self.registration.showNotification(data.title || "Plane", options),
-      flushDueAlarms(),
-    ])
-  );
+  event.waitUntil(Promise.all([self.registration.showNotification(data.title || "Plane", options), flushDueAlarms()]));
 });
 
 self.addEventListener("notificationclick", (event) => {

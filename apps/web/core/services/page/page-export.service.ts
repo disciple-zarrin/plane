@@ -31,9 +31,9 @@ export class PageExportService extends APIService {
   }
 
   async fetchProjectTree(workspaceSlug: string, projectId: string, pageId: string): Promise<TExportTree> {
-    return this.get(
-      `/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/export-tree/`
-    ).then((r) => r?.data);
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/export-tree/`).then(
+      (r) => r?.data
+    );
   }
 
   async fetchWikiTree(workspaceSlug: string, pageId: string): Promise<TExportTree> {

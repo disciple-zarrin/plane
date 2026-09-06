@@ -51,10 +51,10 @@ export function JoinProjectModal(props: TJoinProjectModalProps) {
   return (
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.XL}>
       <div className="space-y-5 px-5 py-8 sm:p-6" dir="rtl">
-        <h3 className="text-16 leading-6 font-medium text-primary text-right">پیوستن به پروژه؟</h3>
+        <h3 className="text-right text-16 leading-6 font-medium text-primary">پیوستن به پروژه؟</h3>
         <p className="text-right text-secondary">
-          آیا مطمئن هستید که می‌خواهید به پروژه <span className="font-semibold break-words">{project?.name}</span> بپیوندید؟
-          لطفاً برای ادامه روی دکمه «پیوستن به پروژه» در زیر کلیک کنید.
+          آیا مطمئن هستید که می‌خواهید به پروژه <span className="font-semibold break-words">{project?.name}</span>{" "}
+          بپیوندید؟ لطفاً برای ادامه روی دکمه «پیوستن به پروژه» در زیر کلیک کنید.
         </p>
         <div className="space-y-3" />
       </div>

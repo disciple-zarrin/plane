@@ -49,7 +49,13 @@ import type {
 import { EIssuesStoreType } from "@plane/types";
 // plane ui
 
-import { renderFormattedDate, getFileURL } from "@plane/utils";
+import {
+  renderFormattedDate,
+  getFileURL,
+  getStateDisplayName,
+  getPriorityDisplayName,
+  isPersianLocale,
+} from "@plane/utils";
 // store
 import { store } from "@/lib/store-context";
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";
@@ -128,7 +134,7 @@ export const getGroupByColumns = ({
     return [
       {
         id: "All Issues",
-        name: `All ${isEpic ? "Epics" : "work items"}`,
+        name: isPersianLocale() ? (isEpic ? "همه اپیک‌ها" : "همه تسک‌ها") : `All ${isEpic ? "Epics" : "work items"}`,
         payload: {},
         icon: undefined,
       },
@@ -205,7 +211,7 @@ const getCycleColumns = (): IGroupByColumn[] | undefined => {
   });
   cycles.push({
     id: "None",
-    name: "None",
+    name: isPersianLocale() ? "بدون اسپرینت" : "None",
     icon: <CyclesOutline className="h-3.5 w-3.5" />,
     payload: {},
   });
@@ -232,7 +238,7 @@ const getModuleColumns = (): IGroupByColumn[] | undefined => {
   });
   modules.push({
     id: "None",
-    name: "None",
+    name: isPersianLocale() ? "بدون ماژول" : "None",
     icon: <ModuleOutline className="h-3.5 w-3.5" />,
     payload: {},
   });
@@ -246,7 +252,7 @@ const getStateColumns = ({ projectId }: TGetColumns): IGroupByColumn[] | undefin
   // map project states to group by columns
   return _states.map((state) => ({
     id: state.id,
-    name: state.name,
+    name: getStateDisplayName(state.name),
     icon: (
       <div className="size-4 rounded-full">
         <StateGroupIcon stateGroup={state.group} color={state.color} size={EIconSize.LG} percentage={state.order} />
@@ -261,7 +267,7 @@ const getStateGroupColumns = (): IGroupByColumn[] => {
   // map state groups to group by columns
   return Object.values(stateGroups).map((stateGroup) => ({
     id: stateGroup.key,
-    name: stateGroup.label,
+    name: getStateDisplayName(stateGroup.label),
     icon: (
       <div className="size-4 rounded-full">
         <StateGroupIcon stateGroup={stateGroup.key} size={EIconSize.LG} />
@@ -276,7 +282,7 @@ const getPriorityColumns = (): IGroupByColumn[] => {
   // map priorities to group by columns
   return priorities.map((priority) => ({
     id: priority.key,
-    name: priority.title,
+    name: getPriorityDisplayName(priority.key, priority.title),
     icon: <PriorityIcon priority={priority?.key} />,
     payload: { priority: priority.key },
   }));
@@ -287,7 +293,7 @@ const getLabelsColumns = ({ isWorkspaceLevel }: TGetColumns): IGroupByColumn[] =
   // map labels to group by columns
   const labels = [
     ...(isWorkspaceLevel ? workspaceLabels || [] : projectLabels || []),
-    { id: "None", name: "None", color: "#666" },
+    { id: "None", name: isPersianLocale() ? "بدون برچسب" : "None", color: "#666" },
   ];
   // map labels to group by columns
   return labels.map((label) => ({

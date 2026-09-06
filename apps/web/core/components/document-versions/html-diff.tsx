@@ -116,9 +116,7 @@ function buildRows(beforeHtml: string, afterHtml: string): { rows: DiffRow[]; ad
   return { rows, added, removed };
 }
 
-type Segment =
-  | { type: "rows"; rows: DiffRow[] }
-  | { type: "collapse"; count: number; rows: DiffRow[]; id: string };
+type Segment = { type: "rows"; rows: DiffRow[] } | { type: "collapse"; count: number; rows: DiffRow[]; id: string };
 
 function segmentRows(rows: DiffRow[]): Segment[] {
   const out: Segment[] = [];
@@ -157,22 +155,17 @@ function segmentRows(rows: DiffRow[]): Segment[] {
 function WordInline({ before, after, mode }: { before: string; after: string; mode: "old" | "new" }) {
   const parts = diffWords(before || "", after || "");
   return (
-    <span className="whitespace-pre-wrap break-words">
+    <span className="break-words whitespace-pre-wrap">
       {parts.map((part, idx) => {
         if (mode === "old" && part.added) return null;
         if (mode === "new" && part.removed) return null;
-        const highlight =
-          (mode === "old" && part.removed) || (mode === "new" && part.added);
+        const highlight = (mode === "old" && part.removed) || (mode === "new" && part.added);
         return (
           <span
             key={`${mode}-${idx}`}
             className={cn(
-              highlight &&
-                mode === "old" &&
-                "rounded-[2px] bg-[#ff818266] text-inherit dark:bg-[#f8514966]",
-              highlight &&
-                mode === "new" &&
-                "rounded-[2px] bg-[#abf2bc] text-inherit dark:bg-[#2ea04366]"
+              highlight && mode === "old" && "rounded-[2px] bg-[#ff818266] text-inherit dark:bg-[#f8514966]",
+              highlight && mode === "new" && "rounded-[2px] bg-[#abf2bc] text-inherit dark:bg-[#2ea04366]"
             )}
           >
             {part.value || " "}
@@ -198,7 +191,7 @@ function LineGutter({
     <>
       <td
         className={cn(
-          "w-12 select-none border-e border-[#d0d7de] px-2 py-0 text-end font-mono text-[12px] leading-6 text-[#656d76] dark:border-[#30363d] dark:text-[#8b949e]",
+          "font-mono w-12 border-e border-[#d0d7de] px-2 py-0 text-end text-[12px] leading-6 text-[#656d76] select-none dark:border-[#30363d] dark:text-[#8b949e]",
           kind === "removed" && "bg-[#fff5f5] dark:bg-[#490202]/50",
           kind === "added" && "bg-[#f0fff4] dark:bg-[#04260f]/50",
           kind === "changed" && mark === "−" && "bg-[#fff5f5] dark:bg-[#490202]/50",
@@ -209,7 +202,7 @@ function LineGutter({
       </td>
       <td
         className={cn(
-          "w-12 select-none border-e border-[#d0d7de] px-2 py-0 text-end font-mono text-[12px] leading-6 text-[#656d76] dark:border-[#30363d] dark:text-[#8b949e]",
+          "font-mono w-12 border-e border-[#d0d7de] px-2 py-0 text-end text-[12px] leading-6 text-[#656d76] select-none dark:border-[#30363d] dark:text-[#8b949e]",
           kind === "removed" && "bg-[#fff5f5] dark:bg-[#490202]/50",
           kind === "added" && "bg-[#f0fff4] dark:bg-[#04260f]/50",
           kind === "changed" && mark === "−" && "bg-[#fff5f5] dark:bg-[#490202]/50",
@@ -220,7 +213,7 @@ function LineGutter({
       </td>
       <td
         className={cn(
-          "w-6 select-none border-e border-[#d0d7de] px-1 py-0 text-center font-mono text-[12px] leading-6 dark:border-[#30363d]",
+          "font-mono w-6 border-e border-[#d0d7de] px-1 py-0 text-center text-[12px] leading-6 select-none dark:border-[#30363d]",
           mark === "+" && "bg-[#dafbe1] font-semibold text-[#1a7f37] dark:bg-[#2ea043]/30 dark:text-[#3fb950]",
           mark === "−" && "bg-[#ffebe9] font-semibold text-[#cf222e] dark:bg-[#f85149]/30 dark:text-[#ff7b72]",
           !mark.trim() && "bg-[#f6f8fa] text-[#656d76] dark:bg-[#161b22] dark:text-[#8b949e]",
@@ -274,7 +267,7 @@ function SideBySide({ rows }: { rows: DiffRow[] }) {
             if (row.kind === "added") {
               return (
                 <tr key={`l-${idx}`} className="bg-[#f6f8fa] dark:bg-[#161b22]">
-                  <td className="w-10 px-2 py-0 text-end font-mono text-[12px] text-[#656d76]"> </td>
+                  <td className="font-mono w-10 px-2 py-0 text-end text-[12px] text-[#656d76]"> </td>
                   <td className="px-3 py-0 text-[13px] leading-6 text-transparent">.</td>
                 </tr>
               );
@@ -286,14 +279,14 @@ function SideBySide({ rows }: { rows: DiffRow[] }) {
                 key={`l-${idx}`}
                 className={cn(isDel ? "bg-[#fff5f5] dark:bg-[#490202]/40" : "bg-white dark:bg-[#0d1117]")}
               >
-                <td className="w-10 select-none px-2 py-0 text-end font-mono text-[12px] text-[#656d76]">
+                <td className="font-mono w-10 px-2 py-0 text-end text-[12px] text-[#656d76] select-none">
                   {row.oldNo ?? ""}
                 </td>
                 <td className="px-3 py-0 text-[13px] leading-6" dir="auto">
                   {row.kind === "changed" ? (
                     <WordInline before={row.beforeText || ""} after={row.afterText || ""} mode="old" />
                   ) : (
-                    <span className="whitespace-pre-wrap break-words">{text || " "}</span>
+                    <span className="break-words whitespace-pre-wrap">{text || " "}</span>
                   )}
                 </td>
               </tr>
@@ -307,7 +300,7 @@ function SideBySide({ rows }: { rows: DiffRow[] }) {
             if (row.kind === "removed") {
               return (
                 <tr key={`r-${idx}`} className="bg-[#f6f8fa] dark:bg-[#161b22]">
-                  <td className="w-10 px-2 py-0 text-end font-mono text-[12px] text-[#656d76]"> </td>
+                  <td className="font-mono w-10 px-2 py-0 text-end text-[12px] text-[#656d76]"> </td>
                   <td className="px-3 py-0 text-[13px] leading-6 text-transparent">.</td>
                 </tr>
               );
@@ -319,14 +312,14 @@ function SideBySide({ rows }: { rows: DiffRow[] }) {
                 key={`r-${idx}`}
                 className={cn(isAdd ? "bg-[#f0fff4] dark:bg-[#04260f]/40" : "bg-white dark:bg-[#0d1117]")}
               >
-                <td className="w-10 select-none px-2 py-0 text-end font-mono text-[12px] text-[#656d76]">
+                <td className="font-mono w-10 px-2 py-0 text-end text-[12px] text-[#656d76] select-none">
                   {row.newNo ?? ""}
                 </td>
                 <td className="px-3 py-0 text-[13px] leading-6" dir="auto">
                   {row.kind === "changed" ? (
                     <WordInline before={row.beforeText || ""} after={row.afterText || ""} mode="new" />
                   ) : (
-                    <span className="whitespace-pre-wrap break-words">{text || " "}</span>
+                    <span className="break-words whitespace-pre-wrap">{text || " "}</span>
                   )}
                 </td>
               </tr>
@@ -360,7 +353,7 @@ export function DocumentHtmlDiff(props: Props) {
     <div className={cn("space-y-3", className)}>
       {caption && <p className="text-[12px] text-[#656d76] dark:text-[#8b949e]">{caption}</p>}
 
-      <div className="overflow-hidden rounded-lg border border-[#d0d7de] bg-white shadow-sm dark:border-[#30363d] dark:bg-[#0d1117]">
+      <div className="shadow-sm overflow-hidden rounded-lg border border-[#d0d7de] bg-white dark:border-[#30363d] dark:bg-[#0d1117]">
         {/* GitLab-style file header */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d0d7de] bg-[#f6f8fa] px-3 py-2 dark:border-[#30363d] dark:bg-[#161b22]">
           <button
@@ -374,10 +367,10 @@ export function DocumentHtmlDiff(props: Props) {
               <ChevronDown className="size-4 shrink-0 text-[#656d76]" />
             )}
             <FileText className="size-4 shrink-0 text-[#656d76]" />
-            <span className="truncate font-mono text-[13px] font-semibold text-[#1f2328] dark:text-[#e6edf3]">
+            <span className="font-mono truncate text-[13px] font-semibold text-[#1f2328] dark:text-[#e6edf3]">
               {fileName}
             </span>
-            <span className="ms-1 font-mono text-[12px] text-[#1a7f37] dark:text-[#3fb950]">+{added}</span>
+            <span className="font-mono ms-1 text-[12px] text-[#1a7f37] dark:text-[#3fb950]">+{added}</span>
             <span className="font-mono text-[12px] text-[#cf222e] dark:text-[#ff7b72]">−{removed}</span>
           </button>
 
@@ -413,7 +406,9 @@ export function DocumentHtmlDiff(props: Props) {
           <p className="px-4 py-8 text-center text-[13px] text-[#656d76]">No changes to show</p>
         )}
 
-        {!collapsed && rows.length > 0 && view === "split" && <SideBySide rows={visibleRows.length ? visibleRows : rows} />}
+        {!collapsed && rows.length > 0 && view === "split" && (
+          <SideBySide rows={visibleRows.length ? visibleRows : rows} />
+        )}
 
         {!collapsed && rows.length > 0 && view === "unified" && (
           <div className="overflow-x-auto">
@@ -430,7 +425,7 @@ export function DocumentHtmlDiff(props: Props) {
                           oldNo={row.oldNo}
                           newNo={row.newNo}
                         >
-                          <span className="whitespace-pre-wrap break-words">{row.afterText || " "}</span>
+                          <span className="break-words whitespace-pre-wrap">{row.afterText || " "}</span>
                         </DiffLineRow>
                       ));
                     }
@@ -439,7 +434,7 @@ export function DocumentHtmlDiff(props: Props) {
                         <td colSpan={4} className="border-y border-[#d0d7de] py-0 dark:border-[#30363d]">
                           <button
                             type="button"
-                            className="flex w-full items-center justify-center gap-2 py-1.5 font-mono text-[12px] text-[#0969da] hover:bg-[#ddf4ff] dark:hover:bg-[#0c2d6b]/40"
+                            className="font-mono flex w-full items-center justify-center gap-2 py-1.5 text-[12px] text-[#0969da] hover:bg-[#ddf4ff] dark:hover:bg-[#0c2d6b]/40"
                             onClick={() => setExpanded((e) => ({ ...e, [seg.id]: true }))}
                           >
                             ⋮ Expand {seg.count} unchanged lines
@@ -466,20 +461,20 @@ export function DocumentHtmlDiff(props: Props) {
                     if (row.kind === "added") {
                       return (
                         <DiffLineRow key={key} kind="added" mark="+" oldNo={null} newNo={row.newNo}>
-                          <span className="whitespace-pre-wrap break-words">{row.afterText || " "}</span>
+                          <span className="break-words whitespace-pre-wrap">{row.afterText || " "}</span>
                         </DiffLineRow>
                       );
                     }
                     if (row.kind === "removed") {
                       return (
                         <DiffLineRow key={key} kind="removed" mark="−" oldNo={row.oldNo} newNo={null}>
-                          <span className="whitespace-pre-wrap break-words">{row.beforeText || " "}</span>
+                          <span className="break-words whitespace-pre-wrap">{row.beforeText || " "}</span>
                         </DiffLineRow>
                       );
                     }
                     return (
                       <DiffLineRow key={key} kind="unchanged" mark=" " oldNo={row.oldNo} newNo={row.newNo}>
-                        <span className="whitespace-pre-wrap break-words">{row.afterText || " "}</span>
+                        <span className="break-words whitespace-pre-wrap">{row.afterText || " "}</span>
                       </DiffLineRow>
                     );
                   });

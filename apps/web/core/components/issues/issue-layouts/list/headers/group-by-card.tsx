@@ -15,7 +15,8 @@ import type { TIssue, ISearchIssueResponse, TIssueGroupByOptions } from "@plane/
 // ui
 import { CustomMenu } from "@plane/ui";
 // components
-import { cn } from "@plane/utils";
+import { cn, isPersianLocale } from "@plane/utils";
+import { useTranslation } from "@plane/i18n";
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 import { MultipleSelectGroupAction } from "@/components/core/multiple-select";
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
@@ -54,6 +55,7 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
     isEpic = false,
   } = props;
   // states
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [openExistingIssueListModal, setOpenExistingIssueListModal] = useState(false);
   // router
@@ -76,14 +78,14 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
 
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "Success!",
-        message: "Work items added to the cycle successfully.",
+        title: isPersianLocale() ? "موفقیت‌آمیز!" : "Success!",
+        message: isPersianLocale() ? "تسک‌ها با موفقیت به اسپرینت اضافه شدند." : "Work items added to the cycle successfully.",
       });
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Selected work items could not be added to the cycle. Please try again.",
+        title: isPersianLocale() ? "خطا!" : "Error!",
+        message: isPersianLocale() ? "افزودن تسک‌ها به اسپرینت با شکست مواجه شد. لطفاً دوباره تلاش کنید." : "Selected work items could not be added to the cycle. Please try again.",
       });
     }
   };
@@ -95,7 +97,7 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
         data-prevent-marquee="true"
       >
         {canSelectIssues && (
-          <div className="absolute left-1 flex w-3.5 flex-shrink-0 items-center">
+          <div className="absolute start-1 flex w-3.5 flex-shrink-0 items-center">
             <MultipleSelectGroupAction
               className={cn(
                 "pointer-events-none size-3.5 opacity-0 !outline-none group-hover/list-header:pointer-events-auto group-hover/list-header:opacity-100",
@@ -119,7 +121,7 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
           onClick={() => handleCollapsedGroups(groupID)}
         >
           <div className="line-clamp-1 inline-block truncate font-medium text-primary">{title}</div>
-          <div className="pl-2 text-13 font-medium text-tertiary">{count || 0}</div>
+          <div className="ps-2 text-13 font-medium text-tertiary">{count || 0}</div>
           <div className="px-2.5"></div>
         </div>
 
@@ -137,14 +139,18 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
                   setIsOpen(true);
                 }}
               >
-                <span className="flex items-center justify-start gap-2">Create work item</span>
+                <span className="flex items-center justify-start gap-2">
+                  {isPersianLocale() ? "ایجاد تسک" : "Create work item"}
+                </span>
               </CustomMenu.MenuItem>
               <CustomMenu.MenuItem
                 onClick={() => {
                   setOpenExistingIssueListModal(true);
                 }}
               >
-                <span className="flex items-center justify-start gap-2">Add an existing work item</span>
+                <span className="flex items-center justify-start gap-2">
+                  {isPersianLocale() ? "افزودن تسک موجود" : "Add an existing work item"}
+                </span>
               </CustomMenu.MenuItem>
             </CustomMenu>
           ) : (

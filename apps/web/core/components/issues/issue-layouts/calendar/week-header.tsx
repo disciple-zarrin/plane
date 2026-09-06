@@ -6,12 +6,7 @@
 
 import { observer } from "mobx-react";
 import { EStartOfTheWeek } from "@plane/types";
-import {
-  getOrderedDays,
-  isPersianLocale,
-  getCalendarStartOfWeek,
-  isCalendarWeekendWeekday,
-} from "@plane/utils";
+import { getOrderedDays, isPersianLocale, getCalendarStartOfWeek, isCalendarWeekendWeekday } from "@plane/utils";
 import { DAYS_LIST } from "@plane/constants";
 // helpers
 // hooks
@@ -53,7 +48,7 @@ export const CalendarWeekHeader = observer(function CalendarWeekHeader(props: Pr
       )}
       {visibleDays.map((day) => (
         <div key={day.shortTitle} className="flex h-11 items-center justify-center bg-layer-1 px-2 md:justify-end">
-          {persian ? FA_DAY_FULL[day.value] ?? day.title : day.shortTitle}
+          {persian ? (FA_DAY_FULL[day.value] ?? day.title) : day.shortTitle}
         </div>
       ))}
     </div>

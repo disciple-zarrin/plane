@@ -18,7 +18,7 @@ import { IconButton } from "@plane/propel/icon-button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { Loader } from "@plane/ui";
-import { copyUrlToClipboard, cn, orderJoinedProjects } from "@plane/utils";
+import { copyUrlToClipboard, cn, orderJoinedProjects, isPersianLocale } from "@plane/utils";
 // components
 import { CreateProjectModal } from "@/components/project/create-project-modal";
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
@@ -207,6 +207,7 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
                   className="text-placeholder"
                   iconClassName={cn("transition-transform", {
                     "rotate-90": isAllProjectsListOpen,
+                    "rtl:rotate-180": !isAllProjectsListOpen,
                   })}
                   aria-label={t(
                     isAllProjectsListOpen
@@ -262,7 +263,11 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
                           )}
                         >
                           <MoreHorizontalOutline className="size-4 flex-shrink-0" />
-                          <span>{isExtendedProjectSidebarOpened ? "Hide" : "More"}</span>
+                          <span>
+                            {isExtendedProjectSidebarOpened
+                              ? (isPersianLocale() ? "مخفی کردن" : "Hide")
+                              : (isPersianLocale() ? "بیشتر" : "More")}
+                          </span>
                         </button>
                       </SidebarNavItem>
                     )}

@@ -340,14 +340,14 @@ function ImagePickerPopoverComponent<TFieldValues extends FieldValues = FieldVal
                       </div>
                     </div>
                     {fileRejections.length > 0 && (
-                      <p className="text-13 text-danger-primary text-right">
+                      <p className="text-right text-13 text-danger-primary">
                         {fileRejections[0].errors[0].code === "file-too-large"
                           ? "حجم تصویر نمی‌تواند بیشتر از ۵ مگابایت باشد."
                           : "لطفاً فایلی با فرمت معتبر بارگذاری کنید."}
                       </p>
                     )}
 
-                    <p className="text-13 text-secondary text-right">فرمت‌های مجاز: .jpeg, .jpg, .png, .webp</p>
+                    <p className="text-right text-13 text-secondary">فرمت‌های مجاز: .jpeg, .jpg, .png, .webp</p>
 
                     <div className="flex h-12 items-start justify-end gap-2">
                       <Button

@@ -15,7 +15,7 @@ import { useTranslation } from "@plane/i18n";
 import type { Matcher } from "@plane/propel/calendar";
 import { Calendar } from "@plane/propel/calendar";
 import { ComboDropDown } from "@plane/ui";
-import { cn, renderFormattedDate, getDate, getCalendarStartOfWeek } from "@plane/utils";
+import { cn, renderFormattedDate, getDate, getCalendarStartOfWeek, isPersianLocale } from "@plane/utils";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
@@ -72,7 +72,7 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
     labelClassName = "",
   } = props;
   // Subscribe to locale so Jalali/Gregorian labels refresh when language changes.
-  const { currentLocale } = useTranslation();
+  const { currentLocale, t } = useTranslation();
   // states
   const [isOpen, setIsOpen] = useState(defaultOpen);
   // refs
@@ -80,6 +80,8 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
   // hooks
   const { data } = useUserProfile();
   const startOfWeek = getCalendarStartOfWeek(data?.start_of_the_week);
+  const displayPlaceholder =
+    placeholder && placeholder !== "Date" ? placeholder : (t("common.date") || (isPersianLocale() ? "تاریخ" : "Date"));
   // popper-js refs
   const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
@@ -140,8 +142,10 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
       <DropdownButton
         className={buttonClassName}
         isActive={isOpen}
-        tooltipHeading={placeholder}
-        tooltipContent={value ? renderFormattedDate(value, formatToken) : "None"}
+        tooltipHeading={displayPlaceholder}
+        tooltipContent={
+          value ? renderFormattedDate(value, formatToken) : (t("common.none") || (isPersianLocale() ? "هیچ‌کدام" : "None"))
+        }
         showTooltip={showTooltip}
         variant={buttonVariant}
         renderToolTipByDefault={renderByDefault}
@@ -150,9 +154,9 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
         {BUTTON_VARIANTS_WITH_TEXT.includes(buttonVariant) && (
           <span
             key={currentLocale}
-            className={cn("flex-grow truncate text-start rtl:text-right text-body-xs-medium", labelClassName)}
+            className={cn("flex-grow truncate text-start text-body-xs-medium", labelClassName)}
           >
-            {value ? renderFormattedDate(value, formatToken) : placeholder}
+            {value ? renderFormattedDate(value, formatToken) : displayPlaceholder}
           </span>
         )}
         {isClearable && !disabled && isDateSelected && (

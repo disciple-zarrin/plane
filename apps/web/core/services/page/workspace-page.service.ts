@@ -34,7 +34,11 @@ export class WorkspacePageService extends APIService {
     return this.patch(`/api/workspaces/${workspaceSlug}/pages/${pageId}/`, data).then((r) => r?.data);
   }
 
-  async updateDescription(workspaceSlug: string, pageId: string, data: { description_html?: string; description_json?: object }) {
+  async updateDescription(
+    workspaceSlug: string,
+    pageId: string,
+    data: { description_html?: string; description_json?: object }
+  ) {
     return this.patch(`/api/workspaces/${workspaceSlug}/pages/${pageId}/description/`, data).then((r) => r?.data);
   }
 

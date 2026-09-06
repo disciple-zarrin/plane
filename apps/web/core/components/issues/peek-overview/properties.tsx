@@ -211,11 +211,7 @@ export const PeekOverviewProperties = observer(function PeekOverviewProperties(p
           </SidebarPropertyListItem>
         )}
 
-        <IssueWorklogsPanel
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-            issueId={issueId}
-            disabled={disabled}/>
+        <IssueWorklogsPanel workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} disabled={disabled} />
 
         {projectDetails?.module_view && (
           <SidebarPropertyListItem icon={ModuleOutline} label={t("common.modules")}>

@@ -101,9 +101,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
           className="text-18 font-semibold outline-none"
           disabled={calendarLayout === "week"}
         >
-          {calendarLayout === "month"
-            ? formatCalendarMonthYear(activeMonthDate)
-            : getWeekLayoutHeader()}
+          {calendarLayout === "month" ? formatCalendarMonthYear(activeMonthDate) : getWeekLayoutHeader()}
         </button>
       </Popover.Button>
       <Transition
@@ -122,7 +120,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
             {...attributes.popper}
             className="w-56 divide-y divide-subtle-1 rounded-sm border border-subtle bg-surface-1 p-3 shadow-raised-200"
           >
-            <div className="flex items-center justify-between gap-2 pb-3" dir="ltr">
+            <div className="flex items-center justify-between gap-2 pb-3">
               <button
                 type="button"
                 className="grid place-items-center"
@@ -131,7 +129,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
                   handleDateChange(previousYear);
                 }}
               >
-                <ChevronLeftOutline height={14} width={14} />
+                <ChevronLeftOutline height={14} width={14} className="rtl:rotate-180" />
               </button>
               <span className="text-11" dir="auto">
                 {formatCalendarYear(activeMonthDate)}
@@ -144,7 +142,7 @@ export const CalendarMonthsDropdown = observer(function CalendarMonthsDropdown(p
                   handleDateChange(nextYear);
                 }}
               >
-                <ChevronRightOutline height={14} width={14} />
+                <ChevronRightOutline height={14} width={14} className="rtl:rotate-180" />
               </button>
             </div>
             <div className="grid grid-cols-4 items-stretch justify-items-stretch gap-4 pt-3">

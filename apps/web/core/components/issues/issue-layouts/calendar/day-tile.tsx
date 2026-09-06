@@ -165,7 +165,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
                 : "text-tertiary"
               : "font-medium", // if week layout, highlight all days
             isToday
-              ? "border-t-2 border-accent-primary bg-accent-primary/10"
+              ? "border-accent-primary border-t-2 bg-accent-primary/10"
               : isWeekend
                 ? "bg-layer-1"
                 : "bg-layer-transparent"
@@ -176,7 +176,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
               ? getCalendarMonthShortForDate(date.date) + " "
               : MONTHS_LIST[date.date.getMonth() + 1].shortTitle + " ")}
           {isToday ? (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-primary px-1 text-on-color ring-2 ring-accent-primary/40">
+            <span className="ring-accent-primary/40 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-primary px-1 text-on-color ring-2">
               {dayLabel}
             </span>
           ) : (
@@ -189,11 +189,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
           <div
             className={cn(
               "h-full w-full select-none",
-              isDraggingOver
-                ? `${draggingOverBackground} opacity-70`
-                : isToday
-                  ? todayBackground
-                  : normalBackground,
+              isDraggingOver ? `${draggingOverBackground} opacity-70` : isToday ? todayBackground : normalBackground,
               {
                 "min-h-[5rem]": isMonthLayout,
               }
@@ -232,7 +228,7 @@ export const CalendarDayTile = observer(function CalendarDayTile(props: Props) {
           <div
             className={cn("flex size-6 items-center justify-center rounded-full", {
               "bg-accent-primary text-on-color": isSelectedDate,
-              "ring-2 ring-accent-primary bg-accent-primary/20 text-accent-primary": isToday && !isSelectedDate,
+              "ring-accent-primary bg-accent-primary/20 text-accent-primary ring-2": isToday && !isSelectedDate,
             })}
           >
             {dayLabel}

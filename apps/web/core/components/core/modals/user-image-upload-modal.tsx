@@ -96,7 +96,7 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
   return (
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.XL}>
       <div className="space-y-5 px-5 py-8 sm:p-6" dir="rtl">
-        <h3 className="text-16 leading-6 font-medium text-primary text-right">بارگذاری تصویر</h3>
+        <h3 className="text-right text-16 leading-6 font-medium text-primary">بارگذاری تصویر</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-center gap-3">
             <div
@@ -134,14 +134,14 @@ export const UserImageUploadModal = observer(function UserImageUploadModal(props
             </div>
           </div>
           {fileRejections.length > 0 && (
-            <p className="text-13 text-danger-primary text-right">
+            <p className="text-right text-13 text-danger-primary">
               {fileRejections[0].errors[0].code === "file-too-large"
                 ? "حجم تصویر نمی‌تواند بیشتر از ۵ مگابایت باشد."
                 : "لطفاً فایلی با فرمت معتبر بارگذاری کنید."}
             </p>
           )}
         </div>
-        <p className="my-4 text-13 text-secondary text-right">فرمت‌های مجاز: .jpeg, .jpg, .png, .webp</p>
+        <p className="my-4 text-right text-13 text-secondary">فرمت‌های مجاز: .jpeg, .jpg, .png, .webp</p>
         <div className="flex items-center justify-between">
           <Button variant="error-fill" size="lg" onClick={handleImageRemove} disabled={!value}>
             {isRemoving ? "در حال حذف..." : "حذف"}

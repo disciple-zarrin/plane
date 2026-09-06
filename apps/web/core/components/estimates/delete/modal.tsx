@@ -70,7 +70,8 @@ export const DeleteEstimateModal = observer(function DeleteEstimateModal(props: 
         <div className="px-5">
           <div className="text-14 text-secondary">
             حذف سیستم تخمین <span className="font-bold text-primary">{estimate?.name}</span>
-            &nbsp;باعث حذف دائمی آن از تمام کارها خواهد شد. این عملیات غیرقابل بازگشت است. در صورت افزودن مجدد تخمین‌ها، باید همه کارها را به‌روزرسانی کنید.
+            &nbsp;باعث حذف دائمی آن از تمام کارها خواهد شد. این عملیات غیرقابل بازگشت است. در صورت افزودن مجدد تخمین‌ها،
+            باید همه کارها را به‌روزرسانی کنید.
           </div>
         </div>
 

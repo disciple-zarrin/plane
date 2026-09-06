@@ -97,7 +97,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
       <input type="hidden" value={uniqueCodeFormData.email} name="email" />
       {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
       <div className="space-y-1">
-        <label htmlFor="email" className="block text-13 font-medium text-tertiary text-right">
+        <label htmlFor="email" className="block text-right text-13 font-medium text-tertiary">
           {t("auth.common.email.label")}
         </label>
         <InputGroup size="2xl">
@@ -109,7 +109,6 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
             value={uniqueCodeFormData.email}
             onChange={(e) => handleFormChange("email", e.target.value)}
             placeholder={t("auth.common.email.placeholder")}
-            className="text-right rtl:text-right"
             autoComplete="off"
             disabled
           />
@@ -127,7 +126,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="unique-code" className="block text-13 font-medium text-tertiary text-right">
+        <label htmlFor="unique-code" className="block text-right text-13 font-medium text-tertiary">
           {t("auth.common.unique_code.label")}
         </label>
         <InputGroup size="2xl">
@@ -138,7 +137,6 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
             value={uniqueCodeFormData.code}
             onChange={(e) => handleFormChange("code", e.target.value)}
             placeholder={t("auth.common.unique_code.placeholder")}
-            className="text-center tracking-widest"
             autoComplete="off"
             autoFocus
           />

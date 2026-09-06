@@ -255,10 +255,7 @@ export const coreRoutes: RouteConfigEntry[] = [
       // ====================================================================
       // SETTINGS SECTION
       // ====================================================================
-      route(
-        ":workspaceSlug/worklogs",
-        "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/worklogs/page.tsx"
-      ),
+      route(":workspaceSlug/worklogs", "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/worklogs/page.tsx"),
       route(
         ":workspaceSlug/settings/worklogs",
         "./(all)/[workspaceSlug]/(settings)/settings/(workspace)/worklogs-redirect/page.tsx"

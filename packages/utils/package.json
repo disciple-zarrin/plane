@@ -29,6 +29,7 @@
     "chroma-js": "catalog:",
     "clsx": "catalog:",
     "date-fns": "catalog:",
+    "date-fns-jalali": "catalog:",
     "hast": "catalog:",
     "hast-util-to-mdast": "catalog:",
     "lodash-es": "catalog:",
@@ -42,8 +43,7 @@
     "sanitize-html": "catalog:",
     "tailwind-merge": "catalog:",
     "unified": "catalog:",
-    "uuid": "catalog:",
-    "date-fns-jalali": "catalog:"
+    "uuid": "catalog:"
   },
   "devDependencies": {
     "@plane/typescript-config": "workspace:*",

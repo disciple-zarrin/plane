@@ -108,18 +108,19 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
             <WarningTriangleOutline className="h-6 w-6 text-danger-primary" aria-hidden="true" />
           </span>
           <span className="flex items-center justify-start">
-            <h3 className="text-18 font-medium 2xl:text-20 text-right">ترک پروژه</h3>
+            <h3 className="text-right text-18 font-medium 2xl:text-20">ترک پروژه</h3>
           </span>
         </div>
 
         <span>
-          <p className="text-13 leading-7 text-secondary text-right">
+          <p className="text-right text-13 leading-7 text-secondary">
             آیا مطمئن هستید که می‌خواهید پروژه
-            <span className="font-medium text-primary">{` «${project?.name}» `}</span> را ترک کنید؟ تمام کارهای مرتبط با شما غیرقابل دسترسی خواهند شد.
+            <span className="font-medium text-primary">{` «${project?.name}» `}</span> را ترک کنید؟ تمام کارهای مرتبط با
+            شما غیرقابل دسترسی خواهند شد.
           </p>
         </span>
 
-        <div className="text-secondary text-right">
+        <div className="text-right text-secondary">
           <p className="text-13 break-words">
             برای ادامه، نام پروژه <span className="font-medium text-primary">{project?.name}</span> را وارد کنید:
           </p>
@@ -141,7 +142,6 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
                     onChange={onChange}
                     ref={ref}
                     placeholder="نام پروژه را وارد کنید"
-                    className="text-right"
                   />
                 </InputGroup>
               </Field>
@@ -149,7 +149,7 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
           />
         </div>
 
-        <div className="text-secondary text-right">
+        <div className="text-right text-secondary">
           <p className="text-13">
             برای تأیید، عبارت <span className="font-medium text-primary">ترک پروژه</span> را در زیر تایپ کنید:
           </p>
@@ -168,7 +168,6 @@ export const LeaveProjectModal = observer(function LeaveProjectModal(props: ILea
                     onChange={onChange}
                     ref={ref}
                     placeholder="عبارت 'ترک پروژه' یا 'Leave Project' را وارد کنید"
-                    className="text-right"
                   />
                 </InputGroup>
               </Field>

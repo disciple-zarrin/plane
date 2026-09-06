@@ -125,7 +125,8 @@ const InstanceAuthenticationPage = observer(function InstanceAuthenticationPage(
               <div className="grow text-right">
                 <div className="pb-1 text-16 font-medium">اجازه ثبت‌نام عمومی بدون نیاز به دعوت‌نامه</div>
                 <div className={cn("text-11 leading-5 font-regular text-tertiary")}>
-                  با خاموش کردن این گزینه، تنها کاربرانی که توسط شما به فضای کاری دعوت شده باشند امکان ثبت‌نام خواهند داشت.
+                  با خاموش کردن این گزینه، تنها کاربرانی که توسط شما به فضای کاری دعوت شده باشند امکان ثبت‌نام خواهند
+                  داشت.
                 </div>
               </div>
             </div>
@@ -146,7 +147,7 @@ const InstanceAuthenticationPage = observer(function InstanceAuthenticationPage(
               </div>
             </div>
           </div>
-          <div className="text-lg pt-6 font-medium text-right">روش‌های احراز هویت فعال</div>
+          <div className="text-lg pt-6 text-right font-medium">روش‌های احراز هویت فعال</div>
           {authenticationModes.map((method) => (
             <AuthenticationMethodCard
               key={method.key}

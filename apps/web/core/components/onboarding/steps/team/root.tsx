@@ -351,8 +351,8 @@ export const InviteTeamStep = observer(function InviteTeamStep(props: Props) {
       />
       <div className="w-full py-4 text-13" dir="rtl">
         <div className="group relative mx-8 grid grid-cols-10 gap-4 py-2">
-          <div className="col-span-6 px-1 text-13 font-medium text-secondary text-right">ایمیل</div>
-          <div className="col-span-4 px-1 text-13 font-medium text-secondary text-right">نقش</div>
+          <div className="col-span-6 px-1 text-right text-13 font-medium text-secondary">ایمیل</div>
+          <div className="col-span-4 px-1 text-right text-13 font-medium text-secondary">نقش</div>
         </div>
         <div className="mb-3 space-y-3 sm:space-y-4">
           {fields.map((field, index) => (

@@ -82,7 +82,6 @@ export function ShortcutsModal(props: Props) {
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="جستجو در میانبرها..."
                         aria-label="جستجو در میانبرها"
-                        className="text-right"
                         autoFocus
                         tabIndex={1}
                       />
