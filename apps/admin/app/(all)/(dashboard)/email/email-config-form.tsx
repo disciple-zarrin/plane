@@ -16,6 +16,7 @@ import { ControllerInput } from "@/components/common/controller-input";
 import { TOAST_TYPE, setToast } from "@/providers/toast";
 // hooks
 import { useInstance } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 // local components
 import { SendTestEmailModal } from "./test-email-modal";
 
@@ -31,6 +32,12 @@ const EMAIL_SECURITY_OPTIONS: { [key in TEmailSecurityKeys]: string } = {
   EMAIL_USE_TLS: "TLS",
   EMAIL_USE_SSL: "SSL",
   NONE: "No email security",
+};
+
+const EMAIL_SECURITY_OPTIONS_FA: { [key in TEmailSecurityKeys]: string } = {
+  EMAIL_USE_TLS: "TLS",
+  EMAIL_USE_SSL: "SSL",
+  NONE: "بدون پروتکل امنیتی",
 };
 
 export function InstanceEmailForm(props: IInstanceEmailForm) {
@@ -62,7 +69,7 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
     {
       key: "EMAIL_HOST",
       type: "text",
-      label: "Host",
+      label: isPersianLocale() ? "میزبان (Host)" : "Host",
       placeholder: "email.google.com",
       error: Boolean(errors.EMAIL_HOST),
       required: true,
@@ -70,7 +77,7 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
     {
       key: "EMAIL_PORT",
       type: "text",
-      label: "Port",
+      label: isPersianLocale() ? "پورت (Port)" : "Port",
       placeholder: "8080",
       error: Boolean(errors.EMAIL_PORT),
       required: true,
@@ -78,9 +85,10 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
     {
       key: "EMAIL_FROM",
       type: "text",
-      label: "Sender's email address",
-      description:
-        "This is the email address your users will see when getting emails from this instance. You will need to verify this address.",
+      label: isPersianLocale() ? "نشانی ایمیل فرستنده" : "Sender's email address",
+      description: isPersianLocale()
+        ? "این آدرس ایمیلی است که کاربران در نامه‌های ارسالی از سامانه مشاهده می‌کنند."
+        : "This is the email address your users will see when getting emails from this instance. You will need to verify this address.",
       placeholder: "no-reply@projectplane.so",
       error: Boolean(errors.EMAIL_FROM),
       required: true,
@@ -91,7 +99,7 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
     {
       key: "EMAIL_HOST_USER",
       type: "text",
-      label: "Username",
+      label: isPersianLocale() ? "نام کاربری" : "Username",
       placeholder: "getitdone@projectplane.so",
       error: Boolean(errors.EMAIL_HOST_USER),
       required: false,
@@ -99,8 +107,8 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
     {
       key: "EMAIL_HOST_PASSWORD",
       type: "password",
-      label: "Password",
-      placeholder: "Password",
+      label: isPersianLocale() ? "رمز عبور" : "Password",
+      placeholder: isPersianLocale() ? "رمز عبور" : "Password",
       error: Boolean(errors.EMAIL_HOST_PASSWORD),
       required: false,
     },
@@ -162,17 +170,22 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
             />
           ))}
           <div className="flex flex-col gap-1">
-            <h4 className="text-13 text-tertiary">Email security</h4>
+            <h4 className="text-13 text-tertiary">{isPersianLocale() ? "امنیت ایمیل" : "Email security"}</h4>
             <Select
               value={emailSecurityKey}
               onValueChange={(value) => handleEmailSecurityChange(value as TEmailSecurityKeys)}
             >
-              <SelectTrigger size="lg" placeholder="Select email security" />
+              <SelectTrigger
+                size="lg"
+                placeholder={isPersianLocale() ? "انتخاب امنیت ایمیل" : "Select email security"}
+              />
               <SelectContent>
                 <SelectList>
-                  {Object.entries(EMAIL_SECURITY_OPTIONS).map(([key, value]) => (
-                    <SelectItem key={key} value={key} label={value} size="lg" />
-                  ))}
+                  {Object.entries(isPersianLocale() ? EMAIL_SECURITY_OPTIONS_FA : EMAIL_SECURITY_OPTIONS).map(
+                    ([key, value]) => (
+                      <SelectItem key={key} value={key} label={value} size="lg" />
+                    )
+                  )}
                 </SelectList>
               </SelectContent>
             </Select>
@@ -182,9 +195,13 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
           <div className="flex w-full max-w-xl flex-col gap-y-10 px-1">
             <div className="mr-8 flex items-center gap-10 pt-4">
               <div className="grow">
-                <div className="text-13 font-medium text-primary">Authentication</div>
+                <div className="text-13 font-medium text-primary">
+                  {isPersianLocale() ? "احراز هویت" : "Authentication"}
+                </div>
                 <div className="text-11 font-regular text-tertiary">
-                  This is optional, but we recommend setting up a username and a password for your SMTP server.
+                  {isPersianLocale()
+                    ? "تنظیم نام کاربری و رمز عبور برای سرور SMTP اختیاری اما اکیداً توصیه‌شده است."
+                    : "This is optional, but we recommend setting up a username and a password for your SMTP server."}
                 </div>
               </div>
             </div>
@@ -214,7 +231,15 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
           onClick={handleSubmit(onSubmit)}
           loading={isSubmitting}
           disabled={!isValid || !isDirty}
-          label={isSubmitting ? "Saving" : "Save changes"}
+          label={
+            isSubmitting
+              ? isPersianLocale()
+                ? "در حال ذخیره..."
+                : "Saving"
+              : isPersianLocale()
+                ? "ذخیره تغییرات"
+                : "Save changes"
+          }
         />
         <Button
           variant="secondary"
@@ -223,7 +248,7 @@ export function InstanceEmailForm(props: IInstanceEmailForm) {
           onClick={() => setIsSendTestEmailModalOpen(true)}
           loading={isSubmitting}
           disabled={!isValid}
-          label="Send test email"
+          label={isPersianLocale() ? "ارسال ایمیل آزمایشی" : "Send test email"}
         />
       </div>
     </div>

@@ -7,6 +7,7 @@
 import { observer } from "mobx-react";
 import { ArchiveOutline, RefreshOutline } from "@makeplane/propel/icons";
 // hooks
+import { isPersianLocale } from "@plane/utils";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
 import { IssueActivityBlockComponent } from "./";
@@ -38,7 +39,13 @@ export const IssueArchivedAtActivity = observer(function IssueArchivedAtActivity
       ends={ends}
       customUserName={activity.new_value === "archive" ? "Plane" : undefined}
     >
-      {activity.new_value === "restore" ? "restored the work item" : "archived the work item"}.
+      {isPersianLocale()
+        ? activity.new_value === "restore"
+          ? "تسک را بازیابی کرد."
+          : "تسک را بایگانی کرد."
+        : activity.new_value === "restore"
+          ? "restored the work item."
+          : "archived the work item."}
     </IssueActivityBlockComponent>
   );
 });

@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/common/skeleton";
 import { TOAST_TYPE, setToast } from "@/providers/toast";
 // hooks
 import { useInstance } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 // types
 import type { Route } from "./+types/page";
 // local
@@ -61,8 +62,16 @@ const InstanceEmailPage = observer(function InstanceEmailPage(_props: Route.Comp
   return (
     <PageWrapper
       header={{
-        title: "Secure emails from your own instance",
-        description: (
+        title: isPersianLocale() ? "ارسال ایمیل‌های امن از سرور اختصاصی" : "Secure emails from your own instance",
+        description: isPersianLocale() ? (
+          <>
+            سامانه می‌تواند ایمیل‌های اطلاع‌رسانی را بدون وابستگی خارجی از سرور اختصاصی شما ارسال کند.
+            <div className="text-13 font-regular text-tertiary">
+              تنظیمات را در زیر پیکربندی کرده و قبل از ذخیره، تست نمایید.&nbsp;
+              <span className="text-danger-primary">پیکربندی اشتباه ممکن است منجر به خطا در تحویل ایمیل شود.</span>
+            </div>
+          </>
+        ) : (
           <>
             Plane can send useful emails to you and your users from your own instance without talking to the Internet.
             <div className="text-13 font-regular text-tertiary">

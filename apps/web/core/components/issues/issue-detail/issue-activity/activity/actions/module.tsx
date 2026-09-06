@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { ModuleOutline } from "@makeplane/propel/icons";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -33,7 +34,7 @@ export const IssueModuleActivity = observer(function IssueModuleActivity(props: 
       <>
         {activity.verb === "created" ? (
           <>
-            <span>added this work item to the module </span>
+            <span>{isPersianLocale() ? "این تسک را به ماژول اضافه کرد: " : "added this work item to the module "}</span>
             <a
               href={`/${activity.workspace_detail?.slug}/projects/${activity.project}/modules/${activity.new_identifier}`}
               target="_blank"
@@ -45,7 +46,7 @@ export const IssueModuleActivity = observer(function IssueModuleActivity(props: 
           </>
         ) : activity.verb === "updated" ? (
           <>
-            <span>set the module to </span>
+            <span>{isPersianLocale() ? "ماژول را تنظیم کرد به: " : "set the module to "}</span>
             <a
               href={`/${activity.workspace_detail?.slug}/projects/${activity.project}/modules/${activity.new_identifier}`}
               target="_blank"
@@ -57,7 +58,7 @@ export const IssueModuleActivity = observer(function IssueModuleActivity(props: 
           </>
         ) : (
           <>
-            <span>removed the work item from the module </span>
+            <span>{isPersianLocale() ? "تسک را از ماژول حذف کرد: " : "removed the work item from the module "}</span>
             <a
               href={`/${activity.workspace_detail?.slug}/projects/${activity.project}/modules/${activity.old_identifier}`}
               target="_blank"

@@ -11,6 +11,7 @@ import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
 // hooks
 import { useInstance } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 // types
 import type { Route } from "./+types/page";
 // local
@@ -25,8 +26,10 @@ const InstanceAIPage = observer(function InstanceAIPage(_props: Route.ComponentP
   return (
     <PageWrapper
       header={{
-        title: "AI features for all your workspaces",
-        description: "Configure your AI API credentials so Plane AI features are turned on for all your workspaces.",
+        title: isPersianLocale() ? "قابلیت‌های هوش مصنوعی برای تمام فضاهای کاری" : "AI features for all your workspaces",
+        description: isPersianLocale()
+          ? "تنظیم کلیدهای دسترسی هوش مصنوعی جهت فعال‌سازی قابلیت‌های هوشمند برای فضاهای کاری."
+          : "Configure your AI API credentials so Plane AI features are turned on for all your workspaces.",
       }}
     >
       {formattedConfig ? (

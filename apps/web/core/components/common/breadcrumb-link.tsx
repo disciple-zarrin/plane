@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { Breadcrumbs } from "@plane/ui";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { isPersianLocale } from "@plane/utils";
 
 type Props = {
   label?: string;
@@ -58,21 +59,52 @@ const ItemWrapper = React.memo(function ItemWrapper({
 
 ItemWrapper.displayName = "ItemWrapper";
 
+const BREADCRUMB_FA_MAP: Record<string, string> = {
+  Pages: "صفحات",
+  Cycles: "چرخه‌ها",
+  Modules: "ماژول‌ها",
+  Views: "نماها",
+  Archives: "بایگانی‌ها",
+  Drafts: "پیش‌نویس‌ها",
+  Settings: "تنظیمات",
+  Projects: "پروژه‌ها",
+  Analytics: "تحلیل‌ها",
+  Home: "خانه",
+  Members: "اعضا",
+  Billing: "صورت‌حساب",
+  Integrations: "یکپارچه‌سازی‌ها",
+  Webhooks: "وب‌هوک‌ها",
+  Automations: "اتوماسیون‌ها",
+  Labels: "برچسب‌ها",
+  Estimates: "تخمین‌ها",
+  States: "وضعیت‌ها",
+  Features: "قابلیت‌ها",
+  Exports: "خروجی‌ها",
+  Imports: "ورودی‌ها",
+};
+
 export const BreadcrumbLink = observer(function BreadcrumbLink(props: Props) {
   const { href, label, icon, disableTooltip = false, isLast = false } = props;
   const { isMobile } = usePlatformOS();
 
+  const resolvedLabel = useMemo(() => {
+    if (typeof label === "string" && isPersianLocale()) {
+      return BREADCRUMB_FA_MAP[label] ?? label;
+    }
+    return label;
+  }, [label]);
+
   const itemWrapperProps = useMemo(
     (): Omit<React.ComponentProps<typeof ItemWrapper>, "children"> => ({
-      label: label?.toString(),
+      label: resolvedLabel?.toString(),
       disableTooltip: isMobile || disableTooltip,
       type: href && href !== "" ? "link" : "text",
       isLast,
     }),
-    [href, label, isMobile, disableTooltip, isLast]
+    [href, resolvedLabel, isMobile, disableTooltip, isLast]
   );
 
-  const content = useMemo(() => <BreadcrumbContent icon={icon} label={label} />, [icon, label]);
+  const content = useMemo(() => <BreadcrumbContent icon={icon} label={resolvedLabel} />, [icon, resolvedLabel]);
 
   if (href) {
     return (

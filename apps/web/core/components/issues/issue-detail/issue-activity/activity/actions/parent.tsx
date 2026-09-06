@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { ParentOutline } from "@makeplane/propel/icons";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -30,13 +31,20 @@ export const IssueParentActivity = observer(function IssueParentActivity(props: 
       ends={ends}
     >
       <>
-        {activity.new_value ? `set the parent to ` : `removed the parent `}
+        {activity.new_value
+          ? isPersianLocale()
+            ? "تسک والد را تنظیم کرد به: "
+            : `set the parent to `
+          : isPersianLocale()
+            ? "تسک والد را حذف کرد "
+            : `removed the parent `}
         {activity.new_value ? (
           <span className="font-medium text-primary">{activity.new_value}</span>
         ) : (
           <span className="font-medium text-primary">{activity.old_value}</span>
         )}
-        {showIssue && (activity.new_value ? ` for ` : ` from `)}
+        {showIssue &&
+          (activity.new_value ? (isPersianLocale() ? " برای " : ` for `) : isPersianLocale() ? " از " : ` from `)}
         {showIssue && <IssueLink activityId={activityId} />}.
       </>
     </IssueActivityBlockComponent>

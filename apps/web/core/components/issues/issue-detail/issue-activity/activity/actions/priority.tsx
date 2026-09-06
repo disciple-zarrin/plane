@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { PriorityOutline } from "@makeplane/propel/icons";
+import { getPriorityDisplayName, isPersianLocale } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -30,9 +31,20 @@ export const IssuePriorityActivity = observer(function IssuePriorityActivity(pro
       ends={ends}
     >
       <>
-        set the priority to <span className="font-medium text-primary">{activity.new_value}</span>
-        {showIssue ? ` for ` : ``}
-        {showIssue && <IssueLink activityId={activityId} />}.
+        {isPersianLocale() ? (
+          <>
+            اولویت را به <span className="font-medium text-primary">{getPriorityDisplayName(activity.new_value)}</span>{" "}
+            تنظیم کرد
+            {showIssue ? " برای " : ""}
+            {showIssue && <IssueLink activityId={activityId} />}.
+          </>
+        ) : (
+          <>
+            set the priority to <span className="font-medium text-primary">{activity.new_value}</span>
+            {showIssue ? ` for ` : ``}
+            {showIssue && <IssueLink activityId={activityId} />}.
+          </>
+        )}
       </>
     </IssueActivityBlockComponent>
   );

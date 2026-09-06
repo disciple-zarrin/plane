@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { AlignLeftOutline } from "@makeplane/propel/icons";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -30,9 +31,19 @@ export const IssueDescriptionActivity = observer(function IssueDescriptionActivi
       ends={ends}
     >
       <>
-        updated the description
-        {showIssue ? ` of ` : ``}
-        {showIssue && <IssueLink activityId={activityId} />}.
+        {isPersianLocale() ? (
+          <>
+            توضیحات را ویرایش کرد
+            {showIssue ? " در " : ""}
+            {showIssue && <IssueLink activityId={activityId} />}.
+          </>
+        ) : (
+          <>
+            updated the description
+            {showIssue ? ` of ` : ``}
+            {showIssue && <IssueLink activityId={activityId} />}.
+          </>
+        )}
       </>
     </IssueActivityBlockComponent>
   );

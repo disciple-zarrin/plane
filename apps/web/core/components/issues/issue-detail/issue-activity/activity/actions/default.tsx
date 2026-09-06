@@ -9,7 +9,7 @@ import { observer } from "mobx-react";
 import { WorkItemsOutline } from "@makeplane/propel/icons";
 import { EInboxIssueSource } from "@plane/types";
 // hooks
-import { capitalizeFirstLetter } from "@plane/utils";
+import { capitalizeFirstLetter, isPersianLocale } from "@plane/utils";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import { IssueActivityBlockComponent } from "./";
@@ -38,14 +38,23 @@ export const IssueDefaultActivity = observer(function IssueDefaultActivity(props
         {activity.verb === "created" ? (
           source && source !== EInboxIssueSource.IN_APP ? (
             <span>
-              created the work item via{" "}
-              <span className="font-medium">{capitalizeFirstLetter(source.toLowerCase() || "")}</span>.
+              {isPersianLocale() ? (
+                <>
+                  تسک را از طریق{" "}
+                  <span className="font-medium">{capitalizeFirstLetter(source.toLowerCase() || "")}</span> ایجاد کرد.
+                </>
+              ) : (
+                <>
+                  created the work item via{" "}
+                  <span className="font-medium">{capitalizeFirstLetter(source.toLowerCase() || "")}</span>.
+                </>
+              )}
             </span>
           ) : (
-            <span> created the work item.</span>
+            <span>{isPersianLocale() ? " تسک را ایجاد کرد." : " created the work item."}</span>
           )
         ) : (
-          <span> deleted a work item.</span>
+          <span>{isPersianLocale() ? " تسک را حذف کرد." : " deleted a work item."}</span>
         )}
       </>
     </IssueActivityBlockComponent>

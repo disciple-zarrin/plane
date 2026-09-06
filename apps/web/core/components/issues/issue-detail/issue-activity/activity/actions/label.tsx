@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { LabelsOutline } from "@makeplane/propel/icons";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useLabel } from "@/hooks/store/use-label";
@@ -34,12 +35,19 @@ export const IssueLabelActivity = observer(function IssueLabelActivity(props: TI
       ends={ends}
     >
       <>
-        {activity.old_value === "" ? `added a new label ` : `removed the label `}
+        {isPersianLocale()
+          ? activity.old_value === ""
+            ? "برچسب جدید اضافه کرد: "
+            : "برچسب را حذف کرد: "
+          : activity.old_value === ""
+            ? `added a new label `
+            : `removed the label `}
         <LabelActivityChip
           name={activity.old_value === "" ? activity.new_value : activity.old_value}
           color={activity.old_value === "" ? newLabelColor : oldLabelColor}
         />
-        {showIssue && (activity.old_value === "" ? ` to ` : ` from `)}
+        {showIssue &&
+          (activity.old_value === "" ? (isPersianLocale() ? " به " : ` to `) : isPersianLocale() ? " از " : ` from `)}
         {showIssue && <IssueLink activityId={activityId} />}
       </>
     </IssueActivityBlockComponent>

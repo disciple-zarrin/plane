@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { getStateDisplayName, isPersianLocale } from "@plane/utils";
 // hooks
 import { StateOutline } from "@makeplane/propel/icons";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -31,9 +32,20 @@ export const IssueStateActivity = observer(function IssueStateActivity(props: TI
       ends={ends}
     >
       <>
-        set the state to <span className="font-medium text-primary">{activity.new_value}</span>
-        {showIssue ? ` for ` : ``}
-        {showIssue && <IssueLink activityId={activityId} />}.
+        {isPersianLocale() ? (
+          <>
+            وضعیت را به <span className="font-medium text-primary">{getStateDisplayName(activity.new_value)}</span>{" "}
+            تغییر داد
+            {showIssue ? " برای " : ""}
+            {showIssue && <IssueLink activityId={activityId} />}.
+          </>
+        ) : (
+          <>
+            set the state to <span className="font-medium text-primary">{activity.new_value}</span>
+            {showIssue ? ` for ` : ``}
+            {showIssue && <IssueLink activityId={activityId} />}.
+          </>
+        )}
       </>
     </IssueActivityBlockComponent>
   );

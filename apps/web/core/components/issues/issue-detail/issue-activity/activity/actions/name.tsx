@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { TextOutline } from "@makeplane/propel/icons";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -29,7 +30,9 @@ export const IssueNameActivity = observer(function IssueNameActivity(props: TIss
       activityId={activityId}
       ends={ends}
     >
-      <>set the name to {activity.new_value}.</>
+      <>
+        {isPersianLocale() ? `عنوان را به ${activity.new_value} تغییر داد.` : `set the name to ${activity.new_value}.`}
+      </>
     </IssueActivityBlockComponent>
   );
 });

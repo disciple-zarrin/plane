@@ -15,7 +15,7 @@ import { Input, InputGroup } from "@makeplane/propel/components/input";
 import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
 import { InstanceWorkspaceService } from "@plane/services";
 import type { IWorkspace } from "@plane/types";
-import { validateSlug, validateWorkspaceName } from "@plane/utils";
+import { isPersianLocale, validateSlug, validateWorkspaceName } from "@plane/utils";
 // components
 import { TOAST_TYPE, setToast } from "@/providers/toast";
 // hooks
@@ -56,10 +56,12 @@ export function WorkspaceCreateForm() {
   const handleCreateWorkspace = async (formData: IWorkspace) => {
     await instanceWorkspaceService
       .slugCheck(formData.slug)
+      // oxlint-disable-next-line promise/always-return
       .then(async (res) => {
         if (res.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
           setSlugError(false);
           await createWorkspace(formData)
+            // oxlint-disable-next-line promise/always-return
             .then(async () => {
               setToast({
                 type: TOAST_TYPE.SUCCESS,
@@ -98,7 +100,7 @@ export function WorkspaceCreateForm() {
     <div className="space-y-8">
       <div className="grid-col grid w-full max-w-4xl grid-cols-1 items-start justify-between gap-x-10 gap-y-6 lg:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <h4 className="text-13 text-tertiary">Name your workspace</h4>
+          <h4 className="text-13 text-tertiary">{isPersianLocale() ? "نام فضای کاری" : "Name your workspace"}</h4>
           <div className="flex flex-col gap-1">
             <Controller
               control={control}
@@ -122,7 +124,11 @@ export function WorkspaceCreateForm() {
                     }}
                     ref={ref}
                     aria-invalid={Boolean(errors.name)}
-                    placeholder="Something familiar and recognizable is always best."
+                    placeholder={
+                      isPersianLocale()
+                        ? "نامی آشنا و مشخص انتخاب نمایید."
+                        : "Something familiar and recognizable is always best."
+                    }
                   />
                 </InputGroup>
               )}
@@ -131,7 +137,9 @@ export function WorkspaceCreateForm() {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <h4 className="text-13 text-tertiary">Set your workspace&apos;s URL</h4>
+          <h4 className="text-13 text-tertiary">
+            {isPersianLocale() ? "نشانی اینترنتی فضای کاری" : "Set your workspace's URL"}
+          </h4>
           <div className="flex w-full items-center gap-0.5 rounded-md border-[0.5px] border-subtle px-3">
             <span className="text-13 whitespace-nowrap text-secondary">{workspaceBaseURL}</span>
             <Controller
@@ -158,22 +166,41 @@ export function WorkspaceCreateForm() {
               )}
             />
           </div>
-          {slugError && <p className="text-13 text-danger-primary">This URL is taken. Try something else.</p>}
+          {slugError && (
+            <p className="text-13 text-danger-primary">
+              {isPersianLocale()
+                ? "این نشانی قبلاً انتخاب شده است. نام دیگری برگزینید."
+                : "This URL is taken. Try something else."}
+            </p>
+          )}
           {invalidSlug && (
-            <p className="text-13 text-danger-primary">{`URLs can contain only ( - ), ( _ ) and alphanumeric characters.`}</p>
+            <p className="text-13 text-danger-primary">
+              {isPersianLocale()
+                ? "نشانی اینترنتی تنها می‌تواند شامل حروف، اعداد، خط فاصله (-) و زیرخط (_) باشد."
+                : `URLs can contain only ( - ), ( _ ) and alphanumeric characters.`}
+            </p>
           )}
           {errors.slug && <span className="text-11 text-danger-primary">{errors.slug.message}</span>}
         </div>
         <div className="flex flex-col gap-1">
-          <h4 className="text-13 text-tertiary">How many people will use this workspace?</h4>
+          <h4 className="text-13 text-tertiary">
+            {isPersianLocale()
+              ? "تعداد کاربران این فضای کاری چند نفر خواهد بود؟"
+              : "How many people will use this workspace?"}
+          </h4>
           <div className="w-full">
             <Controller
               name="organization_size"
               control={control}
-              rules={{ required: "This is a required field." }}
+              rules={{ required: isPersianLocale() ? "این فیلد الزامی است." : "This is a required field." }}
               render={({ field: { value, onChange } }) => (
                 <Select value={value} onValueChange={onChange}>
-                  <SelectTrigger size="lg" placeholder={<span className="text-placeholder">Select a range</span>} />
+                  <SelectTrigger
+                    size="lg"
+                    placeholder={
+                      <span className="text-placeholder">{isPersianLocale() ? "انتخاب محدوده" : "Select a range"}</span>
+                    }
+                  />
                   <SelectContent>
                     <SelectList>
                       {ORGANIZATION_SIZE.map((item) => (
@@ -198,7 +225,15 @@ export function WorkspaceCreateForm() {
           onClick={handleSubmit(handleCreateWorkspace)}
           disabled={!isValid}
           loading={isSubmitting}
-          label={isSubmitting ? "Creating workspace" : "Create workspace"}
+          label={
+            isSubmitting
+              ? isPersianLocale()
+                ? "در حال ایجاد فضای کاری..."
+                : "Creating workspace"
+              : isPersianLocale()
+                ? "ایجاد فضای کاری"
+                : "Create workspace"
+          }
         />
         <Button
           variant="secondary"
@@ -206,7 +241,7 @@ export function WorkspaceCreateForm() {
           stretch="auto"
           nativeButton={false}
           render={<Link href="/workspace" />}
-          label="Go back"
+          label={isPersianLocale() ? "بازگشت" : "Go back"}
         />
       </div>
     </div>

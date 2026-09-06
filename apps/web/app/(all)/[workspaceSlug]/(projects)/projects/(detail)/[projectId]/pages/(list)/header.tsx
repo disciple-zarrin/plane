@@ -23,6 +23,7 @@ import { useProject } from "@/hooks/store/use-project";
 // plane web imports
 import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
 import { EPageStoreType, usePageStore } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 
 export const PagesListHeader = observer(function PagesListHeader() {
   // states
@@ -80,7 +81,13 @@ export const PagesListHeader = observer(function PagesListHeader() {
       {canCurrentUserCreatePage && (
         <Header.RightItem>
           <Button variant="primary" size="lg" onClick={handleCreatePage} loading={isCreatingPage}>
-            {isCreatingPage ? "Adding" : "Add page"}
+            {isCreatingPage
+              ? isPersianLocale()
+                ? "در حال افزودن..."
+                : "Adding"
+              : isPersianLocale()
+                ? "افزودن برگه"
+                : "Add page"}
           </Button>
         </Header.RightItem>
       )}

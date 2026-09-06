@@ -21,8 +21,9 @@ import {
 } from "@makeplane/propel/components/breadcrumb";
 // hooks
 import { useTheme } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 // local imports
-import { CORE_HEADER_SEGMENT_LABELS } from "./core";
+import { CORE_HEADER_SEGMENT_LABELS, CORE_HEADER_SEGMENT_LABELS_FA } from "./core";
 import { EXTENDED_HEADER_SEGMENT_LABELS } from "./extended";
 
 export const HamburgerToggle = observer(function HamburgerToggle() {
@@ -49,11 +50,15 @@ const generateBreadcrumbItems = (pathname: string) => {
   const pathSegments = pathname.split("/").slice(1); // removing the first empty string.
   pathSegments.pop();
 
+  const isFa = isPersianLocale();
   let currentUrl = "";
   const breadcrumbItems = pathSegments.map((segment) => {
     currentUrl += "/" + segment;
     return {
-      title: HEADER_SEGMENT_LABELS[segment] ?? segment.toUpperCase(),
+      title:
+        (isFa ? CORE_HEADER_SEGMENT_LABELS_FA[segment] : undefined) ??
+        HEADER_SEGMENT_LABELS[segment] ??
+        segment.toUpperCase(),
       href: currentUrl,
     };
   });
@@ -74,7 +79,7 @@ export const AdminHeader = observer(function AdminHeader() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink
-                  label="Settings"
+                  label={isPersianLocale() ? "تنظیمات" : "Settings"}
                   icon={<SettingsOutline className="h-4 w-4 text-tertiary" />}
                   render={<Link href="/general/" />}
                 />

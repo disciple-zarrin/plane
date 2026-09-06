@@ -7,6 +7,7 @@
 import { observer } from "mobx-react";
 // icons
 import { MembersOutline } from "@makeplane/propel/icons";
+import { isPersianLocale } from "@plane/utils";
 // hooks;
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -31,7 +32,13 @@ export const IssueAssigneeActivity = observer(function IssueAssigneeActivity(pro
       ends={ends}
     >
       <>
-        {activity.old_value === "" ? `added a new assignee ` : `removed the assignee `}
+        {isPersianLocale()
+          ? activity.old_value === ""
+            ? "مسئول جدید اضافه کرد: "
+            : "مسئول را حذف کرد: "
+          : activity.old_value === ""
+            ? `added a new assignee `
+            : `removed the assignee `}
         <a
           href={`/${activity.workspace_detail?.slug}/profile/${activity.new_identifier ?? activity.old_identifier}`}
           target="_blank"
@@ -40,7 +47,8 @@ export const IssueAssigneeActivity = observer(function IssueAssigneeActivity(pro
         >
           {activity.new_value && activity.new_value !== "" ? activity.new_value : activity.old_value}
         </a>
-        {showIssue && (activity.old_value === "" ? ` to ` : ` from `)}
+        {showIssue &&
+          (activity.old_value === "" ? (isPersianLocale() ? " برای " : ` to `) : isPersianLocale() ? " از " : ` from `)}
         {showIssue && <IssueLink activityId={activityId} />}.
       </>
     </IssueActivityBlockComponent>

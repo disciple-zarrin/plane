@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { PageWrapper } from "@/components/common/page-wrapper";
 // hooks
 import { useInstance } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 // local imports
 import { GeneralConfigurationForm } from "./form";
 // types
@@ -20,9 +21,10 @@ function GeneralPage() {
   return (
     <PageWrapper
       header={{
-        title: "General settings",
-        description:
-          "Change the name of your instance and instance admin e-mail addresses. Enable or disable telemetry in your instance.",
+        title: isPersianLocale() ? "تنظیمات عمومی" : "General settings",
+        description: isPersianLocale()
+          ? "تغییر نام سامانه و آدرس‌های ایمیل مدیر سامانه. فعال یا غیرفعال کردن گزارش‌های آماری سامانه."
+          : "Change the name of your instance and instance admin e-mail addresses. Enable or disable telemetry in your instance.",
       }}
     >
       {instance && instanceAdmins && <GeneralConfigurationForm instance={instance} instanceAdmins={instanceAdmins} />}

@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { AttachOutline } from "@makeplane/propel/icons";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
@@ -30,8 +31,15 @@ export const IssueAttachmentActivity = observer(function IssueAttachmentActivity
       ends={ends}
     >
       <>
-        {activity.verb === "created" ? `uploaded a new attachment` : `removed an attachment`}
-        {showIssue && (activity.verb === "created" ? ` to ` : ` from `)}
+        {isPersianLocale()
+          ? activity.verb === "created"
+            ? "پیوست جدیدی بارگذاری کرد"
+            : "پیوست را حذف کرد"
+          : activity.verb === "created"
+            ? `uploaded a new attachment`
+            : `removed an attachment`}
+        {showIssue &&
+          (activity.verb === "created" ? (isPersianLocale() ? " در " : ` to `) : isPersianLocale() ? " از " : ` from `)}
         {showIssue && <IssueLink activityId={activityId} />}.
       </>
     </IssueActivityBlockComponent>

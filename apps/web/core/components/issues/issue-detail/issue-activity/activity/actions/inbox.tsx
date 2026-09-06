@@ -5,6 +5,7 @@
  */
 
 import { observer } from "mobx-react";
+import { isPersianLocale } from "@plane/utils";
 // hooks
 import { IntakeOutline } from "@makeplane/propel/icons";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -24,6 +25,20 @@ export const IssueInboxActivity = observer(function IssueInboxActivity(props: TI
   const activity = getActivityById(activityId);
 
   const getInboxActivityMessage = () => {
+    if (isPersianLocale()) {
+      switch (activity?.verb) {
+        case "-1":
+          return "این تسک را از صندوق ورودی رد کرد.";
+        case "0":
+          return "این تسک را به تعویق انداخت.";
+        case "1":
+          return "این تسک را از صندوق ورودی پذیرفت.";
+        case "2":
+          return "این تسک را به دلیل تکراری بودن رد کرد.";
+        default:
+          return "وضعیت تسک را در صندوق ورودی به‌روزرسانی کرد.";
+      }
+    }
     switch (activity?.verb) {
       case "-1":
         return "declined this work item from intake.";

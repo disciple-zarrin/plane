@@ -11,6 +11,7 @@ import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
 // hooks
 import { useInstance } from "@/hooks/store";
+import { isPersianLocale } from "@plane/utils";
 // types
 import type { Route } from "./+types/page";
 // local
@@ -25,8 +26,10 @@ const InstanceImagePage = observer(function InstanceImagePage(_props: Route.Comp
   return (
     <PageWrapper
       header={{
-        title: "Third-party image libraries",
-        description: "Let your users search and choose images from third-party libraries",
+        title: isPersianLocale() ? "کتابخانه‌های تصویر شخص ثالث" : "Third-party image libraries",
+        description: isPersianLocale()
+          ? "امکان جستجو و انتخاب تصاویر از کتابخانه‌های تصویر آنلاین برای کاربران."
+          : "Let your users search and choose images from third-party libraries",
       }}
     >
       {formattedConfig ? (

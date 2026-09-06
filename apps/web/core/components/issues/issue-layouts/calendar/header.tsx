@@ -92,10 +92,22 @@ export const CalendarHeader = observer(function CalendarHeader(props: ICalendarH
   return (
     <Row className="mb-4 flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5">
-        <button type="button" className="grid place-items-center" onClick={handlePrevious}>
+        <button
+          type="button"
+          data-testid="calendar-prev-month"
+          aria-label={t("common.previous") || "Previous"}
+          className="grid place-items-center"
+          onClick={handlePrevious}
+        >
           <ChevronLeftOutline height={16} width={16} className="rtl:rotate-180" />
         </button>
-        <button type="button" className="grid place-items-center" onClick={handleNext}>
+        <button
+          type="button"
+          data-testid="calendar-next-month"
+          aria-label={t("common.next") || "Next"}
+          className="grid place-items-center"
+          onClick={handleNext}
+        >
           <ChevronRightOutline height={16} width={16} className="rtl:rotate-180" />
         </button>
         <CalendarMonthsDropdown issuesFilterStore={issuesFilterStore} />

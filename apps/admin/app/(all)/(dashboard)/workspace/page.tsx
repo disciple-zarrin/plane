@@ -14,7 +14,7 @@ import { AnchorButton } from "@makeplane/propel/components/anchor-button";
 import { Button } from "@makeplane/propel/components/button";
 import { Switch } from "@makeplane/propel/components/switch";
 import type { TInstanceConfigurationKeys } from "@plane/types";
-import { cn } from "@plane/utils";
+import { cn, isPersianLocale } from "@plane/utils";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
@@ -55,18 +55,19 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
     const updateConfigPromise = updateInstanceConfigurations(payload);
 
     setPromiseToast(updateConfigPromise, {
-      loading: "Saving configuration",
+      loading: isPersianLocale() ? "در حال ذخیره پیکربندی..." : "Saving configuration",
       success: {
-        title: "Success",
-        message: () => "Configuration saved successfully",
+        title: isPersianLocale() ? "موفق" : "Success",
+        message: () => (isPersianLocale() ? "پیکربندی با موفقیت ذخیره شد" : "Configuration saved successfully"),
       },
       error: {
-        title: "Error",
-        message: () => "Failed to save configuration",
+        title: isPersianLocale() ? "خطا" : "Error",
+        message: () => (isPersianLocale() ? "خطا در ذخیره پیکربندی" : "Failed to save configuration"),
       },
     });
 
     await updateConfigPromise
+      // oxlint-disable-next-line promise/always-return
       .then(() => {
         setIsSubmitting(false);
       })
@@ -79,8 +80,10 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
   return (
     <PageWrapper
       header={{
-        title: "Workspaces on this instance",
-        description: "See all workspaces and control who can create them.",
+        title: isPersianLocale() ? "فضاهای کاری این سامانه" : "Workspaces on this instance",
+        description: isPersianLocale()
+          ? "مشاهده تمامی فضاهای کاری و مدیریت دسترسی ایجاد آن‌ها."
+          : "See all workspaces and control who can create them.",
       }}
     >
       <div className="space-y-3">
@@ -88,9 +91,15 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
           <div className={cn("flex w-full items-center gap-14 rounded-sm")}>
             <div className="flex grow items-center gap-4">
               <div className="grow">
-                <div className="pb-1 text-16 font-medium">Prevent anyone else from creating a workspace.</div>
+                <div className="pb-1 text-16 font-medium">
+                  {isPersianLocale()
+                    ? "جلوگیری از ساخت فضای کاری توسط سایر کاربران"
+                    : "Prevent anyone else from creating a workspace."}
+                </div>
                 <div className={cn("text-11 leading-5 font-regular text-tertiary")}>
-                  Toggling this on will let only you create workspaces. You will have to invite users to new workspaces.
+                  {isPersianLocale()
+                    ? "با فعال کردن این گزینه تنها شما مجاز به ساخت فضای کاری جدید خواهید بود."
+                    : "Toggling this on will let only you create workspaces. You will have to invite users to new workspaces."}
                 </div>
               </div>
             </div>
@@ -121,14 +130,16 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
             <div className="flex items-center justify-between gap-2 pt-6">
               <div className="flex flex-col items-start gap-x-2">
                 <div className="flex items-center gap-2 text-16 font-medium">
-                  All workspaces on this instance <span className="text-tertiary">• {workspaceIds.length}</span>
+                  {isPersianLocale() ? "تمامی فضاهای کاری سامانه" : "All workspaces on this instance"}{" "}
+                  <span className="text-tertiary">• {workspaceIds.length}</span>
                   {workspaceLoader && ["mutation", "pagination"].includes(workspaceLoader) && (
                     <LoaderIcon className="h-4 w-4 animate-spin" />
                   )}
                 </div>
                 <div className={cn("text-11 leading-5 font-regular text-tertiary")}>
-                  You can&apos;t yet delete workspaces and you can only go to the workspace if you are an Admin or a
-                  Member.
+                  {isPersianLocale()
+                    ? "امکان حذف فضاهای کاری وجود ندارد و ورود به هر فضا نیازمند عضویت یا دسترسی مدیر است."
+                    : "You can't yet delete workspaces and you can only go to the workspace if you are an Admin or a Member."}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -138,7 +149,7 @@ const WorkspaceManagementPage = observer(function WorkspaceManagementPage(_props
                   stretch="auto"
                   nativeButton={false}
                   render={<Link href="/workspace/create" />}
-                  label="Create workspace"
+                  label={isPersianLocale() ? "ایجاد فضای کاری" : "Create workspace"}
                 />
               </div>
             </div>
