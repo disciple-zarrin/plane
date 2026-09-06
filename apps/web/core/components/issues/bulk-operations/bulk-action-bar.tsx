@@ -55,12 +55,19 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
     if (!workspaceSlug || selectedEntityIds.length === 0) return;
     setIsUpdating(true);
     try {
+      let succeeded = false;
       if (currentProjectId && issues.bulkUpdateProperties) {
-        await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
-          issue_ids: selectedEntityIds,
-          properties: { state_id: stateId },
-        });
-      } else {
+        try {
+          await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
+            issue_ids: selectedEntityIds,
+            properties: { state_id: stateId },
+          });
+          succeeded = true;
+        } catch {
+          // Bulk endpoint not supported in this CE deployment, fallback to individual updates
+        }
+      }
+      if (!succeeded) {
         await Promise.all(
           selectedEntityIds.map((issueId) => {
             const issue = issueMap[issueId];
@@ -95,12 +102,19 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
     if (!workspaceSlug || selectedEntityIds.length === 0) return;
     setIsUpdating(true);
     try {
+      let succeeded = false;
       if (currentProjectId && issues.bulkUpdateProperties) {
-        await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
-          issue_ids: selectedEntityIds,
-          properties: { priority },
-        });
-      } else {
+        try {
+          await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
+            issue_ids: selectedEntityIds,
+            properties: { priority },
+          });
+          succeeded = true;
+        } catch {
+          // Bulk endpoint not supported in this CE deployment, fallback to individual updates
+        }
+      }
+      if (!succeeded) {
         await Promise.all(
           selectedEntityIds.map((issueId) => {
             const issue = issueMap[issueId];
@@ -135,12 +149,19 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
     if (!workspaceSlug || selectedEntityIds.length === 0) return;
     setIsUpdating(true);
     try {
+      let succeeded = false;
       if (currentProjectId && issues.bulkUpdateProperties) {
-        await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
-          issue_ids: selectedEntityIds,
-          properties: { assignee_ids: assigneeIds },
-        });
-      } else {
+        try {
+          await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
+            issue_ids: selectedEntityIds,
+            properties: { assignee_ids: assigneeIds },
+          });
+          succeeded = true;
+        } catch {
+          // Bulk endpoint not supported in this CE deployment, fallback to individual updates
+        }
+      }
+      if (!succeeded) {
         await Promise.all(
           selectedEntityIds.map((issueId) => {
             const issue = issueMap[issueId];
