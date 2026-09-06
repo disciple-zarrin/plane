@@ -32,6 +32,7 @@ import { useKanbanView } from "@/hooks/store/use-kanban-view";
 import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { useMultipleSelectStore } from "@/hooks/store/use-multiple-select-store";
 // local components
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { IssueProperties } from "../properties/all-properties";
@@ -177,6 +178,9 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
 
   const { setIsDragging: setIsKanbanDragging } = useKanbanView();
 
+  const { getIsEntitySelected, toggleIssue, selectIssue } = useMultipleSelectStore();
+  const isIssueSelected = getIsEntitySelected(issueId);
+
   const [isDraggingOverBlock, setIsDraggingOverBlock] = useState(false);
   const [isCurrentBlockDragging, setIsCurrentBlockDragging] = useState(false);
 
@@ -246,8 +250,16 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
       <DropIndicator isVisible={!isCurrentBlockDragging && isDraggingOverBlock} />
       <div
         id={`issue-${issueId}`}
+        data-issue-id={issueId}
+        data-issue-group-id={groupId}
+        data-issue-selectable="true"
         // make Z-index higher at the beginning of drag, to have a issue drag image of issue block without any overlaps
-        className={cn("group/kanban-block relative mb-2", { "z-[1]": isCurrentBlockDragging })}
+        className={cn("group/kanban-block relative mb-2 select-none", { "z-[1]": isCurrentBlockDragging })}
+        onContextMenuCapture={() => {
+          if (!getIsEntitySelected(issueId)) {
+            selectIssue(issueId, groupId);
+          }
+        }}
         onDragStart={() => {
           if (isDragAllowed) setIsCurrentBlockDragging(true);
           else {
@@ -266,11 +278,22 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
           href={workItemLink}
           ref={cardRef}
           className={cn(
-            "block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all hover:border-strong hover:shadow-raised-200",
+            "block w-full rounded-lg border border-subtle bg-layer-2 p-3 text-13 shadow-raised-100 outline-[0.5px] outline-transparent transition-all select-none hover:border-strong hover:shadow-raised-200",
             { "hover:cursor-pointer": isDragAllowed },
             { "border border-accent-strong hover:border-accent-strong": getIsIssuePeeked(issue.id) },
+            {
+              "ring-accent-primary/60 border-accent-primary bg-accent-primary/10 ring-1 hover:bg-accent-primary/15":
+                isIssueSelected,
+            },
             { "z-[100] bg-layer-1": isCurrentBlockDragging }
           )}
+          onClickCapture={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey) {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleIssue(issueId, groupId);
+            }
+          }}
           onClick={() => handleIssuePeekOverview(issue)}
           disabled={!!issue?.tempId}
         >

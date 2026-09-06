@@ -161,6 +161,17 @@ export const useMarqueeSelection = (props: Props) => {
       scrolled = true;
     }
 
+    // Horizontal auto-scroll for Kanban board
+    if (pointer.x < rect.left + EDGE_SIZE && pointer.x >= rect.left - 10) {
+      const intensity = Math.max(0, 1 - (pointer.x - rect.left) / EDGE_SIZE);
+      container.scrollLeft -= MAX_SPEED * intensity;
+      scrolled = true;
+    } else if (pointer.x > rect.right - EDGE_SIZE && pointer.x <= rect.right + 10) {
+      const intensity = Math.max(0, 1 - (rect.right - pointer.x) / EDGE_SIZE);
+      container.scrollLeft += MAX_SPEED * intensity;
+      scrolled = true;
+    }
+
     if (scrolled) {
       updateSelectionAndMarquee(pointer.x, pointer.y);
     }
@@ -184,10 +195,13 @@ export const useMarqueeSelection = (props: Props) => {
       if (!target) return;
 
       // Filter out clicks on interactive elements (buttons, links, inputs, drag handles)
-      if (target.closest(NON_MARQUEE_SELECTORS)) return;
+      // Allow Shift+drag to start marquee selection anywhere except text inputs
+      const isShift = e.shiftKey;
+      if (!isShift && target.closest(NON_MARQUEE_SELECTORS)) return;
+      if (isShift && target.closest("input, textarea, select, [contenteditable='true']")) return;
 
       const rowElement = target.closest<HTMLElement>("[data-issue-id]");
-      const hasModifier = e.metaKey || e.ctrlKey;
+      const hasModifier = e.metaKey || e.ctrlKey || isShift;
 
       startPointRef.current = { x: e.clientX, y: e.clientY };
       lastPointerPosRef.current = { x: e.clientX, y: e.clientY };

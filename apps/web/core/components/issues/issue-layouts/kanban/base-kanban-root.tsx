@@ -5,14 +5,14 @@
  */
 
 import type { FC } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import type { EIssuesStoreType } from "@plane/types";
+import type { EIssuesStoreType, TGroupedIssues, TSubGroupedIssues, TIssueGroupByOptions } from "@plane/types";
 import { EIssueServiceType, EIssueLayoutTypes } from "@plane/types";
 //hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -22,10 +22,15 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useGroupIssuesDragNDrop } from "@/hooks/use-group-dragndrop";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
+import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
+import type { TSelectionHelper } from "@/hooks/use-multiple-select";
+import { useMarqueeSelection } from "@/hooks/use-marquee-selection";
 // store
 // ui
 // types
 import { DeleteIssueModal } from "../../delete-issue-modal";
+import { MultipleSelectGroup } from "@/components/core/multiple-select";
+import { IssueBulkOperationsRoot, IssueSelectionOverlay } from "@/components/issues/bulk-operations";
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import type { IQuickActionProps, TRenderQuickActions } from "../list/list-view-types";
 //components
@@ -105,7 +110,7 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
         fetchNextIssues(groupId, subgroupId);
       }
     },
-    [fetchNextIssues]
+    [fetchNextIssues, issues]
   );
 
   const groupedIssueIds = issues?.groupedIssueIds;
@@ -130,9 +135,11 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
   const handleOnDrop = useGroupIssuesDragNDrop(storeType, orderBy, group_by, sub_group_by);
 
   const canEditProperties = useCallback(
-    (projectId: string | undefined) => {
+    (targetProjectId: string | undefined) => {
       const isEditingAllowedBasedOnProject =
-        canEditPropertiesBasedOnProject && projectId ? canEditPropertiesBasedOnProject(projectId) : isEditingAllowed;
+        canEditPropertiesBasedOnProject && targetProjectId
+          ? canEditPropertiesBasedOnProject(targetProjectId)
+          : isEditingAllowed;
 
       return enableInlineEditing && isEditingAllowedBasedOnProject;
     },
@@ -233,6 +240,23 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
 
   const collapsedGroups = issuesFilter?.issueFilters?.kanbanFilters || { group_by: [], sub_group_by: [] };
 
+  const isBulkOperationsEnabled = useBulkOperationStatus();
+
+  // entities for multiple select / marquee selection
+  const entities: Record<string, string[]> = useMemo(() => {
+    if (!groupedIssueIds) return {};
+    if (!sub_group_by) {
+      return { ...(groupedIssueIds as TGroupedIssues) };
+    }
+    const flatEntities: Record<string, string[]> = {};
+    for (const [groupId, subMap] of Object.entries(groupedIssueIds as TSubGroupedIssues)) {
+      if (subMap && typeof subMap === "object") {
+        flatEntities[groupId] = Object.values(subMap).flat();
+      }
+    }
+    return flatEntities;
+  }, [groupedIssueIds, sub_group_by]);
+
   return (
     <>
       <DeleteIssueModal
@@ -260,12 +284,18 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
         </div>
       </div>
       <IssueLayoutHOC layout={EIssueLayoutTypes.KANBAN}>
-        <div
-          className={`horizontal-scrollbar relative scrollbar-lg flex h-full w-full bg-surface-2 ${sub_group_by ? "vertical-scrollbar overflow-y-auto" : "overflow-x-auto overflow-y-hidden"}`}
-          ref={scrollableContainerRef}
+        <MultipleSelectGroup
+          containerRef={scrollableContainerRef}
+          entities={entities}
+          disabled={!isBulkOperationsEnabled || isEpic}
         >
-          <div className="relative h-full w-max min-w-full bg-surface-2">
-            <div className="h-full w-max">
+          {(selectionHelpers) => (
+            <KanbanInner
+              scrollableContainerRef={scrollableContainerRef}
+              selectionHelpers={selectionHelpers}
+              disabled={!isBulkOperationsEnabled || isEpic}
+              sub_group_by={sub_group_by}
+            >
               <KanBanView
                 issuesMap={issueMap}
                 groupedIssueIds={groupedIssueIds ?? {}}
@@ -289,10 +319,42 @@ export const BaseKanBanRoot = observer(function BaseKanBanRoot(props: IBaseKanBa
                 loadMoreIssues={fetchMoreIssues}
                 isEpic={isEpic}
               />
-            </div>
-          </div>
-        </div>
+            </KanbanInner>
+          )}
+        </MultipleSelectGroup>
       </IssueLayoutHOC>
+    </>
+  );
+});
+
+type KanbanInnerProps = {
+  scrollableContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+  selectionHelpers: TSelectionHelper;
+  disabled: boolean;
+  sub_group_by: TIssueGroupByOptions | undefined;
+  children: React.ReactNode;
+};
+
+const KanbanInner = observer(function KanbanInner(props: KanbanInnerProps) {
+  const { scrollableContainerRef, selectionHelpers, disabled, sub_group_by, children } = props;
+  const { marqueeRect } = useMarqueeSelection({
+    containerRef: scrollableContainerRef,
+    selectionHelpers,
+    disabled,
+  });
+
+  return (
+    <>
+      <div
+        className={`horizontal-scrollbar relative scrollbar-lg flex h-full w-full bg-surface-2 select-none ${sub_group_by ? "vertical-scrollbar overflow-y-auto" : "overflow-x-auto overflow-y-hidden"}`}
+        ref={scrollableContainerRef}
+      >
+        <div className="relative h-full w-max min-w-full bg-surface-2">
+          <div className="h-full w-max">{children}</div>
+        </div>
+      </div>
+      <IssueSelectionOverlay rect={marqueeRect} />
+      <IssueBulkOperationsRoot selectionHelpers={selectionHelpers} />
     </>
   );
 });
