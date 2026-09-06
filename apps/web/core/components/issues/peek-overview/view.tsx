@@ -138,6 +138,7 @@ export const IssueView = observer(function IssueView(props: IIssueView) {
       {issueId && (
         <div
           ref={issuePeekOverviewRef}
+          data-issue-peek-overview="true"
           className={peekOverviewIssueClassName}
           style={{
             boxShadow:

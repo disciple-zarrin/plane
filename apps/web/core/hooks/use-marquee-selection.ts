@@ -305,10 +305,11 @@ export const useMarqueeSelection = (props: Props) => {
 
           if (clicked && clicked.id) {
             // Clicked on a neutral area of an issue row
+            const isModifierClick = upEvent.metaKey || upEvent.ctrlKey || isModifierDragRef.current;
             if (upEvent.shiftKey) {
               // Shift click: select range
               selectionHelpers.handleEntityClick(upEvent as any, clicked.id, clicked.groupId);
-            } else if (upEvent.metaKey || upEvent.ctrlKey) {
+            } else if (isModifierClick) {
               // Cmd/Ctrl click: toggle
               selectionHelpers.handleEntityClick(upEvent as any, clicked.id, clicked.groupId);
             } else {

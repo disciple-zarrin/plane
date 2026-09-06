@@ -185,6 +185,7 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
   return (
     <>
       <div
+        data-bulk-action-bar="true"
         className={cn(
           "shadow-2xl fixed bottom-6 left-1/2 z-40 flex w-fit max-w-[95vw] -translate-x-1/2 items-center gap-1.5 rounded-full border border-subtle bg-surface-1/95 px-3 py-1.5 backdrop-blur-md transition-all duration-200 sm:gap-2 sm:px-4",
           className
