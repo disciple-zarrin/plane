@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">حصار</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">خانه</string>
+    <string name="nav_issues">تسک‌ها</string>
+    <string name="nav_projects">پروژه‌ها</string>
+    <string name="nav_alarms">هشدارها</string>
+    <string name="nav_more">بیشتر</string>
+
+    <!-- Offline States & Guarantees -->
+    <string name="offline_read_only">آفلاین — فقط خواندنی</string>
+    <string name="offline_connect_to_edit">برای ویرایش به اینترنت متصل شوید.</string>
+    <string name="offline_no_internet_pull_refresh">اتصال اینترنت در دسترس نیست.</string>
+    <string name="offline_attachment_unavailable">برای مشاهده این فایل به اینترنت متصل شوید.</string>
+    <string name="offline_issue_not_cached">این تسک به‌صورت آفلاین در دسترس نیست.</string>
+    <string name="offline_mutation_failed_network">تغییر ذخیره نشد. اتصال را بررسی کنید.</string>
+    <string name="last_synced">آخرین همگام‌سازی: %s</string>
+    <string name="cached_data_banner">نمایش داده‌های ذخیره‌شده</string>
+    <string name="offline_search_hint">نتایج آفلاین از داده‌های ذخیره‌شده</string>
+
+    <!-- Alarms -->
+    <string name="alarm_channel_name">هشدارهای حصار</string>
+    <string name="alarm_channel_desc">هشدارهای زمان‌بندی‌شده و فوری تسک‌ها</string>
+    <string name="notification_channel_name">اعلان‌های حصار</string>
+    <string name="notification_channel_desc">تغییرات تسک‌ها، یادآوری‌ها و منشن‌ها</string>
+    <string name="sync_channel_name">همگام‌سازی پس‌زمینه</string>
+    <string name="sync_channel_desc">همگام‌سازی داده‌ها در پس‌زمینه</string>
+    
+    <string name="alarm_stop">توقف</string>
+    <string name="alarm_snooze">تعویق</string>
+    <string name="alarm_snooze_5m">۵ دقیقه</string>
+    <string name="alarm_snooze_10m">۱۰ دقیقه</string>
+    <string name="alarm_snooze_15m">۱۵ دقیقه</string>
+    <string name="alarm_snooze_30m">۳۰ دقیقه</string>
+    <string name="alarm_open_issue">مشاهده تسک</string>
+    <string name="alarm_health_title">وضعیت هشدارها</string>
+    <string name="alarm_status_exact_allowed">هشدار دقیق: فعال</string>
+    <string name="alarm_status_exact_denied">هشدار دقیق: نیازمند دسترسی</string>
+    <string name="alarm_status_notif_enabled">اعلان‌ها: فعال</string>
+    <string name="alarm_status_notif_disabled">اعلان‌ها: غیرفعال</string>
+    <string name="alarm_status_battery_normal">محدودیت باتری: عادی</string>
+    <string name="alarm_status_battery_restricted">محدودیت باتری: محدودشده</string>
+    <string name="alarm_scheduled_count">هشدارهای زمان‌بندی‌شده محلی: %d</string>
+    <string name="alarm_permission_exact_rationale">برای اجرای دقیق هشدارها در زمان تعیین‌شده، دسترسی هشدار دقیق را فعال کنید.</string>
+    <string name="alarm_permission_notif_denied">هشدارهای Hesar نمی‌توانند اعلان نمایش دهند.</string>
+    <string name="alarm_permission_exact_delayed">اجرای هشدار دقیق ممکن است با تأخیر انجام شود.</string>
+    <string name="alarm_open_settings">تنظیمات دسترسی</string>
+
+    <!-- Storage & Settings -->
+    <string name="settings_title">تنظیمات</string>
+    <string name="settings_storage">فضای ذخیره‌سازی</string>
+    <string name="settings_cache_size">حجم حافظه پنهان: %s</string>
+    <string name="settings_clear_cache">پاکسازی داده‌های ذخیره‌شده</string>
+    <string name="settings_clear_cache_warning">پاکسازی داده‌های ذخیره‌شده دسترسی آفلاین را تا زمان همگام‌سازی مجدد موقتاً قطع می‌کند.</string>
+    <string name="settings_logout">خروج از حساب</string>
+    <string name="settings_logout_warning">خروج از حساب تمام اطلاعات کش‌شده و نشست کاری را با امنیت پاک می‌کند.</string>
+    <string name="settings_server_url">آدرس سرور</string>
+
+    <!-- Auth -->
+    <string name="auth_login_title">ورود به حصار</string>
+    <string name="auth_email">ایمیل</string>
+    <string name="auth_password">رمز عبور</string>
+    <string name="auth_login_btn">ورود</string>
+    <string name="auth_logging_in">در حال ورود…</string>
+    <string name="auth_error_credentials">ایمیل یا رمز عبور اشتباه است.</string>
+    <string name="auth_error_network">خطا در برقراری ارتباط با سرور حصار. اتصال خود را بررسی کنید.</string>
+
+    <!-- Common UI -->
+    <string name="empty_issues">هیچ تسکی یافت نشد</string>
+    <string name="empty_projects">هیچ پروژه‌ای یافت نشد</string>
+    <string name="empty_alarms">هیچ هشدار فعالی وجود ندارد</string>
+    <string name="loading">در حال بارگذاری…</string>
+    <string name="reconnecting">در حال اتصال مجدد…</string>
+    <string name="syncing">در حال همگام‌سازی…</string>
+    <string name="retry">تلاش مجدد</string>
+    <string name="confirm">تأیید</string>
+    <string name="cancel">انصراف</string>
+    <string name="search">جستجو</string>
+    <string name="filter">فیلتر</string>
+    <string name="comments">دیدگاه‌ها</string>
+    <string name="comment_composer_hint">دیدگاه خود را بنویسید…</string>
+    <string name="post_comment">ارسال</string>
+</resources>
