@@ -23,9 +23,9 @@ export type TMarqueeRect = {
   height: number;
 };
 
-const DRAG_THRESHOLD = 5; // px
+const DRAG_THRESHOLD = 4; // px
 
-const INTERACTIVE_SELECTORS = [
+const NON_MARQUEE_SELECTORS = [
   "button",
   "a",
   "input",
@@ -36,6 +36,7 @@ const INTERACTIVE_SELECTORS = [
   "[role='menuitem']",
   "[role='option']",
   "[data-prevent-marquee='true']",
+  "[data-drag-handle='true']",
 ].join(", ");
 
 export const useMarqueeSelection = (props: Props) => {
@@ -47,10 +48,15 @@ export const useMarqueeSelection = (props: Props) => {
   // Tracking refs to avoid stale closures and unnecessary re-renders
   const isDraggingRef = useRef(false);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
+  const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
+  const currentPointerIdRef = useRef<number | null>(null);
+  const hasPointerCaptureRef = useRef(false);
+  const clickedIssueRef = useRef<{ id: string; groupId: string } | null>(null);
   const initialSelectionRef = useRef<Map<string, TEntityDetails>>(new Map());
+  const isModifierDragRef = useRef(false);
+  const suppressNextClickRef = useRef(false);
   const rafIdRef = useRef<number | null>(null);
   const autoScrollRafRef = useRef<number | null>(null);
-  const lastPointerYRef = useRef<number>(0);
   const prevSelectedIdsRef = useRef<string>("");
 
   const { handleClearSelection, handleSetSelection, getIsEntitySelected, isSelectionDisabled, entitiesList } =
@@ -58,28 +64,111 @@ export const useMarqueeSelection = (props: Props) => {
 
   const isGloballyDisabled = disabled || isSelectionDisabled;
 
+  // Global click suppressor in window capture phase
+  useEffect(() => {
+    const handleClickCapture = (e: MouseEvent) => {
+      if (suppressNextClickRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        suppressNextClickRef.current = false;
+      }
+    };
+
+    window.addEventListener("click", handleClickCapture, true);
+    return () => {
+      window.removeEventListener("click", handleClickCapture, true);
+    };
+  }, []);
+
+  // Update selection and marquee bounding box
+  const updateSelectionAndMarquee = useCallback(
+    (currentX: number, currentY: number) => {
+      if (!startPointRef.current) return;
+
+      const startX = startPointRef.current.x;
+      const startY = startPointRef.current.y;
+
+      const boxLeft = Math.min(startX, currentX);
+      const boxTop = Math.min(startY, currentY);
+      const boxRight = Math.max(startX, currentX);
+      const boxBottom = Math.max(startY, currentY);
+
+      setMarqueeRect({
+        left: boxLeft,
+        top: boxTop,
+        width: boxRight - boxLeft,
+        height: boxBottom - boxTop,
+      });
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const issueElements = container.querySelectorAll<HTMLElement>("[data-issue-id]");
+      const newSelection = new Map<string, TEntityDetails>(initialSelectionRef.current);
+
+      issueElements.forEach((el) => {
+        const issueId = el.getAttribute("data-issue-id");
+        const groupId = el.getAttribute("data-issue-group-id") || "";
+        if (!issueId) return;
+
+        const rect = el.getBoundingClientRect();
+        // AABB intersection in viewport client space
+        const intersects = !(
+          boxRight < rect.left ||
+          boxLeft > rect.right ||
+          boxBottom < rect.top ||
+          boxTop > rect.bottom
+        );
+
+        if (intersects) {
+          newSelection.set(issueId, { entityID: issueId, groupID: groupId });
+        } else if (!isModifierDragRef.current) {
+          // Plain drag without Cmd/Ctrl: rows outside rectangle are unselected live
+          newSelection.delete(issueId);
+        }
+      });
+
+      const nextIds = Array.from(newSelection.keys()).toSorted().join(",");
+      if (nextIds !== prevSelectedIdsRef.current) {
+        prevSelectedIdsRef.current = nextIds;
+        handleSetSelection(Array.from(newSelection.values()));
+      }
+    },
+    [containerRef, handleSetSelection]
+  );
+
   // Auto-scroll logic when dragging near container boundaries
   const handleAutoScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container || !isDraggingRef.current) return;
 
     const rect = container.getBoundingClientRect();
-    const pointerY = lastPointerYRef.current;
+    const pointer = lastPointerPosRef.current;
+    if (!pointer) return;
+
     const EDGE_SIZE = 40;
     const MAX_SPEED = 12;
+    let scrolled = false;
 
-    if (pointerY < rect.top + EDGE_SIZE && pointerY >= rect.top - 10) {
-      const intensity = Math.max(0, 1 - (pointerY - rect.top) / EDGE_SIZE);
+    if (pointer.y < rect.top + EDGE_SIZE && pointer.y >= rect.top - 10) {
+      const intensity = Math.max(0, 1 - (pointer.y - rect.top) / EDGE_SIZE);
       container.scrollTop -= MAX_SPEED * intensity;
-    } else if (pointerY > rect.bottom - EDGE_SIZE && pointerY <= rect.bottom + 10) {
-      const intensity = Math.max(0, 1 - (rect.bottom - pointerY) / EDGE_SIZE);
+      scrolled = true;
+    } else if (pointer.y > rect.bottom - EDGE_SIZE && pointer.y <= rect.bottom + 10) {
+      const intensity = Math.max(0, 1 - (rect.bottom - pointer.y) / EDGE_SIZE);
       container.scrollTop += MAX_SPEED * intensity;
+      scrolled = true;
+    }
+
+    if (scrolled) {
+      updateSelectionAndMarquee(pointer.x, pointer.y);
     }
 
     if (isDraggingRef.current) {
       autoScrollRafRef.current = requestAnimationFrame(handleAutoScroll);
     }
-  }, [containerRef]);
+  }, [containerRef, updateSelectionAndMarquee]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -88,24 +177,33 @@ export const useMarqueeSelection = (props: Props) => {
     const handlePointerDown = (e: PointerEvent) => {
       // Only primary left button
       if (e.button !== 0) return;
-      // Do not activate on touch pointers to preserve native mobile scrolling
+      // Do not activate on touch pointers to preserve native mobile gestures
       if (e.pointerType === "touch") return;
 
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      // Filter out clicks on interactive elements
-      if (target.closest(INTERACTIVE_SELECTORS)) return;
+      // Filter out clicks on interactive elements (buttons, links, inputs, drag handles)
+      if (target.closest(NON_MARQUEE_SELECTORS)) return;
 
-      const rowElement = target.closest("[data-issue-id]");
-      const hasModifier = e.metaKey || e.ctrlKey || e.shiftKey;
-
-      // If clicked on an issue row without modifiers, let standard row click/DnD handle it
-      if (rowElement && !hasModifier) return;
+      const rowElement = target.closest<HTMLElement>("[data-issue-id]");
+      const hasModifier = e.metaKey || e.ctrlKey;
 
       startPointRef.current = { x: e.clientX, y: e.clientY };
+      lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
+      currentPointerIdRef.current = e.pointerId;
       isDraggingRef.current = false;
-      lastPointerYRef.current = e.clientY;
+      hasPointerCaptureRef.current = false;
+      isModifierDragRef.current = hasModifier;
+
+      if (rowElement) {
+        clickedIssueRef.current = {
+          id: rowElement.getAttribute("data-issue-id") || "",
+          groupId: rowElement.getAttribute("data-issue-group-id") || "",
+        };
+      } else {
+        clickedIssueRef.current = null;
+      }
 
       // Snapshot current selection if user holds Cmd/Ctrl
       const currentSelectionMap = new Map<string, TEntityDetails>();
@@ -120,7 +218,7 @@ export const useMarqueeSelection = (props: Props) => {
 
       const handlePointerMove = (moveEvent: PointerEvent) => {
         if (!startPointRef.current) return;
-        lastPointerYRef.current = moveEvent.clientY;
+        lastPointerPosRef.current = { x: moveEvent.clientX, y: moveEvent.clientY };
 
         const deltaX = moveEvent.clientX - startPointRef.current.x;
         const deltaY = moveEvent.clientY - startPointRef.current.y;
@@ -130,6 +228,19 @@ export const useMarqueeSelection = (props: Props) => {
           if (distance >= DRAG_THRESHOLD) {
             isDraggingRef.current = true;
             setIsMarqueeActive(true);
+
+            // Capture pointer on container so drag continues smoothly across window
+            try {
+              if (container.setPointerCapture && currentPointerIdRef.current !== null) {
+                container.setPointerCapture(currentPointerIdRef.current);
+                hasPointerCaptureRef.current = true;
+              }
+            } catch {
+              // Ignore pointer capture error if unsupported
+            }
+
+            document.body.style.userSelect = "none";
+
             // Start auto-scroller loop
             if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
             autoScrollRafRef.current = requestAnimationFrame(handleAutoScroll);
@@ -141,64 +252,28 @@ export const useMarqueeSelection = (props: Props) => {
         // Prevent default text selection while dragging marquee
         moveEvent.preventDefault();
 
-        // Calculate marquee box in viewport coords
-        const startX = startPointRef.current.x;
-        const startY = startPointRef.current.y;
-        const currentX = moveEvent.clientX;
-        const currentY = moveEvent.clientY;
-
-        const boxLeft = Math.min(startX, currentX);
-        const boxTop = Math.min(startY, currentY);
-        const boxRight = Math.max(startX, currentX);
-        const boxBottom = Math.max(startY, currentY);
-
         // Schedule RAF for smooth UI update & hit test
         if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = requestAnimationFrame(() => {
-          setMarqueeRect({
-            left: boxLeft,
-            top: boxTop,
-            width: boxRight - boxLeft,
-            height: boxBottom - boxTop,
-          });
-
-          // Hit detection on rendered issue rows
-          const issueElements = container.querySelectorAll<HTMLElement>("[data-issue-id]");
-          const newSelection = new Map<string, TEntityDetails>(initialSelectionRef.current);
-
-          issueElements.forEach((el) => {
-            const issueId = el.getAttribute("data-issue-id");
-            const groupId = el.getAttribute("data-issue-group-id") || "";
-            if (!issueId) return;
-
-            const rect = el.getBoundingClientRect();
-            // AABB intersection in viewport client space
-            const intersects = !(
-              boxRight < rect.left ||
-              boxLeft > rect.right ||
-              boxBottom < rect.top ||
-              boxTop > rect.bottom
-            );
-
-            if (intersects) {
-              newSelection.set(issueId, { entityID: issueId, groupID: groupId });
-            } else if (!initialSelectionRef.current.has(issueId)) {
-              newSelection.delete(issueId);
-            }
-          });
-
-          const nextIds = Array.from(newSelection.keys()).toSorted().join(",");
-          if (nextIds !== prevSelectedIdsRef.current) {
-            prevSelectedIdsRef.current = nextIds;
-            handleSetSelection(Array.from(newSelection.values()));
-          }
+          updateSelectionAndMarquee(moveEvent.clientX, moveEvent.clientY);
         });
       };
 
       const handlePointerUp = (upEvent: PointerEvent) => {
         window.removeEventListener("pointermove", handlePointerMove);
         window.removeEventListener("pointerup", handlePointerUp);
+        window.removeEventListener("pointercancel", handlePointerUp);
 
+        if (hasPointerCaptureRef.current && currentPointerIdRef.current !== null) {
+          try {
+            container.releasePointerCapture(currentPointerIdRef.current);
+          } catch {
+            // Ignore error
+          }
+          hasPointerCaptureRef.current = false;
+        }
+
+        document.body.style.userSelect = "";
         prevSelectedIdsRef.current = "";
 
         if (rafIdRef.current) {
@@ -211,29 +286,54 @@ export const useMarqueeSelection = (props: Props) => {
         }
 
         if (isDraggingRef.current) {
-          // Finished marquee drag
+          // Finished marquee drag: suppress the subsequent click event
+          suppressNextClickRef.current = true;
+          setTimeout(() => {
+            suppressNextClickRef.current = false;
+          }, 200);
+
           isDraggingRef.current = false;
           setIsMarqueeActive(false);
           setMarqueeRect(null);
           startPointRef.current = null;
+          clickedIssueRef.current = null;
         } else {
-          // Was a simple click on empty space without dragging
+          // Distance was < DRAG_THRESHOLD: This is a CLICK!
           startPointRef.current = null;
-          const upTarget = upEvent.target as HTMLElement | null;
-          if (upTarget && !upTarget.closest("[data-issue-id]") && !upTarget.closest(INTERACTIVE_SELECTORS)) {
-            handleClearSelection();
+          const clicked = clickedIssueRef.current;
+          clickedIssueRef.current = null;
+
+          if (clicked && clicked.id) {
+            // Clicked on a neutral area of an issue row
+            if (upEvent.shiftKey) {
+              // Shift click: select range
+              selectionHelpers.handleEntityClick(upEvent as any, clicked.id, clicked.groupId);
+            } else if (upEvent.metaKey || upEvent.ctrlKey) {
+              // Cmd/Ctrl click: toggle
+              selectionHelpers.handleEntityClick(upEvent as any, clicked.id, clicked.groupId);
+            } else {
+              // Plain click on neutral row area: select ONLY this issue
+              selectionHelpers.handleSelectOnly(clicked.id, clicked.groupId);
+            }
+          } else {
+            // Clicked on empty list background (outside rows and interactive items)
+            const upTarget = upEvent.target as HTMLElement | null;
+            if (upTarget && !upTarget.closest("[data-issue-id]") && !upTarget.closest(NON_MARQUEE_SELECTORS)) {
+              handleClearSelection();
+            }
           }
         }
       };
 
       window.addEventListener("pointermove", handlePointerMove, { passive: false });
       window.addEventListener("pointerup", handlePointerUp);
+      window.addEventListener("pointercancel", handlePointerUp);
     };
 
-    container.addEventListener("pointerdown", handlePointerDown as EventListener);
+    container.addEventListener("pointerdown", handlePointerDown as EventListener, { capture: true });
 
     return () => {
-      container.removeEventListener("pointerdown", handlePointerDown as EventListener);
+      container.removeEventListener("pointerdown", handlePointerDown as EventListener, { capture: true });
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
       if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
     };
@@ -244,7 +344,8 @@ export const useMarqueeSelection = (props: Props) => {
     getIsEntitySelected,
     handleAutoScroll,
     handleClearSelection,
-    handleSetSelection,
+    selectionHelpers,
+    updateSelectionAndMarquee,
   ]);
 
   // Keyboard shortcut support: Escape (clear) & Cmd/Ctrl + A (select all)
@@ -269,7 +370,6 @@ export const useMarqueeSelection = (props: Props) => {
         const container = containerRef.current;
         if (!container) return;
 
-        // Check if focus or mouse is within or related to this container/page
         e.preventDefault();
 
         if (entitiesList && entitiesList.length > 0) {

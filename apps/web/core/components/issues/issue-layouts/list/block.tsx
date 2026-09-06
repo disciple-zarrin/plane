@@ -10,7 +10,7 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { ChevronRightOutline } from "@makeplane/propel/icons";
+import { ChevronRightOutline, DragDropOutline } from "@makeplane/propel/icons";
 // types
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
@@ -73,6 +73,7 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
   } = props;
   // ref
   const issueRef = useRef<HTMLDivElement | null>(null);
+  const dragHandleRef = useRef<HTMLButtonElement | null>(null);
   // router
   const { workspaceSlug: routerWorkspaceSlug, projectId: routerProjectId } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
@@ -117,7 +118,8 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
     return combine(
       draggable({
         element,
-        canDrag: () => isDraggingAllowed,
+        dragHandle: dragHandleRef.current ?? undefined,
+        canDrag: () => isDraggingAllowed && Boolean(dragHandleRef.current),
         getInitialData: () => ({ id: issueId, type: "ISSUE", groupId }),
         onDragStart: () => {
           setIsCurrentBlockDragging(true);
@@ -169,65 +171,66 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
     isEpic,
     isArchived: !!issue?.archived_at,
   });
+
   return (
-    <ControlLink
-      id={`issue-${issue.id}`}
-      href={workItemLink}
-      onClickCapture={(e) => {
-        if (e.metaKey || e.ctrlKey || e.shiftKey) {
-          e.preventDefault();
-          e.stopPropagation();
-          selectionHelpers.handleEntityClick(e, issue.id, groupId);
+    <Row
+      ref={issueRef}
+      data-issue-id={issue.id}
+      data-issue-selectable="true"
+      data-issue-group-id={groupId}
+      className={cn(
+        "group/list-block relative flex min-h-11 flex-col gap-3 bg-layer-transparent py-3 text-13 transition-colors select-none hover:bg-layer-transparent-hover",
+        {
+          "border-accent-strong": getIsIssuePeeked(issue.id) && peekIssue?.nestingLevel === nestingLevel,
+          "border-strong-1": isIssueActive,
+          "last:border-b-transparent": !getIsIssuePeeked(issue.id) && !isIssueActive,
+          "ring-accent-primary/30 bg-accent-primary/10 ring-1 ring-inset hover:bg-accent-primary/15": isIssueSelected,
+          "bg-layer-1": isCurrentBlockDragging,
+          "md:flex-row md:items-center": isSidebarCollapsed,
+          "lg:flex-row lg:items-center": !isSidebarCollapsed,
+        }
+      )}
+      onContextMenuCapture={() => {
+        if (!selectionHelpers.getIsEntitySelected(issue.id)) {
+          selectionHelpers.handleSelectOnly(issue.id, groupId);
         }
       }}
-      onClick={() => handleIssuePeekOverview(issue)}
-      className="w-full cursor-pointer"
-      disabled={!!issue?.tempId || issue?.is_draft}
+      onDragStart={() => {
+        if (!isDraggingAllowed) {
+          setToast({
+            type: TOAST_TYPE.WARNING,
+            title: "Cannot move work item",
+            message: !canEditIssueProperties
+              ? "You are not allowed to move this work item"
+              : "Drag and drop is disabled for the current grouping",
+          });
+        }
+      }}
     >
-      <Row
-        ref={issueRef}
-        data-issue-id={issue.id}
-        data-issue-group-id={groupId}
-        className={cn(
-          "group/list-block relative flex min-h-11 flex-col gap-3 bg-layer-transparent py-3 text-13 transition-colors hover:bg-layer-transparent-hover",
-          {
-            "border-accent-strong": getIsIssuePeeked(issue.id) && peekIssue?.nestingLevel === nestingLevel,
-            "border-strong-1": isIssueActive,
-            "last:border-b-transparent": !getIsIssuePeeked(issue.id) && !isIssueActive,
-            "ring-accent-primary/30 bg-accent-primary/10 ring-1 ring-inset hover:bg-accent-primary/15": isIssueSelected,
-            "bg-layer-1": isCurrentBlockDragging,
-            "md:flex-row md:items-center": isSidebarCollapsed,
-            "lg:flex-row lg:items-center": !isSidebarCollapsed,
-          }
-        )}
-        onContextMenu={() => {
-          if (!selectionHelpers.getIsEntitySelected(issue.id)) {
-            selectionHelpers.handleSelectOnly(issue.id, groupId);
-          }
-        }}
-        onDragStart={() => {
-          if (!isDraggingAllowed) {
-            setToast({
-              type: TOAST_TYPE.WARNING,
-              title: "Cannot move work item",
-              message: !canEditIssueProperties
-                ? "You are not allowed to move this work item"
-                : "Drag and drop is disabled for the current grouping",
-            });
-          }
-        }}
-      >
-        <div className="flex w-full gap-2 truncate">
-          <div className="flex flex-grow items-center gap-0.5 truncate">
-            <div className="flex items-center gap-1" style={isSubIssue ? { marginLeft } : {}}>
-              {/* select checkbox */}
-              {projectId && canSelectIssues && !isEpic && (
+      <div className="flex w-full gap-2 truncate">
+        <div className="flex flex-grow items-center gap-0.5 truncate">
+          <div className="flex items-center gap-1" style={isSubIssue ? { marginLeft } : {}}>
+            {/* select checkbox & drag handle */}
+            {projectId && canSelectIssues && !isEpic && (
+              <div className="absolute start-1 flex items-center gap-0.5">
+                {isDraggingAllowed && (
+                  <button
+                    type="button"
+                    ref={dragHandleRef}
+                    data-drag-handle="true"
+                    data-prevent-marquee="true"
+                    className="grid size-3.5 cursor-grab place-items-center rounded-xs text-placeholder opacity-0 transition-opacity group-hover/list-block:opacity-100 hover:text-secondary active:cursor-grabbing"
+                    aria-label="Drag work item"
+                  >
+                    <DragDropOutline className="size-3" />
+                  </button>
+                )}
                 <Tooltip
                   label="Only work items within the current project can be selected."
                   layout="stacked"
                   disabled={issue.project_id === projectId}
                 >
-                  <div className="absolute left-1 grid w-3.5 flex-shrink-0 place-items-center">
+                  <div className="grid w-3.5 flex-shrink-0 place-items-center">
                     <MultipleSelectEntityAction
                       className={cn(
                         "pointer-events-none opacity-0 transition-opacity group-hover/list-block:pointer-events-auto group-hover/list-block:opacity-100",
@@ -242,99 +245,109 @@ export const IssueBlock = observer(function IssueBlock(props: IssueBlockProps) {
                     />
                   </div>
                 </Tooltip>
-              )}
-              {displayProperties && (displayProperties.key || displayProperties.issue_type) && (
-                <div className="flex flex-shrink-0 items-center gap-1" style={{ minWidth: `${keyMinWidth}px` }}>
-                  {issue.project_id && (
-                    <IssueIdentifier
-                      issueId={issueId}
-                      projectId={issue.project_id}
-                      size="xs"
-                      variant="tertiary"
-                      displayProperties={displayProperties}
-                    />
-                  )}
-                  <IssueAlarmBell issueId={issueId} />
-                </div>
-              )}
-              {!(displayProperties?.key || displayProperties?.issue_type) && <IssueAlarmBell issueId={issueId} />}
-
-              {/* sub-issues chevron */}
-              <div className="grid size-4 flex-shrink-0 place-items-center">
-                {subIssuesCount > 0 && !isEpic && (
-                  <button
-                    type="button"
-                    className="grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
-                    onClick={handleToggleExpand}
-                  >
-                    <ChevronRightOutline
-                      className={cn("size-4", {
-                        "rotate-90": isExpanded,
-                      })}
-                    />
-                  </button>
-                )}
               </div>
+            )}
 
-              {issue?.tempId !== undefined && (
-                <div className="absolute top-0 left-0 z-[99999] h-full w-full animate-pulse bg-surface-1/20" />
+            {/* sub-issues chevron */}
+            <div className="grid size-4 flex-shrink-0 place-items-center">
+              {subIssuesCount > 0 && !isEpic && (
+                <button
+                  type="button"
+                  className="grid size-4 place-items-center rounded-xs text-placeholder hover:text-tertiary"
+                  onClick={handleToggleExpand}
+                >
+                  <ChevronRightOutline
+                    className={cn("size-4", {
+                      "rotate-90": isExpanded,
+                    })}
+                  />
+                </button>
               )}
             </div>
+
+            {issue?.tempId !== undefined && (
+              <div className="absolute top-0 left-0 z-[99999] h-full w-full animate-pulse bg-surface-1/20" />
+            )}
+          </div>
+
+          {/* Issue identifier & title link */}
+          <ControlLink
+            id={`issue-${issue.id}`}
+            href={workItemLink}
+            onClick={() => handleIssuePeekOverview(issue)}
+            className="flex cursor-pointer items-center gap-1.5 truncate hover:underline"
+            disabled={!!issue?.tempId || issue?.is_draft}
+          >
+            {displayProperties && (displayProperties.key || displayProperties.issue_type) && (
+              <div className="flex flex-shrink-0 items-center gap-1" style={{ minWidth: `${keyMinWidth}px` }}>
+                {issue.project_id && (
+                  <IssueIdentifier
+                    issueId={issueId}
+                    projectId={issue.project_id}
+                    size="xs"
+                    variant="tertiary"
+                    displayProperties={displayProperties}
+                  />
+                )}
+                <IssueAlarmBell issueId={issueId} />
+              </div>
+            )}
+            {!(displayProperties?.key || displayProperties?.issue_type) && <IssueAlarmBell issueId={issueId} />}
 
             <Tooltip label={issue.name} layout="stacked" align="start" disabled={isCurrentBlockDragging || isMobile}>
               <p className="cursor-pointer truncate text-body-xs-medium text-primary">{issue.name}</p>
             </Tooltip>
+          </ControlLink>
+        </div>
+        {!issue?.tempId && (
+          <div
+            className={cn("block rounded-sm border border-strong", {
+              "md:hidden": isSidebarCollapsed,
+              "lg:hidden": !isSidebarCollapsed,
+            })}
+          >
+            {quickActions({
+              issue,
+              parentRef: issueRef,
+            })}
           </div>
-          {!issue?.tempId && (
+        )}
+      </div>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        {!issue?.tempId ? (
+          <>
+            <IssueProperties
+              className={`relative flex flex-wrap ${isSidebarCollapsed ? "md:flex-shrink-0 md:flex-grow" : "lg:flex-shrink-0 lg:flex-grow"} items-center gap-2 whitespace-nowrap`}
+              issue={issue}
+              isReadOnly={!canEditIssueProperties}
+              updateIssue={updateIssue}
+              displayProperties={displayProperties}
+              activeLayout="List"
+              isEpic={isEpic}
+            />
+            {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
             <div
-              className={cn("block rounded-sm border border-strong", {
-                "md:hidden": isSidebarCollapsed,
-                "lg:hidden": !isSidebarCollapsed,
+              className={cn("hidden", {
+                "md:flex": isSidebarCollapsed,
+                "lg:flex": !isSidebarCollapsed,
               })}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             >
               {quickActions({
                 issue,
                 parentRef: issueRef,
               })}
             </div>
-          )}
-        </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          {!issue?.tempId ? (
-            <>
-              <IssueProperties
-                className={`relative flex flex-wrap ${isSidebarCollapsed ? "md:flex-shrink-0 md:flex-grow" : "lg:flex-shrink-0 lg:flex-grow"} items-center gap-2 whitespace-nowrap`}
-                issue={issue}
-                isReadOnly={!canEditIssueProperties}
-                updateIssue={updateIssue}
-                displayProperties={displayProperties}
-                activeLayout="List"
-                isEpic={isEpic}
-              />
-              {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events oxlint-disable-next-line jsx_a11y/no-static-element-interactions */}
-              <div
-                className={cn("hidden", {
-                  "md:flex": isSidebarCollapsed,
-                  "lg:flex": !isSidebarCollapsed,
-                })}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                {quickActions({
-                  issue,
-                  parentRef: issueRef,
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="h-4 w-4">
-              <Spinner className="h-4 w-4" />
-            </div>
-          )}
-        </div>
-      </Row>
-    </ControlLink>
+          </>
+        ) : (
+          <div className="h-4 w-4">
+            <Spinner className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+    </Row>
   );
 });

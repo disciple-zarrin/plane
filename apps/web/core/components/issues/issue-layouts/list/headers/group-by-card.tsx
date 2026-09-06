@@ -90,7 +90,10 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
 
   return (
     <>
-      <div className="group/list-header flex w-full flex-shrink-0 items-center gap-2 py-1.5">
+      <div
+        className="group/list-header flex w-full flex-shrink-0 items-center gap-2 py-1.5"
+        data-prevent-marquee="true"
+      >
         {canSelectIssues && (
           <div className="absolute left-1 flex w-3.5 flex-shrink-0 items-center">
             <MultipleSelectGroupAction
