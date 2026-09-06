@@ -55,16 +55,23 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
     if (!workspaceSlug || selectedEntityIds.length === 0) return;
     setIsUpdating(true);
     try {
-      await Promise.all(
-        selectedEntityIds.map((issueId) => {
-          const issue = issueMap[issueId];
-          const pId = issue?.project_id || currentProjectId;
-          if (pId && issues.updateIssue) {
-            return issues.updateIssue(workspaceSlug, pId, issueId, { state_id: stateId });
-          }
-          return Promise.resolve();
-        })
-      );
+      if (currentProjectId && issues.bulkUpdateProperties) {
+        await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
+          issue_ids: selectedEntityIds,
+          properties: { state_id: stateId },
+        });
+      } else {
+        await Promise.all(
+          selectedEntityIds.map((issueId) => {
+            const issue = issueMap[issueId];
+            const pId = issue?.project_id || currentProjectId;
+            if (pId && issues.updateIssue) {
+              return issues.updateIssue(workspaceSlug, pId, issueId, { state_id: stateId });
+            }
+            return Promise.resolve();
+          })
+        );
+      }
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: t("common.success") || "Success",
@@ -88,16 +95,23 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
     if (!workspaceSlug || selectedEntityIds.length === 0) return;
     setIsUpdating(true);
     try {
-      await Promise.all(
-        selectedEntityIds.map((issueId) => {
-          const issue = issueMap[issueId];
-          const pId = issue?.project_id || currentProjectId;
-          if (pId && issues.updateIssue) {
-            return issues.updateIssue(workspaceSlug, pId, issueId, { priority });
-          }
-          return Promise.resolve();
-        })
-      );
+      if (currentProjectId && issues.bulkUpdateProperties) {
+        await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
+          issue_ids: selectedEntityIds,
+          properties: { priority },
+        });
+      } else {
+        await Promise.all(
+          selectedEntityIds.map((issueId) => {
+            const issue = issueMap[issueId];
+            const pId = issue?.project_id || currentProjectId;
+            if (pId && issues.updateIssue) {
+              return issues.updateIssue(workspaceSlug, pId, issueId, { priority });
+            }
+            return Promise.resolve();
+          })
+        );
+      }
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: t("common.success") || "Success",
@@ -121,16 +135,23 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
     if (!workspaceSlug || selectedEntityIds.length === 0) return;
     setIsUpdating(true);
     try {
-      await Promise.all(
-        selectedEntityIds.map((issueId) => {
-          const issue = issueMap[issueId];
-          const pId = issue?.project_id || currentProjectId;
-          if (pId && issues.updateIssue) {
-            return issues.updateIssue(workspaceSlug, pId, issueId, { assignee_ids: assigneeIds });
-          }
-          return Promise.resolve();
-        })
-      );
+      if (currentProjectId && issues.bulkUpdateProperties) {
+        await issues.bulkUpdateProperties(workspaceSlug, currentProjectId, {
+          issue_ids: selectedEntityIds,
+          properties: { assignee_ids: assigneeIds },
+        });
+      } else {
+        await Promise.all(
+          selectedEntityIds.map((issueId) => {
+            const issue = issueMap[issueId];
+            const pId = issue?.project_id || currentProjectId;
+            if (pId && issues.updateIssue) {
+              return issues.updateIssue(workspaceSlug, pId, issueId, { assignee_ids: assigneeIds });
+            }
+            return Promise.resolve();
+          })
+        );
+      }
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: t("common.success") || "Success",
@@ -229,6 +250,7 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
               buttonVariant="transparent-without-text"
               showTooltip
               renderByDefault
+              placement="top-start"
             />
           </div>
         )}
@@ -241,6 +263,7 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
             buttonVariant="transparent-without-text"
             showTooltip
             renderByDefault
+            placement="top-start"
           />
         </div>
 
@@ -255,6 +278,7 @@ export const IssueBulkActionBar = observer(function IssueBulkActionBar(props: Pr
               buttonVariant="transparent-without-text"
               showTooltip
               renderByDefault
+              placement="top-start"
             />
           </div>
         )}
