@@ -81,7 +81,7 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
   const { data } = useUserProfile();
   const startOfWeek = getCalendarStartOfWeek(data?.start_of_the_week);
   const displayPlaceholder =
-    placeholder && placeholder !== "Date" ? placeholder : (t("common.date") || (isPersianLocale() ? "تاریخ" : "Date"));
+    placeholder && placeholder !== "Date" ? placeholder : t("common.date") || (isPersianLocale() ? "تاریخ" : "Date");
   // popper-js refs
   const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
@@ -144,7 +144,7 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
         isActive={isOpen}
         tooltipHeading={displayPlaceholder}
         tooltipContent={
-          value ? renderFormattedDate(value, formatToken) : (t("common.none") || (isPersianLocale() ? "هیچ‌کدام" : "None"))
+          value ? renderFormattedDate(value, formatToken) : t("common.none") || (isPersianLocale() ? "هیچ‌کدام" : "None")
         }
         showTooltip={showTooltip}
         variant={buttonVariant}
@@ -152,10 +152,7 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
       >
         {!hideIcon && icon}
         {BUTTON_VARIANTS_WITH_TEXT.includes(buttonVariant) && (
-          <span
-            key={currentLocale}
-            className={cn("flex-grow truncate text-start text-body-xs-medium", labelClassName)}
-          >
+          <span key={currentLocale} className={cn("flex-grow truncate text-start text-body-xs-medium", labelClassName)}>
             {value ? renderFormattedDate(value, formatToken) : displayPlaceholder}
           </span>
         )}
@@ -190,7 +187,7 @@ export const DateDropdown = observer(function DateDropdown(props: Props) {
     >
       {isOpen &&
         createPortal(
-          <Combobox.Options as="ul" data-prevent-outside-click static>
+          <Combobox.Options as="ul" data-prevent-outside-click static modal={false}>
             <div
               className={cn(
                 "z-30 my-1 overflow-hidden rounded-md border-[0.5px] border-strong bg-surface-1 shadow-raised-200",

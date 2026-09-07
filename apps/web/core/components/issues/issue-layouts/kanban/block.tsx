@@ -288,6 +288,14 @@ export const KanbanIssueBlock = observer(function KanbanIssueBlock(props: IssueB
             { "z-[100] bg-layer-1": isCurrentBlockDragging }
           )}
           onClickCapture={(e) => {
+            const target = e.target as HTMLElement | null;
+            if (
+              target?.closest(
+                "button, [role='option'], [role='menuitem'], [role='listbox'], [data-headlessui-state], a, input, textarea, select"
+              )
+            ) {
+              return;
+            }
             if (e.metaKey || e.ctrlKey || e.shiftKey) {
               e.preventDefault();
               e.stopPropagation();

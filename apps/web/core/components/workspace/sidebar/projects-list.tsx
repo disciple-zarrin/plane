@@ -265,8 +265,12 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
                           <MoreHorizontalOutline className="size-4 flex-shrink-0" />
                           <span>
                             {isExtendedProjectSidebarOpened
-                              ? (isPersianLocale() ? "مخفی کردن" : "Hide")
-                              : (isPersianLocale() ? "بیشتر" : "More")}
+                              ? isPersianLocale()
+                                ? "مخفی کردن"
+                                : "Hide"
+                              : isPersianLocale()
+                                ? "بیشتر"
+                                : "More"}
                           </span>
                         </button>
                       </SidebarNavItem>

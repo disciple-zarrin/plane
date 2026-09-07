@@ -79,13 +79,17 @@ export const HeaderGroupByCard = observer(function HeaderGroupByCard(props: IHea
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: isPersianLocale() ? "موفقیت‌آمیز!" : "Success!",
-        message: isPersianLocale() ? "تسک‌ها با موفقیت به اسپرینت اضافه شدند." : "Work items added to the cycle successfully.",
+        message: isPersianLocale()
+          ? "تسک‌ها با موفقیت به اسپرینت اضافه شدند."
+          : "Work items added to the cycle successfully.",
       });
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
         title: isPersianLocale() ? "خطا!" : "Error!",
-        message: isPersianLocale() ? "افزودن تسک‌ها به اسپرینت با شکست مواجه شد. لطفاً دوباره تلاش کنید." : "Selected work items could not be added to the cycle. Please try again.",
+        message: isPersianLocale()
+          ? "افزودن تسک‌ها به اسپرینت با شکست مواجه شد. لطفاً دوباره تلاش کنید."
+          : "Selected work items could not be added to the cycle. Please try again.",
       });
     }
   };

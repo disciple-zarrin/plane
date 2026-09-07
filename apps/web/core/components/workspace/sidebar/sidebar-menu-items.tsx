@@ -173,8 +173,12 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
                     <MoreHorizontalOutline className="size-4 flex-shrink-0" />
                     <span>
                       {isExtendedSidebarOpened
-                        ? (isPersianLocale() ? "مخفی کردن" : "Hide")
-                        : (isPersianLocale() ? "بیشتر" : "More")}
+                        ? isPersianLocale()
+                          ? "مخفی کردن"
+                          : "Hide"
+                        : isPersianLocale()
+                          ? "بیشتر"
+                          : "More"}
                     </span>
                   </button>
                 </SidebarNavItem>

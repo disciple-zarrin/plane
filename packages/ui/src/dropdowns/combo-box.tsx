@@ -30,7 +30,7 @@ const ComboDropDown = forwardRef(function ComboDropDown(props: Props, ref) {
 
   const [shouldRender, setShouldRender] = useState(renderByDefault);
 
-  const onHover = () => {
+  const onTrigger = () => {
     setShouldRender(true);
   };
 
@@ -39,10 +39,14 @@ const ComboDropDown = forwardRef(function ComboDropDown(props: Props, ref) {
 
     if (!element) return;
 
-    element.addEventListener("mouseenter", onHover);
+    element.addEventListener("mouseenter", onTrigger);
+    element.addEventListener("focusin", onTrigger);
+    element.addEventListener("pointerdown", onTrigger);
 
     return () => {
-      element?.removeEventListener("mouseenter", onHover);
+      element?.removeEventListener("mouseenter", onTrigger);
+      element?.removeEventListener("focusin", onTrigger);
+      element?.removeEventListener("pointerdown", onTrigger);
     };
   }, [dropDownButtonRef, shouldRender]);
 

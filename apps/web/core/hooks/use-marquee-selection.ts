@@ -35,6 +35,9 @@ const NON_MARQUEE_SELECTORS = [
   "[role='button']",
   "[role='menuitem']",
   "[role='option']",
+  "[role='listbox']",
+  "[data-headlessui-state]",
+  "[data-radix-popper-content-wrapper]",
   "[data-prevent-marquee='true']",
   "[data-drag-handle='true']",
 ].join(", ");

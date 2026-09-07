@@ -147,7 +147,7 @@ function BreadcrumbSeparator(props: BreadcrumbSeparatorProps) {
   const { className, containerClassName, iconClassName, showDivider = false } = props;
   return (
     <div className={cn("relative flex h-full items-center justify-center px-1.5 py-1", className)}>
-      {showDivider && <span className="absolute top-0 -start-0.5 h-full w-[1.8px] bg-surface-1" />}
+      {showDivider && <span className="absolute -start-0.5 top-0 h-full w-[1.8px] bg-surface-1" />}
       <div
         className={cn(
           "flex flex-shrink-0 items-center justify-center rounded-sm text-placeholder transition-all",

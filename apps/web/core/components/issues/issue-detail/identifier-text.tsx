@@ -49,10 +49,7 @@ export function IdentifierText(props: TIdentifierTextProps) {
   const variantClassName = VARIANT_MAP[variant];
 
   return (
-    <Tooltip
-      label={isPersianLocale() ? "برای کپی کلیک کنید" : "Click to copy"}
-      disabled={!enableClickToCopyIdentifier}
-    >
+    <Tooltip label={isPersianLocale() ? "برای کپی کلیک کنید" : "Click to copy"} disabled={!enableClickToCopyIdentifier}>
       <button
         type="button"
         dir="ltr"
