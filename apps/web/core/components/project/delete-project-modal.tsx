@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { AlertTriangle } from "lucide-react";
 // Plane imports
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { IProject } from "@plane/types";
@@ -29,6 +30,7 @@ const defaultValues = {
 
 export function DeleteProjectModal(props: DeleteProjectModal) {
   const { isOpen, project, onClose } = props;
+  const { t } = useTranslation();
   // store hooks
   const { deleteProject } = useProject();
   // router
@@ -63,14 +65,14 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
       handleClose();
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "Success!",
-        message: "Project deleted successfully.",
+        title: t("common.success"),
+        message: t("entity.delete.success", { entity: t("common.project") }),
       });
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Something went wrong. Please try again later.",
+        title: t("common.error.label"),
+        message: t("entity.delete.failed", { entity: t("common.project") }),
       });
     }
   };
@@ -83,13 +85,14 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
             <AlertTriangle className="h-6 w-6 text-danger-primary" aria-hidden="true" />
           </span>
           <span className="flex items-center justify-start">
-            <h3 className="text-18 font-medium 2xl:text-20">Delete project</h3>
+            <h3 className="text-18 font-medium 2xl:text-20">
+              {t("entity.delete.label", { entity: t("common.project") })}
+            </h3>
           </span>
         </div>
         <span>
           <p className="text-13 leading-7 text-secondary">
-            Are you sure you want to delete project <span className="font-semibold break-words">{project?.name}</span>?
-            All of the data related to the project will be permanently removed. This action cannot be undone
+            {t("entity.delete.confirm_simple", { entity: t("common.project"), name: project?.name || "" })}
           </p>
         </span>
         <div className="text-secondary">
@@ -140,10 +143,10 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={handleClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button variant="error-fill" size="lg" type="submit" disabled={!canDelete} loading={isSubmitting}>
-            {isSubmitting ? "Deleting" : "Delete project"}
+            {isSubmitting ? t("deleting") : t("entity.delete.label", { entity: t("common.project") })}
           </Button>
         </div>
       </form>

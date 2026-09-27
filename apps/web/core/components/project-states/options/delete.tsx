@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { Loader } from "lucide-react";
 import { CloseIcon } from "@plane/propel/icons";
 // plane imports
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { Tooltip } from "@plane/propel/tooltip";
 import type { IState, TStateOperationsCallbacks } from "@plane/types";
@@ -26,6 +27,7 @@ type TStateDelete = {
 
 export const StateDelete = observer(function StateDelete(props: TStateDelete) {
   const { totalStates, state, deleteStateCallback } = props;
+  const { t } = useTranslation();
   // hooks
   const { isMobile } = usePlatformOS();
   // states
@@ -47,15 +49,15 @@ export const StateDelete = observer(function StateDelete(props: TStateDelete) {
       if (errorStatus.status === 400) {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
+          title: t("common.error.label"),
           message:
             "This state contains some work items within it, please move them to some other state to delete this state.",
         });
       } else {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: "State could not be deleted. Please try again.",
+          title: t("common.error.label"),
+          message: t("entity.delete.failed", { entity: t("common.state") }),
         });
       }
       setIsDelete(false);
@@ -69,13 +71,13 @@ export const StateDelete = observer(function StateDelete(props: TStateDelete) {
         handleSubmit={handleDeleteState}
         isSubmitting={isDelete}
         isOpen={isDeleteModal}
-        title="Delete State"
-        content={
-          <>
-            Are you sure you want to delete state- <span className="font-medium text-primary">{state?.name}</span>? All
-            of the data related to the state will be permanently removed. This action cannot be undone.
-          </>
-        }
+        title={t("entity.delete.label", { entity: t("common.state") })}
+        content={t("entity.delete.confirm_simple", { entity: t("common.state"), name: state?.name || "" })}
+        primaryButtonText={{
+          loading: t("deleting"),
+          default: t("delete"),
+        }}
+        secondaryButtonText={t("cancel")}
       />
 
       <button

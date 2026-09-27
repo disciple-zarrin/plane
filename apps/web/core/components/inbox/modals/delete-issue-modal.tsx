@@ -74,16 +74,14 @@ export const DeleteInboxIssueModal = observer(function DeleteInboxIssueModal({
       isSubmitting={isDeleting}
       isOpen={isOpen}
       title={t("inbox_issue.modals.delete.title")}
-      // TODO: Need to translate the confirmation message
-      content={
-        <>
-          Are you sure you want to delete work item{" "}
-          <span className="font-medium break-words text-primary">
-            {projectDetails?.identifier}-{data?.sequence_id}
-          </span>
-          {""}? The work item will only be deleted from the intake and this action cannot be undone.
-        </>
-      }
+      content={t("inbox_issue.modals.delete.content", {
+        value: `${projectDetails?.identifier}-${data?.sequence_id}`,
+      })}
+      primaryButtonText={{
+        loading: t("deleting"),
+        default: t("delete"),
+      }}
+      secondaryButtonText={t("cancel")}
     />
   );
 });

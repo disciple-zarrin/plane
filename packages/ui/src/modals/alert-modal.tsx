@@ -61,16 +61,27 @@ export function AlertModalCore(props: Props) {
     isSubmitting,
     isOpen,
     position = EModalPosition.CENTER,
-    primaryButtonText = {
-      loading: "Deleting",
-      default: "Delete",
-    },
-    secondaryButtonText = "Cancel",
+    primaryButtonText,
+    secondaryButtonText,
     title,
     variant = "danger",
     width = EModalWidth.XL,
     customIcon,
   } = props;
+
+  const isRTL =
+    typeof document !== "undefined" &&
+    (document.documentElement.dir === "rtl" ||
+      document.body?.dir === "rtl" ||
+      document.dir === "rtl" ||
+      document.documentElement.lang === "fa");
+
+  const resolvedPrimaryButtonText = primaryButtonText ?? {
+    loading: isRTL ? "در حال حذف..." : "Deleting",
+    default: isRTL ? "حذف" : "Delete",
+  };
+
+  const resolvedSecondaryButtonText = secondaryButtonText ?? (isRTL ? "انصراف" : "Cancel");
 
   const Icon = VARIANT_ICONS[variant];
 
@@ -87,17 +98,17 @@ export function AlertModalCore(props: Props) {
             {customIcon ? <>{customIcon}</> : <Icon className="size-5" aria-hidden="true" />}
           </span>
         )}
-        <div className="text-center sm:text-left">
+        <div className="text-center sm:text-start">
           <h3 className="text-16 font-medium">{title}</h3>
           <p className="mt-1 text-13 text-secondary">{content}</p>
         </div>
       </div>
       <div className="flex flex-col-reverse gap-2 border-t-[0.5px] border-subtle px-5 py-4 sm:flex-row sm:justify-end">
         <Button variant="secondary" onClick={handleClose}>
-          {secondaryButtonText}
+          {resolvedSecondaryButtonText}
         </Button>
         <Button variant={BUTTON_VARIANTS[variant]} tabIndex={1} onClick={handleSubmit} loading={isSubmitting}>
-          {isSubmitting ? primaryButtonText.loading : primaryButtonText.default}
+          {isSubmitting ? resolvedPrimaryButtonText.loading : resolvedPrimaryButtonText.default}
         </Button>
       </div>
     </ModalCore>

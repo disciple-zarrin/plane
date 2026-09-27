@@ -103,8 +103,8 @@ export const BulkDeleteIssuesModal = observer(function BulkDeleteIssuesModal(pro
     if (!data.delete_issue_ids || data.delete_issue_ids.length === 0) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Please select at least one work item.",
+        title: t("common.error.label"),
+        message: t("issue.bulk_delete.no_selection_error"),
       });
       return;
     }
@@ -115,16 +115,16 @@ export const BulkDeleteIssuesModal = observer(function BulkDeleteIssuesModal(pro
       .then(() => {
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "Success!",
-          message: "Work items deleted successfully!",
+          title: t("common.success"),
+          message: t("issue.bulk_delete.success_message"),
         });
         handleClose();
       })
       .catch(() =>
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: "Something went wrong. Please try again.",
+          title: t("common.error.label"),
+          message: t("common.error.message"),
         })
       );
   };
@@ -133,7 +133,9 @@ export const BulkDeleteIssuesModal = observer(function BulkDeleteIssuesModal(pro
     issues.length > 0 ? (
       <li className="p-2">
         {query === "" && (
-          <h2 className="mt-4 mb-2 px-3 text-11 font-semibold text-primary">Select work items to delete</h2>
+          <h2 className="mt-4 mb-2 px-3 text-11 font-semibold text-primary">
+            {t("issue.bulk_delete.select_work_items")}
+          </h2>
         )}
         <ul className="text-13 text-secondary">
           {issues.map((issue) => (
@@ -177,7 +179,7 @@ export const BulkDeleteIssuesModal = observer(function BulkDeleteIssuesModal(pro
             <input
               type="text"
               className="h-12 w-full border-0 bg-transparent pr-4 pl-11 text-primary outline-none focus:ring-0 sm:text-13"
-              placeholder="Search..."
+              placeholder={t("common.search")}
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
@@ -199,10 +201,10 @@ export const BulkDeleteIssuesModal = observer(function BulkDeleteIssuesModal(pro
         {issues.length > 0 && (
           <div className="flex items-center justify-end gap-2 p-3">
             <Button variant="secondary" size="lg" onClick={handleClose}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="error-fill" size="lg" onClick={handleSubmit(handleDelete)} loading={isSubmitting}>
-              {isSubmitting ? "Deleting..." : "Delete selected work items"}
+              {isSubmitting ? t("deleting") : t("issue.bulk_delete.submit_button")}
             </Button>
           </div>
         )}

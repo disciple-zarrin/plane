@@ -47,20 +47,14 @@ export function DeclineIssueModal(props: Props) {
       isSubmitting={isDeclining}
       isOpen={isOpen}
       title={t("inbox_issue.modals.decline.title")}
-      // TODO: Need to translate the confirmation message
-      content={
-        <>
-          Are you sure you want to decline work item{" "}
-          <span className="font-medium break-words text-primary">
-            {projectDetails?.identifier}-{data?.sequence_id}
-          </span>
-          {""}? This action cannot be undone.
-        </>
-      }
+      content={t("inbox_issue.modals.decline.content", {
+        value: `${projectDetails?.identifier}-${data?.sequence_id}`,
+      })}
       primaryButtonText={{
         loading: t("declining"),
         default: t("decline"),
       }}
+      secondaryButtonText={t("cancel")}
     />
   );
 }

@@ -108,23 +108,29 @@ export const DeleteIssueModal = observer(function DeleteIssueModal(props: Props)
         .finally(() => onClose());
   };
 
+  const entityName = isSubIssue ? t("common.sub_work_item") : isEpic ? t("common.epic") : t("common.work_item");
+
   return (
     <AlertModalCore
       handleClose={onClose}
       handleSubmit={handleIssueDelete}
       isSubmitting={isDeleting}
       isOpen={isOpen}
-      title={t("entity.delete.label", { entity: isEpic ? t("common.epic") : t("common.work_item") })}
+      title={t("entity.delete.label", { entity: entityName })}
       content={
         <>
-          {/* TODO: Translate here */}
-          {`Are you sure you want to delete ${isEpic ? "epic" : "work item"} `}
+          {t("entity.delete.confirm_prefix", { entity: entityName })}
           <span className="font-medium break-words text-primary">
             {projectDetails?.identifier}-{issue?.sequence_id}
           </span>
-          {` ? All of the data related to the ${isEpic ? "epic" : "work item"} will be permanently removed. This action cannot be undone.`}
+          {t("entity.delete.confirm_suffix", { entity: entityName })}
         </>
       }
+      primaryButtonText={{
+        loading: t("deleting"),
+        default: t("delete"),
+      }}
+      secondaryButtonText={t("cancel")}
     />
   );
 });

@@ -49,8 +49,8 @@ export const CycleDeleteModal = observer(function CycleDeleteModal(props: ICycle
           if (cycleId || peekCycle) router.push(`/${workspaceSlug}/projects/${projectId}/cycles`);
           setToast({
             type: TOAST_TYPE.SUCCESS,
-            title: "Success!",
-            message: "Cycle deleted successfully.",
+            title: t("common.success"),
+            message: t("entity.delete.success", { entity: t("common.cycle") }),
           });
         })
         .catch((errors) => {
@@ -68,8 +68,8 @@ export const CycleDeleteModal = observer(function CycleDeleteModal(props: ICycle
     } catch {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Warning!",
-        message: "Something went wrong please try again later.",
+        title: t("common.error.label"),
+        message: t("entity.delete.failed", { entity: t("common.cycle") }),
       });
     }
 
@@ -82,14 +82,13 @@ export const CycleDeleteModal = observer(function CycleDeleteModal(props: ICycle
       handleSubmit={formSubmit}
       isSubmitting={loader}
       isOpen={isOpen}
-      title="Delete cycle"
-      content={
-        <>
-          Are you sure you want to delete cycle{' "'}
-          <span className="font-medium break-words text-primary">{cycle?.name}</span>
-          {'"'}? All of the data related to the cycle will be permanently removed. This action cannot be undone.
-        </>
-      }
+      title={t("entity.delete.label", { entity: t("common.cycle") })}
+      content={t("entity.delete.confirm_simple", { entity: t("common.cycle"), name: cycle?.name || "" })}
+      primaryButtonText={{
+        loading: t("deleting"),
+        default: t("delete"),
+      }}
+      secondaryButtonText={t("cancel")}
     />
   );
 });

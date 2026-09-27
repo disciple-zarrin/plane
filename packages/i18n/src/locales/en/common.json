@@ -475,6 +475,16 @@
     "creating": "Creating",
     "create": "Create",
     "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "cycle": "Cycle",
+    "module": "Module",
+    "page": "Page",
+    "view": "View",
+    "state": "State",
+    "webhook": "Webhook",
+    "api_token": "API token",
+    "search": "Search...",
     "description": "Description",
     "title": "Title",
     "attachment": "Attachment",
@@ -735,10 +745,14 @@
     "priority": "{entity} Priority",
     "all": "All {entity}",
     "drop_here_to_move": "Drop here to move the {entity}",
+    "drop_here_to_delete": "Drop here to delete the {entity}",
     "delete": {
       "label": "Delete {entity}",
       "success": "{entity} deleted successfully",
-      "failed": "{entity} delete failed"
+      "failed": "{entity} delete failed",
+      "confirm_prefix": "Are you sure you want to delete {entity} ",
+      "confirm_suffix": "? All of the data related to the {entity} will be permanently removed. This action cannot be undone.",
+      "confirm_simple": "Are you sure you want to delete {entity} \"{name}\"? All of the data related to the {entity} will be permanently removed. This action cannot be undone."
     },
     "update": {
       "failed": "{entity} update failed",

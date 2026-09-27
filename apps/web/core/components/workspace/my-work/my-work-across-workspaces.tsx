@@ -17,6 +17,7 @@ import { DateDropdown } from "@/components/dropdowns/date";
 import { IssueDeadlineAlarmControl } from "@/components/issues/issue-detail/deadline-alarm";
 import { issueAlarmsStore } from "@/store/issue-alarms.store";
 import { webPushService } from "@/services/web-push.service";
+import type { TIssuePriorities } from "@plane/types";
 import type { TUserAssignedIssue } from "@/services/user.service";
 import type { ProjectStateService } from "@/services/project/project-state.service";
 import { myWorkIssueService as issueService, myWorkStateService as stateService, useMyWork } from "./my-work-provider";
@@ -524,7 +525,7 @@ function IssueCard({
         <DateDropdown
           value={issue.target_date}
           onChange={(d) =>
-            onTargetDateChange?.(issue, d ? renderFormattedPayloadDate(d) : null)
+            onTargetDateChange?.(issue, d ? (renderFormattedPayloadDate(d) ?? null) : null)
           }
           placeholder="افزودن ددلاین"
           buttonVariant="transparent-with-text"
@@ -604,7 +605,7 @@ export function MyWorkAcrossWorkspaces() {
       );
       try {
         await issueService.patchIssue(issue.workspace.slug, issue.project.id, issue.id, {
-          priority: newPriority,
+          priority: (newPriority || null) as TIssuePriorities | null,
         });
         setToast({
           type: TOAST_TYPE.SUCCESS,
@@ -1152,7 +1153,7 @@ export function MyWorkAcrossWorkspaces() {
                                 <DateDropdown
                                   value={issue.target_date}
                                   onChange={(d) =>
-                                    handleTargetDateChange(issue, d ? renderFormattedPayloadDate(d) : null)
+                                    handleTargetDateChange(issue, d ? (renderFormattedPayloadDate(d) ?? null) : null)
                                   }
                                   placeholder="افزودن ددلاین"
                                   buttonVariant="transparent-with-text"

@@ -200,6 +200,13 @@
       "label": "حذف تسک",
       "error": "خطا در حذف تسک"
     },
+    "bulk_delete": {
+      "title": "حذف دسته‌جمعی تسک‌ها",
+      "select_work_items": "تسک‌ها را برای حذف انتخاب کنید",
+      "submit_button": "حذف تسک‌های انتخاب‌شده",
+      "no_selection_error": "لطفاً حداقل یک تسک را انتخاب کنید.",
+      "success_message": "تسک‌ها با موفقیت حذف شدند!"
+    },
     "subscription": {
       "actions": {
         "subscribed": "عضویت تسک با موفقیت ثبت شد",

@@ -475,6 +475,16 @@
     "creating": "در حال ایجاد",
     "create": "ایجاد",
     "cancel": "انصراف",
+    "delete": "حذف",
+    "deleting": "در حال حذف...",
+    "cycle": "دوره",
+    "module": "ماژول",
+    "page": "صفحه",
+    "view": "نما",
+    "state": "وضعیت",
+    "webhook": "وب‌هوک",
+    "api_token": "توکن API",
+    "search": "جستجو...",
     "description": "توضیحات",
     "title": "عنوان",
     "attachment": "پیوست",
@@ -735,10 +745,14 @@
     "priority": "اولویت {entity}",
     "all": "همه {entity}",
     "drop_here_to_move": "اینجا رها کنید تا {entity} منتقل شود",
+    "drop_here_to_delete": "اینجا رها کنید تا {entity} حذف شود",
     "delete": {
       "label": "حذف {entity}",
       "success": "{entity} با موفقیت حذف شد",
-      "failed": "حذف {entity} ناموفق بود"
+      "failed": "حذف {entity} ناموفق بود",
+      "confirm_prefix": "آیا از حذف {entity} ",
+      "confirm_suffix": " اطمینان دارید؟ تمام داده‌های مربوط به این {entity} به‌طور دائم حذف خواهند شد. این عملیات قابل بازگشت نیست.",
+      "confirm_simple": "آیا از حذف {entity} «{name}» اطمینان دارید؟ تمام داده‌های مربوط به این {entity} به‌طور دائم حذف خواهند شد. این عملیات قابل بازگشت نیست."
     },
     "update": {
       "failed": "به‌روزرسانی {entity} ناموفق بود",

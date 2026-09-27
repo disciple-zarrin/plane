@@ -200,6 +200,13 @@
       "label": "Delete work item",
       "error": "Error deleting work item"
     },
+    "bulk_delete": {
+      "title": "Bulk delete work items",
+      "select_work_items": "Select work items to delete",
+      "submit_button": "Delete selected work items",
+      "no_selection_error": "Please select at least one work item.",
+      "success_message": "Work items deleted successfully!"
+    },
     "subscription": {
       "actions": {
         "subscribed": "Work item subscribed successfully",

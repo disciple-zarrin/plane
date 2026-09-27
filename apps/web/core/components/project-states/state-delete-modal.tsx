@@ -8,6 +8,7 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // Plane imports
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { IState } from "@plane/types";
 // ui
@@ -23,6 +24,7 @@ type TStateDeleteModal = {
 
 export const StateDeleteModal = observer(function StateDeleteModal(props: TStateDeleteModal) {
   const { isOpen, onClose, data } = props;
+  const { t } = useTranslation();
   // states
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   // router
@@ -47,15 +49,15 @@ export const StateDeleteModal = observer(function StateDeleteModal(props: TState
         if (err.status === 400)
           setToast({
             type: TOAST_TYPE.ERROR,
-            title: "Error!",
+            title: t("common.error.label"),
             message:
               "This state contains some work items within it, please move them to some other state to delete this state.",
           });
         else
           setToast({
             type: TOAST_TYPE.ERROR,
-            title: "Error!",
-            message: "State could not be deleted. Please try again.",
+            title: t("common.error.label"),
+            message: t("entity.delete.failed", { entity: t("common.state") }),
           });
       })
       .finally(() => {
@@ -69,13 +71,13 @@ export const StateDeleteModal = observer(function StateDeleteModal(props: TState
       handleSubmit={handleDeletion}
       isSubmitting={isDeleteLoading}
       isOpen={isOpen}
-      title="Delete State"
-      content={
-        <>
-          Are you sure you want to delete state- <span className="font-medium text-primary">{data?.name}</span>? All of
-          the data related to the state will be permanently removed. This action cannot be undone.
-        </>
-      }
+      title={t("entity.delete.label", { entity: t("common.state") })}
+      content={t("entity.delete.confirm_simple", { entity: t("common.state"), name: data?.name || "" })}
+      primaryButtonText={{
+        loading: t("deleting"),
+        default: t("delete"),
+      }}
+      secondaryButtonText={t("cancel")}
     />
   );
 });
