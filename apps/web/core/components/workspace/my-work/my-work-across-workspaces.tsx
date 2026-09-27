@@ -4,11 +4,19 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Bell, Check, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
+import { ChevronDownIcon } from "@plane/propel/icons";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { cn, renderFormattedDate } from "@plane/utils";
+import { cn, renderFormattedDate, renderFormattedPayloadDate } from "@plane/utils";
+import { useDropdownPopper } from "@/hooks/use-dropdown-popper";
+import { PriorityDropdown } from "@/components/dropdowns/priority";
+import { DateDropdown } from "@/components/dropdowns/date";
+import { IssueDeadlineAlarmControl } from "@/components/issues/issue-detail/deadline-alarm";
+import { issueAlarmsStore } from "@/store/issue-alarms.store";
+import { webPushService } from "@/services/web-push.service";
 import type { TUserAssignedIssue } from "@/services/user.service";
 import type { ProjectStateService } from "@/services/project/project-state.service";
 import { myWorkIssueService as issueService, myWorkStateService as stateService, useMyWork } from "./my-work-provider";
@@ -171,6 +179,248 @@ function daysInMonthGrid(month: Date) {
   return days;
 }
 
+function IssueStatePicker({
+  issue,
+  onStateChange,
+}: {
+  issue: TUserAssignedIssue;
+  onStateChange: (
+    issue: TUserAssignedIssue,
+    state: { id: string; name: string; group: string; color: string }
+  ) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [states, setStates] = useState<Awaited<ReturnType<ProjectStateService["getStates"]>>>([]);
+  const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
+
+  const { styles, attributes } = useDropdownPopper(referenceElement, popperElement, {
+    placement: "bottom-end",
+  });
+
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (isOpen) {
+      setIsOpen(false);
+      return;
+    }
+    setIsOpen(true);
+    setLoading(true);
+    try {
+      const data = await statesForProject(issue.workspace.slug, issue.project.id);
+      setStates(data);
+    } catch {
+      setStates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (
+        referenceElement?.contains(e.target as Node) ||
+        popperElement?.contains(e.target as Node)
+      ) {
+        return;
+      }
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [isOpen, referenceElement, popperElement]);
+
+  const groupedStates = useMemo(() => {
+    const map = new Map<string, typeof states>();
+    for (const g of STATE_GROUP_ORDER) map.set(g, []);
+    for (const s of states) {
+      const g = s.group || "unstarted";
+      if (!map.has(g)) map.set(g, []);
+      map.get(g)!.push(s);
+    }
+    return STATE_GROUP_ORDER.filter((g) => (map.get(g) || []).length > 0).map((g) => ({
+      groupKey: g,
+      label: STATE_GROUP_LABEL[g] || g,
+      states: map.get(g)!.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)),
+    }));
+  }, [states]);
+
+  return (
+    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+      <button
+        ref={setReferenceElement}
+        type="button"
+        onClick={handleToggle}
+        className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-12 text-secondary hover:bg-surface-2 transition-colors border border-transparent hover:border-subtle"
+      >
+        <span
+          className="size-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: issue.state.color || "#94a3b8" }}
+        />
+        <span className="truncate max-w-[110px]">{issue.state.name || "—"}</span>
+        <ChevronDownIcon className="size-3 text-tertiary flex-shrink-0" />
+      </button>
+
+      {isOpen &&
+        createPortal(
+          <div
+            ref={setPopperElement}
+            style={styles.popper}
+            {...attributes.popper}
+            data-prevent-outside-click
+            className="fixed z-50 w-56 rounded-md border border-subtle bg-surface-1 py-1 shadow-xl max-h-72 overflow-y-auto"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 py-4 text-11 text-tertiary">
+                <Loader2 className="size-3.5 animate-spin" />
+                در حال بارگذاری…
+              </div>
+            ) : states.length === 0 ? (
+              <div className="py-3 text-center text-11 text-tertiary">وضعیتی یافت نشد.</div>
+            ) : (
+              groupedStates.map((group) => (
+                <div key={group.groupKey} className="py-1">
+                  <div className="px-2.5 py-1 text-[10px] font-semibold text-tertiary">
+                    {group.label}
+                  </div>
+                  {group.states.map((st) => {
+                    const isSelected = st.id === issue.state.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          if (!isSelected) {
+                            onStateChange(issue, {
+                              id: st.id,
+                              name: st.name,
+                              group: st.group,
+                              color: st.color,
+                            });
+                          }
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between px-2.5 py-1.5 text-12 text-start transition-colors",
+                          isSelected
+                            ? "bg-accent-primary/10 text-accent-primary font-medium"
+                            : "text-secondary hover:bg-surface-2"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span
+                            className="size-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: st.color || "#94a3b8" }}
+                          />
+                          <span className="truncate">{st.name}</span>
+                        </div>
+                        {isSelected && <Check className="size-3.5 text-accent-primary flex-shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))
+            )}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
+function IssueNotificationPopover({ issue }: { issue: TUserAssignedIssue }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
+
+  const [hasAlarm, setHasAlarm] = useState(() => issueAlarmsStore.has(issue.id));
+
+  useEffect(() => {
+    return issueAlarmsStore.subscribe(() => {
+      setHasAlarm(issueAlarmsStore.has(issue.id));
+    });
+  }, [issue.id]);
+
+  const { styles, attributes } = useDropdownPopper(referenceElement, popperElement, {
+    placement: "bottom-end",
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (
+        referenceElement?.contains(e.target as Node) ||
+        popperElement?.contains(e.target as Node)
+      ) {
+        return;
+      }
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [isOpen, referenceElement, popperElement]);
+
+  return (
+    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+      <button
+        ref={setReferenceElement}
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          setIsOpen((prev) => !prev);
+        }}
+        title={hasAlarm ? "زنگ نوتیفیکیشن فعال است" : "تنظیم زنگ نوتیفیکیشن ددلاین"}
+        className={cn(
+          "inline-flex items-center justify-center size-7 rounded transition-colors",
+          hasAlarm
+            ? "bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20"
+            : "text-tertiary hover:text-primary hover:bg-surface-2"
+        )}
+      >
+        <Bell className={cn("size-3.5", hasAlarm && "fill-accent-primary text-accent-primary")} />
+      </button>
+
+      {isOpen &&
+        createPortal(
+          <div
+            ref={setPopperElement}
+            style={styles.popper}
+            {...attributes.popper}
+            data-prevent-outside-click
+            className="fixed z-50 w-72 rounded-lg border border-subtle bg-surface-1 p-3 shadow-xl text-start"
+          >
+            <div className="mb-2 flex items-center justify-between border-b border-subtle pb-2">
+              <div className="flex items-center gap-1.5 text-12 font-medium text-primary">
+                <Bell className="size-3.5 text-accent-primary" />
+                <span>نوتیفیکیشن و یادآوری ددلاین</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-tertiary hover:text-primary p-0.5 rounded"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+            <IssueDeadlineAlarmControl
+              workspaceSlug={issue.workspace.slug}
+              projectId={issue.project.id}
+              issueId={issue.id}
+              issueName={issue.name}
+              issueIdentifier={`${issue.project.identifier}-${issue.sequence_id}`}
+              targetDate={issue.target_date}
+            />
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
 function IssueCard({
   issue,
   draggable,
@@ -178,6 +428,9 @@ function IssueCard({
   onDragEnd,
   onDragOver,
   onDrop,
+  onStateChange,
+  onPriorityChange,
+  onTargetDateChange,
 }: {
   issue: TUserAssignedIssue;
   draggable?: boolean;
@@ -185,6 +438,12 @@ function IssueCard({
   onDragEnd?: () => void;
   onDragOver?: (e: DragEvent, issueId: string) => void;
   onDrop?: (e: DragEvent, issueId: string) => void;
+  onStateChange?: (
+    issue: TUserAssignedIssue,
+    state: { id: string; name: string; group: string; color: string }
+  ) => void;
+  onPriorityChange?: (issue: TUserAssignedIssue, priority: string) => void;
+  onTargetDateChange?: (issue: TUserAssignedIssue, targetDate: string | null) => void;
 }) {
   return (
     <div
@@ -212,21 +471,66 @@ function IssueCard({
         onDrop?.(e, issue.id);
       }}
       className={cn(
-        "rounded-md border border-subtle bg-surface-1 px-2.5 py-2 hover:border-accent-primary/40",
+        "rounded-md border border-subtle bg-surface-1 p-2.5 hover:border-accent-primary/40 space-y-2",
         draggable && "cursor-grab active:cursor-grabbing"
       )}
     >
-      <Link to={issueHref(issue)} className="block" draggable={false} onClick={(e) => e.stopPropagation()}>
-        <div className="mb-1 text-11 tabular-nums text-tertiary">
+      <div className="flex items-center justify-between gap-1 text-11 text-tertiary">
+        <Link
+          to={issueHref(issue)}
+          className="tabular-nums font-mono text-tertiary hover:text-accent-primary"
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+        >
           {issue.project.identifier}-{issue.sequence_id}
+        </Link>
+        <div
+          className="flex items-center gap-1.5"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] text-tertiary">
+            {issue.workspace.name}
+          </span>
+          <IssueNotificationPopover issue={issue} />
         </div>
-        <div className="line-clamp-2 text-13 font-medium text-primary">{issue.name}</div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-11 text-tertiary">
-          <span>{issue.workspace.name}</span>
-          <span>·</span>
-          <span>{PRIORITY_LABEL[issue.priority || "none"] || issue.priority}</span>
+      </div>
+
+      <Link
+        to={issueHref(issue)}
+        className="block"
+        draggable={false}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="line-clamp-2 text-13 font-medium text-primary hover:text-accent-primary transition-colors">
+          {issue.name}
         </div>
       </Link>
+
+      <div
+        className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-subtle/50 text-11"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {onStateChange && (
+          <IssueStatePicker issue={issue} onStateChange={onStateChange} />
+        )}
+        <PriorityDropdown
+          value={issue.priority as any}
+          onChange={(p) => onPriorityChange?.(issue, p)}
+          buttonVariant="transparent-with-text"
+          buttonClassName="text-11 px-1.5 py-0.5 rounded hover:bg-surface-2 transition-colors"
+        />
+        <DateDropdown
+          value={issue.target_date}
+          onChange={(d) =>
+            onTargetDateChange?.(issue, d ? renderFormattedPayloadDate(d) : null)
+          }
+          placeholder="افزودن ددلاین"
+          buttonVariant="transparent-with-text"
+          buttonClassName="text-11 px-1.5 py-0.5 rounded hover:bg-surface-2 transition-colors"
+        />
+      </div>
     </div>
   );
 }
@@ -248,6 +552,109 @@ export function MyWorkAcrossWorkspaces() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
   const savingOrderRef = useRef(false);
+
+  useEffect(() => {
+    void webPushService
+      .listMyPendingAlarms()
+      .then((alarms) => {
+        issueAlarmsStore.replaceAll(
+          alarms.filter((a) => a.enabled && a.fire_at).map((a) => a.issue_id)
+        );
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleStateChange = useCallback(
+    async (
+      issue: TUserAssignedIssue,
+      newState: { id: string; name: string; group: string; color: string }
+    ) => {
+      const prevState = issue.state;
+      setItems((prev) =>
+        prev.map((i) => (i.id === issue.id ? { ...i, state: newState } : i))
+      );
+      try {
+        await issueService.patchIssue(issue.workspace.slug, issue.project.id, issue.id, {
+          state_id: newState.id,
+        });
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "وضعیت تغییر یافت",
+          message: `وضعیت تسک «${issue.project.identifier}-${issue.sequence_id}» به «${newState.name}» تغییر کرد.`,
+        });
+      } catch {
+        setItems((prev) =>
+          prev.map((i) => (i.id === issue.id ? { ...i, state: prevState } : i))
+        );
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا در تغییر وضعیت",
+          message: "امکان ذخیره وضعیت تسک وجود ندارد.",
+        });
+      }
+    },
+    [setItems]
+  );
+
+  const handlePriorityChange = useCallback(
+    async (issue: TUserAssignedIssue, newPriority: string) => {
+      const prevPriority = issue.priority;
+      setItems((prev) =>
+        prev.map((i) => (i.id === issue.id ? { ...i, priority: newPriority } : i))
+      );
+      try {
+        await issueService.patchIssue(issue.workspace.slug, issue.project.id, issue.id, {
+          priority: newPriority,
+        });
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "اولویت به‌روزرسانی شد",
+          message: `اولویت تسک به «${PRIORITY_LABEL[newPriority || "none"]}» تنظیم شد.`,
+        });
+      } catch {
+        setItems((prev) =>
+          prev.map((i) => (i.id === issue.id ? { ...i, priority: prevPriority } : i))
+        );
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا",
+          message: "ذخیره اولویت تسک انجام نشد.",
+        });
+      }
+    },
+    [setItems]
+  );
+
+  const handleTargetDateChange = useCallback(
+    async (issue: TUserAssignedIssue, newTargetDate: string | null) => {
+      const prevTargetDate = issue.target_date;
+      setItems((prev) =>
+        prev.map((i) => (i.id === issue.id ? { ...i, target_date: newTargetDate } : i))
+      );
+      try {
+        await issueService.patchIssue(issue.workspace.slug, issue.project.id, issue.id, {
+          target_date: newTargetDate,
+        });
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "ددلاین به‌روزرسانی شد",
+          message: newTargetDate
+            ? `ددلاین به ${renderFormattedDate(newTargetDate)} تنظیم شد.`
+            : "ددلاین تسک حذف شد.",
+        });
+      } catch {
+        setItems((prev) =>
+          prev.map((i) => (i.id === issue.id ? { ...i, target_date: prevTargetDate } : i))
+        );
+        setToast({
+          type: TOAST_TYPE.ERROR,
+          title: "خطا",
+          message: "ذخیره ددلاین تسک انجام نشد.",
+        });
+      }
+    },
+    [setItems]
+  );
 
   const groupedByWorkspace = useMemo(() => {
     const map = new Map<string, { name: string; slug: string; issues: TUserAssignedIssue[] }>();
@@ -371,6 +778,11 @@ export function MyWorkAcrossWorkspaces() {
       setItems((prev) => prev.map((i) => (i.id === draggedId ? applyOptimistic(i) : i)));
       try {
         await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, patch);
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "ذخیره شد",
+          message: "تغییرات با موفقیت ذخیره شد.",
+        });
       } catch {
         restoreIssueFields(draggedId, snapshot, rollbackFields);
         setToast({
@@ -462,6 +874,11 @@ export function MyWorkAcrossWorkspaces() {
           );
 
           await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, patch);
+          setToast({
+            type: TOAST_TYPE.SUCCESS,
+            title: "وضعیت تغییر یافت",
+            message: `وضعیت تسک «${dragged.project.identifier}-${dragged.sequence_id}» به «${nextState.name}» تغییر کرد.`,
+          });
           return;
         }
 
@@ -478,6 +895,11 @@ export function MyWorkAcrossWorkspaces() {
         setItems((prev) => prev.map((i) => (i.id === draggedId ? { ...i, sort_order: newSort } : i)));
         await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, {
           sort_order: newSort,
+        });
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "ترتیب به‌روز شد",
+          message: "ترتیب تسک با موفقیت ذخیره شد.",
         });
       } catch {
         restoreIssueFields(draggedId, snapshot, ["state", "sort_order"]);
@@ -623,6 +1045,7 @@ export function MyWorkAcrossWorkspaces() {
                         <th className="px-3 py-2 font-medium">وضعیت</th>
                         <th className="px-3 py-2 font-medium">اولویت</th>
                         <th className="px-3 py-2 font-medium">ددلاین</th>
+                        <th className="px-3 py-2 font-medium text-center">نوتیفیکیشن</th>
                       </tr>
                     </thead>
                     {STATE_GROUP_ORDER.map((groupKey) => {
@@ -650,7 +1073,7 @@ export function MyWorkAcrossWorkspaces() {
                           }}
                         >
                           <tr className="border-t border-subtle bg-surface-2/80">
-                            <td colSpan={6} className="px-3 py-1.5 text-11 font-medium text-tertiary">
+                            <td colSpan={7} className="px-3 py-1.5 text-11 font-medium text-tertiary">
                               {STATE_GROUP_LABEL[groupKey] || groupKey}
                               <span className="ms-2 tabular-nums">({sectionIssues.length})</span>
                             </td>
@@ -702,33 +1125,52 @@ export function MyWorkAcrossWorkspaces() {
                                 </Link>
                               </td>
                               <td className="whitespace-nowrap px-3 py-2 text-secondary">{issue.project.name}</td>
-                              <td className="whitespace-nowrap px-3 py-2">
-                                <span className="inline-flex items-center gap-1.5 text-secondary">
-                                  <span
-                                    className="size-2 rounded-full"
-                                    style={{ backgroundColor: issue.state.color || "#94a3b8" }}
-                                  />
-                                  {issue.state.name || "—"}
-                                </span>
+                              <td
+                                className="whitespace-nowrap px-3 py-2"
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                <IssueStatePicker issue={issue} onStateChange={handleStateChange} />
                               </td>
                               <td
-                                className={cn(
-                                  "whitespace-nowrap px-3 py-2",
-                                  issue.priority === "urgent" || issue.priority === "high"
-                                    ? "text-danger-primary"
-                                    : "text-secondary"
-                                )}
+                                className="whitespace-nowrap px-3 py-2"
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
                               >
-                                {PRIORITY_LABEL[issue.priority || "none"] || issue.priority || "—"}
+                                <PriorityDropdown
+                                  value={issue.priority as any}
+                                  onChange={(p) => handlePriorityChange(issue, p)}
+                                  buttonVariant="transparent-with-text"
+                                  buttonClassName="text-12 px-1.5 py-1 rounded hover:bg-surface-2 transition-colors"
+                                />
                               </td>
-                              <td className="whitespace-nowrap px-3 py-2 text-secondary">
-                                {formatDate(issue.target_date)}
+                              <td
+                                className="whitespace-nowrap px-3 py-2"
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                <DateDropdown
+                                  value={issue.target_date}
+                                  onChange={(d) =>
+                                    handleTargetDateChange(issue, d ? renderFormattedPayloadDate(d) : null)
+                                  }
+                                  placeholder="افزودن ددلاین"
+                                  buttonVariant="transparent-with-text"
+                                  buttonClassName="text-12 px-1.5 py-1 rounded hover:bg-surface-2 transition-colors"
+                                />
+                              </td>
+                              <td
+                                className="whitespace-nowrap px-3 py-2 text-center"
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                <IssueNotificationPopover issue={issue} />
                               </td>
                             </tr>
                           ))}
                           {sectionIssues.length === 0 && (
                             <tr className="border-t border-dashed border-subtle">
-                              <td colSpan={6} className="px-3 py-3 text-center text-11 text-tertiary">
+                              <td colSpan={7} className="px-3 py-3 text-center text-11 text-tertiary">
                                 خالی — اینجا رها کن تا وضعیت عوض شود
                               </td>
                             </tr>
@@ -780,6 +1222,9 @@ export function MyWorkAcrossWorkspaces() {
                         if (id) void persistBoardOrder(id, col.key, targetId);
                         else clearDragging();
                       }}
+                      onStateChange={handleStateChange}
+                      onPriorityChange={handlePriorityChange}
+                      onTargetDateChange={handleTargetDateChange}
                     />
                   ))}
                   {col.issues.length === 0 && (
