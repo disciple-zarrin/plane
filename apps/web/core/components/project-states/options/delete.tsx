@@ -50,8 +50,7 @@ export const StateDelete = observer(function StateDelete(props: TStateDelete) {
         setToast({
           type: TOAST_TYPE.ERROR,
           title: t("common.error.label"),
-          message:
-            "This state contains some work items within it, please move them to some other state to delete this state.",
+          message: t("state_has_issues_error"),
         });
       } else {
         setToast({
@@ -91,7 +90,7 @@ export const StateDelete = observer(function StateDelete(props: TStateDelete) {
       >
         <Tooltip
           tooltipContent={
-            state.default ? "Cannot delete the default state." : totalStates === 1 ? `Cannot have an empty group.` : ``
+            state.default ? t("state_cannot_delete_default") : totalStates === 1 ? `Cannot have an empty group.` : ``
           }
           isMobile={isMobile}
           disabled={!isDeleteDisabled}

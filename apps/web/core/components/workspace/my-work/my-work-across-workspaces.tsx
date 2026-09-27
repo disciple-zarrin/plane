@@ -8,9 +8,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } fro
 import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import { Bell, Check, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { ChevronDownIcon } from "@plane/propel/icons";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { cn, renderFormattedDate, renderFormattedPayloadDate } from "@plane/utils";
+import { cn, isPersianLocale, renderFormattedDate, renderFormattedPayloadDate } from "@plane/utils";
 import { useDropdownPopper } from "@/hooks/use-dropdown-popper";
 import { PriorityDropdown } from "@/components/dropdowns/priority";
 import { DateDropdown } from "@/components/dropdowns/date";
@@ -44,23 +45,45 @@ function pickStateInGroup(
 
 const SORT_GAP = 65535;
 
-const PRIORITY_LABEL: Record<string, string> = {
-  urgent: "فوری",
-  high: "بالا",
-  medium: "متوسط",
-  low: "پایین",
+const PRIORITY_I18N_KEYS: Record<string, string> = {
+  urgent: "my_work_board.urgent",
+  high: "my_work_board.high",
+  medium: "my_work_board.medium",
+  low: "my_work_board.low",
   none: "—",
 };
 
 const STATE_GROUP_ORDER = ["backlog", "unstarted", "started", "completed", "cancelled", "triage"];
-const STATE_GROUP_LABEL: Record<string, string> = {
-  backlog: "بک‌لاگ",
-  unstarted: "انجام‌نشده",
-  started: "در حال پردازش",
-  completed: "انجام‌شده",
-  cancelled: "لغوشده",
-  triage: "تریاژ",
+const STATE_GROUP_I18N_KEYS: Record<string, string> = {
+  backlog: "my_work_board.group_backlog",
+  unstarted: "my_work_board.group_unstarted",
+  started: "my_work_board.group_started",
+  completed: "my_work_board.group_completed",
+  cancelled: "my_work_board.group_cancelled",
+  triage: "my_work_board.group_triage",
 };
+
+function getPriorityLabel(priority: string | null | undefined, t: (key: string) => string): string {
+  const p = priority || "none";
+  const key = PRIORITY_I18N_KEYS[p];
+  if (!key || key === "—") return "—";
+  return t(key);
+}
+
+function getStateGroupLabel(group: string, t: (key: string) => string): string {
+  const key = STATE_GROUP_I18N_KEYS[group];
+  return key ? t(key) : group;
+}
+
+const CALENDAR_WEEK_DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
 
 function issueHref(issue: TUserAssignedIssue) {
   return `/${issue.workspace.slug}/projects/${issue.project.id}/issues/${issue.id}`;
@@ -190,6 +213,7 @@ function IssueStatePicker({
     state: { id: string; name: string; group: string; color: string }
   ) => void;
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [states, setStates] = useState<Awaited<ReturnType<ProjectStateService["getStates"]>>>([]);
@@ -244,10 +268,10 @@ function IssueStatePicker({
     }
     return STATE_GROUP_ORDER.filter((g) => (map.get(g) || []).length > 0).map((g) => ({
       groupKey: g,
-      label: STATE_GROUP_LABEL[g] || g,
+      label: getStateGroupLabel(g, t),
       states: map.get(g)!.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)),
     }));
-  }, [states]);
+  }, [states, t]);
 
   return (
     <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
@@ -277,10 +301,10 @@ function IssueStatePicker({
             {loading ? (
               <div className="flex items-center justify-center gap-2 py-4 text-11 text-tertiary">
                 <Loader2 className="size-3.5 animate-spin" />
-                در حال بارگذاری…
+                {t("common.loading")}
               </div>
             ) : states.length === 0 ? (
-              <div className="py-3 text-center text-11 text-tertiary">وضعیتی یافت نشد.</div>
+              <div className="py-3 text-center text-11 text-tertiary">{t("my_work_board.no_state_found")}</div>
             ) : (
               groupedStates.map((group) => (
                 <div key={group.groupKey} className="py-1">
@@ -333,6 +357,7 @@ function IssueStatePicker({
 }
 
 function IssueNotificationPopover({ issue }: { issue: TUserAssignedIssue }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
@@ -374,7 +399,7 @@ function IssueNotificationPopover({ issue }: { issue: TUserAssignedIssue }) {
           e.preventDefault();
           setIsOpen((prev) => !prev);
         }}
-        title={hasAlarm ? "زنگ نوتیفیکیشن فعال است" : "تنظیم زنگ نوتیفیکیشن ددلاین"}
+        title={hasAlarm ? t("my_work_board.alarm_active_title") : t("my_work_board.alarm_set_title")}
         className={cn(
           "inline-flex items-center justify-center size-7 rounded transition-colors",
           hasAlarm
@@ -397,7 +422,7 @@ function IssueNotificationPopover({ issue }: { issue: TUserAssignedIssue }) {
             <div className="mb-2 flex items-center justify-between border-b border-subtle pb-2">
               <div className="flex items-center gap-1.5 text-12 font-medium text-primary">
                 <Bell className="size-3.5 text-accent-primary" />
-                <span>نوتیفیکیشن و یادآوری ددلاین</span>
+                <span>{t("my_work_board.notification_and_reminder")}</span>
               </div>
               <button
                 type="button"
@@ -446,6 +471,7 @@ function IssueCard({
   onPriorityChange?: (issue: TUserAssignedIssue, priority: string) => void;
   onTargetDateChange?: (issue: TUserAssignedIssue, targetDate: string | null) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       draggable={draggable}
@@ -527,7 +553,7 @@ function IssueCard({
           onChange={(d) =>
             onTargetDateChange?.(issue, d ? (renderFormattedPayloadDate(d) ?? null) : null)
           }
-          placeholder="افزودن ددلاین"
+          placeholder={t("my_work_board.add_deadline_placeholder")}
           buttonVariant="transparent-with-text"
           buttonClassName="text-11 px-1.5 py-0.5 rounded hover:bg-surface-2 transition-colors"
         />
@@ -537,6 +563,7 @@ function IssueCard({
 }
 
 export function MyWorkAcrossWorkspaces() {
+  const { t } = useTranslation();
   const {
     items,
     setItems,
@@ -580,8 +607,11 @@ export function MyWorkAcrossWorkspaces() {
         });
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "وضعیت تغییر یافت",
-          message: `وضعیت تسک «${issue.project.identifier}-${issue.sequence_id}» به «${newState.name}» تغییر کرد.`,
+          title: t("my_work_board.state_changed_title"),
+          message: t("my_work_board.state_changed_message", {
+            identifier: `${issue.project.identifier}-${issue.sequence_id}`,
+            state: newState.name,
+          }),
         });
       } catch {
         setItems((prev) =>
@@ -589,12 +619,12 @@ export function MyWorkAcrossWorkspaces() {
         );
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا در تغییر وضعیت",
-          message: "امکان ذخیره وضعیت تسک وجود ندارد.",
+          title: t("my_work_board.state_change_error_title"),
+          message: t("my_work_board.state_change_error_message"),
         });
       }
     },
-    [setItems]
+    [setItems, t]
   );
 
   const handlePriorityChange = useCallback(
@@ -609,8 +639,10 @@ export function MyWorkAcrossWorkspaces() {
         });
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "اولویت به‌روزرسانی شد",
-          message: `اولویت تسک به «${PRIORITY_LABEL[newPriority || "none"]}» تنظیم شد.`,
+          title: t("my_work_board.priority_updated_title"),
+          message: t("my_work_board.priority_updated_message", {
+            priority: getPriorityLabel(newPriority, t),
+          }),
         });
       } catch {
         setItems((prev) =>
@@ -618,12 +650,12 @@ export function MyWorkAcrossWorkspaces() {
         );
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "ذخیره اولویت تسک انجام نشد.",
+          title: t("common.errors.title"),
+          message: t("my_work_board.priority_save_error_message"),
         });
       }
     },
-    [setItems]
+    [setItems, t]
   );
 
   const handleTargetDateChange = useCallback(
@@ -638,10 +670,10 @@ export function MyWorkAcrossWorkspaces() {
         });
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "ددلاین به‌روزرسانی شد",
+          title: t("my_work_board.deadline_updated_title"),
           message: newTargetDate
-            ? `ددلاین به ${renderFormattedDate(newTargetDate)} تنظیم شد.`
-            : "ددلاین تسک حذف شد.",
+            ? t("my_work_board.deadline_updated_message", { date: renderFormattedDate(newTargetDate) })
+            : t("my_work_board.deadline_removed_message"),
         });
       } catch {
         setItems((prev) =>
@@ -649,12 +681,12 @@ export function MyWorkAcrossWorkspaces() {
         );
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "ذخیره ددلاین تسک انجام نشد.",
+          title: t("common.errors.title"),
+          message: t("my_work_board.deadline_save_error_message"),
         });
       }
     },
-    [setItems]
+    [setItems, t]
   );
 
   const groupedByWorkspace = useMemo(() => {
@@ -679,18 +711,18 @@ export function MyWorkAcrossWorkspaces() {
       (g) => (map.get(g) || []).length > 0 || ["backlog", "unstarted", "started"].includes(g)
     ).map((g) => ({
       key: g,
-      label: STATE_GROUP_LABEL[g] || g,
+      label: getStateGroupLabel(g, t),
       issues: sortIssues(map.get(g) || []),
     }));
-  }, [items]);
+  }, [items, t]);
 
   const clearDragging = () => setDraggingId(null);
 
   const toastBusy = () =>
     setToast({
       type: TOAST_TYPE.INFO,
-      title: "صبر کن",
-      message: "ذخیرهٔ قبلی هنوز تموم نشده.",
+      title: t("my_work_board.wait_title"),
+      message: t("my_work_board.wait_message"),
     });
 
   const restoreIssueFields = useCallback(
@@ -781,22 +813,22 @@ export function MyWorkAcrossWorkspaces() {
         await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, patch);
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "ذخیره شد",
-          message: "تغییرات با موفقیت ذخیره شد.",
+          title: t("my_work_board.saved_title"),
+          message: t("my_work_board.saved_message"),
         });
       } catch {
         restoreIssueFields(draggedId, snapshot, rollbackFields);
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "ذخیرهٔ جابه‌جایی تسک انجام نشد.",
+          title: t("common.errors.title"),
+          message: t("my_work_board.move_save_error"),
         });
       } finally {
         savingOrderRef.current = false;
         clearDragging();
       }
     },
-    [items, setItems, restoreIssueFields]
+    [items, setItems, restoreIssueFields, t]
   );
 
   const persistBoardOrder = useCallback(
@@ -827,8 +859,8 @@ export function MyWorkAcrossWorkspaces() {
           if (target && target.project.id !== dragged.project.id) {
             setToast({
               type: TOAST_TYPE.INFO,
-              title: "ترتیب داخل پروژه",
-              message: "جابه‌جایی فقط نسبت به تسک‌های همان پروژه ذخیره می‌شود.",
+              title: t("my_work_board.order_within_project_title"),
+              message: t("my_work_board.order_within_project_message"),
             });
             // Still allow cross-group state change without sort when dropping on foreign project.
             if (fromGroup === columnKey) {
@@ -843,8 +875,10 @@ export function MyWorkAcrossWorkspaces() {
           if (!nextState) {
             setToast({
               type: TOAST_TYPE.WARNING,
-              title: "وضعیت نیست",
-              message: `در این پروژه ستونی برای گروه «${STATE_GROUP_LABEL[columnKey] || columnKey}» تعریف نشده.`,
+              title: t("my_work_board.no_state_in_group_title"),
+              message: t("my_work_board.no_state_in_group_message", {
+                group: getStateGroupLabel(columnKey, t),
+              }),
             });
             return;
           }
@@ -877,8 +911,11 @@ export function MyWorkAcrossWorkspaces() {
           await issueService.patchIssue(dragged.workspace.slug, dragged.project.id, dragged.id, patch);
           setToast({
             type: TOAST_TYPE.SUCCESS,
-            title: "وضعیت تغییر یافت",
-            message: `وضعیت تسک «${dragged.project.identifier}-${dragged.sequence_id}» به «${nextState.name}» تغییر کرد.`,
+            title: t("my_work_board.state_changed_title"),
+            message: t("my_work_board.state_changed_message", {
+              identifier: `${dragged.project.identifier}-${dragged.sequence_id}`,
+              state: nextState.name,
+            }),
           });
           return;
         }
@@ -887,8 +924,8 @@ export function MyWorkAcrossWorkspaces() {
         if (newSort === null) {
           setToast({
             type: TOAST_TYPE.WARNING,
-            title: "ترتیب ذخیره نشد",
-            message: "هدف دراپ برای همین پروژه پیدا نشد.",
+            title: t("my_work_board.order_not_saved_title"),
+            message: t("my_work_board.order_not_saved_message"),
           });
           return;
         }
@@ -899,22 +936,22 @@ export function MyWorkAcrossWorkspaces() {
         });
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "ترتیب به‌روز شد",
-          message: "ترتیب تسک با موفقیت ذخیره شد.",
+          title: t("my_work_board.order_updated_title"),
+          message: t("my_work_board.order_updated_message"),
         });
       } catch {
         restoreIssueFields(draggedId, snapshot, ["state", "sort_order"]);
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "ذخیرهٔ جابه‌جایی تسک انجام نشد.",
+          title: t("common.errors.title"),
+          message: t("my_work_board.move_save_error"),
         });
       } finally {
         savingOrderRef.current = false;
         clearDragging();
       }
     },
-    [boardColumns, items, setItems, restoreIssueFields]
+    [boardColumns, items, setItems, restoreIssueFields, t]
   );
 
   const persistTargetDate = useCallback(
@@ -1018,14 +1055,14 @@ export function MyWorkAcrossWorkspaces() {
         {loading && (
           <div className="flex items-center justify-center gap-2 py-16 text-tertiary">
             <Loader2 className="size-4 animate-spin" />
-            در حال بارگذاری…
+            {t("common.loading")}
           </div>
         )}
 
         {!loading && error && <p className="py-10 text-center text-13 text-danger-primary">{error}</p>}
 
         {!loading && !error && items.length === 0 && (
-          <p className="py-16 text-center text-13 text-tertiary">تسکی برای شما یافت نشد.</p>
+          <p className="py-16 text-center text-13 text-tertiary">{t("my_work_board.no_tasks_found")}</p>
         )}
 
         {!loading && !error && items.length > 0 && layout === "list" && (
@@ -1040,13 +1077,13 @@ export function MyWorkAcrossWorkspaces() {
                   <table className="w-full text-start text-13">
                     <thead className="bg-surface-2 text-11 text-tertiary">
                       <tr>
-                        <th className="px-3 py-2 font-medium">شناسه</th>
-                        <th className="px-3 py-2 font-medium">عنوان</th>
-                        <th className="px-3 py-2 font-medium">پروژه</th>
-                        <th className="px-3 py-2 font-medium">وضعیت</th>
-                        <th className="px-3 py-2 font-medium">اولویت</th>
-                        <th className="px-3 py-2 font-medium">ددلاین</th>
-                        <th className="px-3 py-2 font-medium text-center">نوتیفیکیشن</th>
+                        <th className="px-3 py-2 font-medium">{t("my_work_board.id_col")}</th>
+                        <th className="px-3 py-2 font-medium">{t("my_work_board.title_col")}</th>
+                        <th className="px-3 py-2 font-medium">{t("my_work_board.project_col")}</th>
+                        <th className="px-3 py-2 font-medium">{t("my_work_board.state_col")}</th>
+                        <th className="px-3 py-2 font-medium">{t("my_work_board.priority_col")}</th>
+                        <th className="px-3 py-2 font-medium">{t("my_work_board.deadline_col")}</th>
+                        <th className="px-3 py-2 font-medium text-center">{t("my_work_board.notification_col")}</th>
                       </tr>
                     </thead>
                     {STATE_GROUP_ORDER.map((groupKey) => {
@@ -1075,7 +1112,7 @@ export function MyWorkAcrossWorkspaces() {
                         >
                           <tr className="border-t border-subtle bg-surface-2/80">
                             <td colSpan={7} className="px-3 py-1.5 text-11 font-medium text-tertiary">
-                              {STATE_GROUP_LABEL[groupKey] || groupKey}
+                              {getStateGroupLabel(groupKey, t)}
                               <span className="ms-2 tabular-nums">({sectionIssues.length})</span>
                             </td>
                           </tr>
@@ -1155,7 +1192,7 @@ export function MyWorkAcrossWorkspaces() {
                                   onChange={(d) =>
                                     handleTargetDateChange(issue, d ? (renderFormattedPayloadDate(d) ?? null) : null)
                                   }
-                                  placeholder="افزودن ددلاین"
+                                  placeholder={t("my_work_board.add_deadline_placeholder")}
                                   buttonVariant="transparent-with-text"
                                   buttonClassName="text-12 px-1.5 py-1 rounded hover:bg-surface-2 transition-colors"
                                 />
@@ -1172,7 +1209,7 @@ export function MyWorkAcrossWorkspaces() {
                           {sectionIssues.length === 0 && (
                             <tr className="border-t border-dashed border-subtle">
                               <td colSpan={7} className="px-3 py-3 text-center text-11 text-tertiary">
-                                خالی — اینجا رها کن تا وضعیت عوض شود
+                                {t("my_work_board.empty_drop_state")}
                               </td>
                             </tr>
                           )}
@@ -1182,7 +1219,7 @@ export function MyWorkAcrossWorkspaces() {
                   </table>
                 </div>
                 <p className="mt-2 text-11 text-tertiary">
-                  بکش بین گروه‌های وضعیت = عوض شدن وضعیت؛ روی ردیف همان پروژه = ترتیب
+                  {t("my_work_board.drag_hint_table")}
                 </p>
               </section>
             ))}
@@ -1230,12 +1267,12 @@ export function MyWorkAcrossWorkspaces() {
                   ))}
                   {col.issues.length === 0 && (
                     <div className="rounded-md border border-dashed border-subtle px-2 py-6 text-center text-11 text-tertiary">
-                      خالی
+                      {t("my_work_board.empty")}
                     </div>
                   )}
                 </div>
                 <p className="mt-2 px-1 text-11 text-tertiary">
-                  بکش بین ستون‌ها = عوض شدن وضعیت؛ داخل ستون همان پروژه = ترتیب
+                  {t("my_work_board.drag_hint_kanban")}
                 </p>
               </div>
             ))}
@@ -1250,23 +1287,23 @@ export function MyWorkAcrossWorkspaces() {
                 className="rounded-md border border-subtle px-2 py-1 text-13 text-secondary hover:bg-surface-2"
                 onClick={() => setCalendarMonth((m) => addMonths(m, -1))}
               >
-                ماه قبل
+                {t("my_work_board.prev_month")}
               </button>
               <div className="text-14 font-medium text-primary">
-                {new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).format(calendarMonth)}
+                {new Intl.DateTimeFormat(isPersianLocale() ? "fa-IR" : "en-US", { year: "numeric", month: "long" }).format(calendarMonth)}
               </div>
               <button
                 type="button"
                 className="rounded-md border border-subtle px-2 py-1 text-13 text-secondary hover:bg-surface-2"
                 onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
               >
-                ماه بعد
+                {t("my_work_board.next_month")}
               </button>
             </div>
             <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-subtle bg-subtle">
-              {["د", "س", "چ", "پ", "ج", "ش", "ی"].map((d) => (
+              {CALENDAR_WEEK_DAYS.map((d) => (
                 <div key={d} className="bg-surface-2 px-2 py-1.5 text-center text-11 text-tertiary">
-                  {d}
+                  {t(`common.days_short.${d}` as any)}
                 </div>
               ))}
               {calendarDays.map((day) => {
@@ -1294,7 +1331,7 @@ export function MyWorkAcrossWorkspaces() {
                         sameDay(day, new Date()) ? "font-semibold text-accent-primary" : "text-tertiary"
                       )}
                     >
-                      {new Intl.DateTimeFormat("fa-IR", { day: "numeric" }).format(day)}
+                      {new Intl.DateTimeFormat(isPersianLocale() ? "fa-IR" : "en-US", { day: "numeric" }).format(day)}
                     </div>
                     <div className="space-y-1">
                       {dayIssues.slice(0, 4).map((issue) => (
@@ -1344,9 +1381,9 @@ export function MyWorkAcrossWorkspaces() {
                 else clearDragging();
               }}
             >
-              <div className="mb-2 text-12 font-medium text-secondary">بدون ددلاین</div>
+              <div className="mb-2 text-12 font-medium text-secondary">{t("my_work_board.no_deadline")}</div>
               {undatedIssues.length === 0 ? (
-                <p className="text-11 text-tertiary">اینجا رها کن تا ددلاین پاک شود.</p>
+                <p className="text-11 text-tertiary">{t("my_work_board.drop_to_clear_deadline")}</p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {undatedIssues.map((issue) => (
@@ -1370,7 +1407,7 @@ export function MyWorkAcrossWorkspaces() {
                 </div>
               )}
             </div>
-            <p className="mt-2 text-11 text-tertiary">بکش روی روز دیگر = عوض شدن ددلاین</p>
+            <p className="mt-2 text-11 text-tertiary">{t("my_work_board.drag_day_hint")}</p>
           </div>
         )}
 
@@ -1378,7 +1415,7 @@ export function MyWorkAcrossWorkspaces() {
           <div className="overflow-x-auto rounded-lg border border-subtle">
             {timelineRange.rows.length === 0 ? (
               <p className="p-8 text-center text-13 text-tertiary">
-                برای تایم‌لاین، تسک‌ها باید تاریخ شروع یا ددلاین داشته باشند.
+                {t("my_work_board.timeline_needs_dates")}
               </p>
             ) : (
               <div className="min-w-[720px] p-4">
@@ -1445,7 +1482,7 @@ export function MyWorkAcrossWorkspaces() {
                               draggingId === issue.id && "opacity-60"
                             )}
                             style={{ insetInlineStart: `${offset}%`, width: `${width}%` }}
-                            title={`${formatDate(localDateKey(start))} → ${formatDate(localDateKey(end))} — بکش برای جابه‌جایی`}
+                            title={`${formatDate(localDateKey(start))} → ${formatDate(localDateKey(end))} — ${t("my_work_board.drag_to_move")}`}
                           >
                             {issue.workspace.name}
                           </div>
@@ -1454,7 +1491,7 @@ export function MyWorkAcrossWorkspaces() {
                     );
                   })}
                 </div>
-                <p className="mt-3 text-11 text-tertiary">نوار را روی محور بکش؛ مدت ثابت می‌ماند و تاریخ‌ها جابه‌جا می‌شوند.</p>
+                <p className="mt-3 text-11 text-tertiary">{t("my_work_board.timeline_drag_hint")}</p>
               </div>
             )}
           </div>
@@ -1464,9 +1501,9 @@ export function MyWorkAcrossWorkspaces() {
       {!loading && !error && total > 0 && (
         <div className="flex items-center justify-between gap-3 border-t border-subtle px-page-x py-3 text-13">
           <div className="text-tertiary">
-            صفحه {page} از {totalPages}
+            {t("my_work_board.page_x_of_y", { page, totalPages })}
             {layout !== "list" && total > pageSize && (
-              <span className="ms-2">(در برد/تقویم/تایم‌لاین حداکثر {pageSize} مورد در هر صفحه)</span>
+              <span className="ms-2">{t("my_work_board.page_size_hint", { pageSize })}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -1476,8 +1513,8 @@ export function MyWorkAcrossWorkspaces() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               className="inline-flex items-center gap-1 rounded-md border border-subtle px-2.5 py-1.5 text-secondary disabled:cursor-not-allowed disabled:opacity-40 hover:bg-surface-2"
             >
-              <ChevronRight className="size-4" />
-              قبلی
+              <ChevronLeft className="size-4 rtl:rotate-180" />
+              {t("my_work_board.previous")}
             </button>
             <button
               type="button"
@@ -1485,8 +1522,8 @@ export function MyWorkAcrossWorkspaces() {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className="inline-flex items-center gap-1 rounded-md border border-subtle px-2.5 py-1.5 text-secondary disabled:cursor-not-allowed disabled:opacity-40 hover:bg-surface-2"
             >
-              بعدی
-              <ChevronLeft className="size-4" />
+              {t("my_work_board.next")}
+              <ChevronRight className="size-4 rtl:rotate-180" />
             </button>
           </div>
         </div>

@@ -84,7 +84,7 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
         {/* Mobile: page-toolbar-content is md:flex only — keep direction controls visible */}
         {!shouldHideToolbar && isContentEditable && editorRef && (
           <div className="flex items-center justify-end gap-2 px-page-x py-1.5 md:hidden">
-            <span className="text-11 text-tertiary">جهت پاراگراف</span>
+            <span className="text-11 text-tertiary">{t("editor_direction_label")}</span>
             <EditorRtlToggle editorRef={editorRef} />
             {paneToggleButton}
           </div>
@@ -93,7 +93,7 @@ export const PageEditorToolbarRoot = observer(function PageEditorToolbarRoot(pro
       {/* Always-visible paragraph direction when sticky toolbar is off */}
       {shouldHideToolbar && isContentEditable && editorRef && (
         <div className="flex items-center justify-end gap-2 px-page-x py-1.5">
-          <span className="text-11 text-tertiary">جهت پاراگراف</span>
+          <span className="text-11 text-tertiary">{t("editor_direction_label")}</span>
           <EditorRtlToggle editorRef={editorRef} />
         </div>
       )}

@@ -67,7 +67,7 @@ export const SidebarWorkspaceMenuItem = observer(function SidebarWorkspaceMenuIt
             })}
           />
           <p className="text-13 leading-5 font-medium">
-            {item.key === "wiki" ? "ویکی" : t(item.labelTranslationKey)}
+            {t(item.labelTranslationKey)}
           </p>
         </div>
         {item.key !== "wiki" && (

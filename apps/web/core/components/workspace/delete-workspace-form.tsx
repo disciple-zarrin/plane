@@ -47,7 +47,10 @@ export const DeleteWorkspaceForm = observer(function DeleteWorkspaceForm(props: 
     watch,
   } = useForm({ defaultValues });
 
-  const canDelete = watch("workspaceName") === data?.name && watch("confirmDelete") === "delete my workspace";
+  const confirmVal = watch("confirmDelete")?.trim().toLowerCase();
+  const canDelete =
+    watch("workspaceName") === data?.name &&
+    (confirmVal === "delete my workspace" || confirmVal === "حذف فضای کاری من");
 
   const handleClose = () => {
     const timer = setTimeout(() => {
@@ -91,17 +94,15 @@ export const DeleteWorkspaceForm = observer(function DeleteWorkspaceForm(props: 
           <AlertTriangle className="size-5 text-danger-primary" aria-hidden="true" />
         </span>
         <div>
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-start">
             <h3 className="text-h5-medium">{t("workspace_settings.settings.general.delete_modal.title")}</h3>
             <p className="mt-1 text-body-xs-regular text-secondary">
-              You are about to delete the workspace{" "}
-              <span className="text-body-xs-semibold break-words">{data?.name}</span>. If you confirm, you will lose
-              access to all your work data in this workspace without any way to restore it. Tread very carefully.
+              {t("delete_workspace_warning", { name: data?.name || "" })}
             </p>
           </div>
 
           <div className="mt-4 text-secondary">
-            <p className="text-body-xs-regular break-words">Type in this workspace&apos;s name to continue.</p>
+            <p className="text-body-xs-regular break-words">{t("delete_workspace_enter_name")}</p>
             <Controller
               control={control}
               name="workspaceName"
@@ -124,9 +125,7 @@ export const DeleteWorkspaceForm = observer(function DeleteWorkspaceForm(props: 
 
           <div className="mt-4 text-secondary">
             <p className="text-body-xs-regular">
-              For final confirmation, type{" "}
-              <span className="text-body-xs-medium text-primary">delete my workspace </span>
-              below.
+              {t("delete_workspace_type_confirm")}
             </p>
             <Controller
               control={control}
@@ -140,7 +139,7 @@ export const DeleteWorkspaceForm = observer(function DeleteWorkspaceForm(props: 
                   onChange={onChange}
                   ref={ref}
                   hasError={Boolean(errors.confirmDelete)}
-                  placeholder=""
+                  placeholder={t("delete_workspace_placeholder")}
                   className="mt-2 w-full"
                   autoComplete="off"
                 />
@@ -155,7 +154,7 @@ export const DeleteWorkspaceForm = observer(function DeleteWorkspaceForm(props: 
           {t("cancel")}
         </Button>
         <Button variant="error-fill" size="lg" type="submit" disabled={!canDelete} loading={isSubmitting}>
-          {isSubmitting ? t("deleting") : t("confirm")}
+          {isSubmitting ? t("deleting") : t("entity.delete.label", { entity: t("common.workspace") })}
         </Button>
       </div>
     </form>

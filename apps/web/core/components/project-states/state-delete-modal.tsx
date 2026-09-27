@@ -50,8 +50,7 @@ export const StateDeleteModal = observer(function StateDeleteModal(props: TState
           setToast({
             type: TOAST_TYPE.ERROR,
             title: t("common.error.label"),
-            message:
-              "This state contains some work items within it, please move them to some other state to delete this state.",
+            message: t("state_has_issues_error"),
           });
         else
           setToast({

@@ -108,7 +108,10 @@ async function importParsedPages(args: {
         // Keep the page — content is already on create.
         if (page.id) idMap.set(page.id, createdId);
         result.created += 1;
-        result.errors.push(`${page.title}: هشدار آپدیت — ${msg}`);
+        const isRtl =
+          typeof document !== "undefined" &&
+          (document.documentElement.dir === "rtl" || document.documentElement.lang === "fa");
+        result.errors.push(`${page.title}: ${isRtl ? "هشدار آپدیت — " : "Update warning — "}${msg}`);
       } else {
         if (createdId) {
           try {

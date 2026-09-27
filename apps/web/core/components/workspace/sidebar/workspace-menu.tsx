@@ -35,7 +35,7 @@ export const SidebarWorkspaceMenu = observer(function SidebarWorkspaceMenu() {
     },
     {
       key: "wiki",
-      labelTranslationKey: "ویکی",
+      labelTranslationKey: "wiki_page.wiki",
       href: `/${workspaceSlug}/wiki/`,
       access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER, EUserWorkspaceRoles.GUEST],
       Icon: WikiIcon,

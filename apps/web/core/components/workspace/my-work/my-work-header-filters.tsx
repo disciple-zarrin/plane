@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { EIssueLayoutTypes } from "@plane/types";
 import { CustomSelect, Input, ToggleSwitch } from "@plane/ui";
 import { FiltersDropdown, LayoutSelection } from "@/components/issues/issue-layouts/filters";
@@ -14,16 +15,16 @@ import { issueTypeToLayout, useMyWork } from "./my-work-provider";
 
 const ALL = "__all__";
 
-const PRIORITY_OPTIONS = [
-  { key: ALL, label: "همه اولویت‌ها" },
-  { key: "urgent", label: "فوری" },
-  { key: "high", label: "بالا" },
-  { key: "medium", label: "متوسط" },
-  { key: "low", label: "پایین" },
-  { key: "none", label: "بدون اولویت" },
-];
-
 export function MyWorkHeaderFilters() {
+  const { t } = useTranslation();
+  const priorityOptions = [
+    { key: ALL, label: t("my_work_board.all_priorities") },
+    { key: "urgent", label: t("my_work_board.urgent") },
+    { key: "high", label: t("my_work_board.high") },
+    { key: "medium", label: t("my_work_board.medium") },
+    { key: "low", label: t("my_work_board.low") },
+    { key: "none", label: t("my_work_board.none_priority") },
+  ];
   const {
     layoutAsIssueType,
     setLayout,
@@ -59,11 +60,11 @@ export function MyWorkHeaderFilters() {
           if (mapped) setLayout(mapped);
         }}
       />
-      <FiltersDropdown title="فیلترها" placement="bottom-end" isFiltersApplied={hasActiveFilters}>
+      <FiltersDropdown title={t("my_work_board.filters")} placement="bottom-end" isFiltersApplied={hasActiveFilters}>
         <div className="vertical-scrollbar scrollbar-sm relative max-h-[30rem] w-[18rem] overflow-hidden overflow-y-auto px-2.5 py-2">
           <div className="space-y-3">
             <FilterHeader
-              title="جستجو و فیلتر"
+              title={t("my_work_board.search_and_filter")}
               isPreviewEnabled={filtersPreview}
               handleIsPreviewEnabled={() => setFiltersPreview((v) => !v)}
             />
@@ -75,24 +76,24 @@ export function MyWorkHeaderFilters() {
                     id="my-work-search"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="عنوان یا پروژه…"
+                    placeholder={t("my_work_board.search_placeholder")}
                     className="w-full border-none bg-transparent px-0 text-13"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-caption-sm-medium text-placeholder">ورک‌اسپیس</div>
+                  <div className="text-caption-sm-medium text-placeholder">{t("my_work_board.workspace")}</div>
                   <CustomSelect
                     value={workspaceSlug || ALL}
                     label={
                       workspaceSlug
                         ? workspaces.find((w) => w.slug === workspaceSlug)?.name || workspaceSlug
-                        : "همه ورک‌اسپیس‌ها"
+                        : t("my_work_board.all_workspaces")
                     }
                     onChange={(val: string) => setWorkspaceSlug(val === ALL ? "" : val)}
                     maxHeight="lg"
                   >
-                    <CustomSelect.Option value={ALL}>همه ورک‌اسپیس‌ها</CustomSelect.Option>
+                    <CustomSelect.Option value={ALL}>{t("my_work_board.all_workspaces")}</CustomSelect.Option>
                     {workspaces.map((ws) => (
                       <CustomSelect.Option key={ws.slug} value={ws.slug}>
                         {ws.name}
@@ -102,7 +103,7 @@ export function MyWorkHeaderFilters() {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-caption-sm-medium text-placeholder">پروژه</div>
+                  <div className="text-caption-sm-medium text-placeholder">{t("my_work_board.project")}</div>
                   <CustomSelect
                     value={projectId || ALL}
                     label={
@@ -111,12 +112,12 @@ export function MyWorkHeaderFilters() {
                             const p = filteredProjects.find((x) => x.id === projectId);
                             return p ? `${p.identifier} · ${p.name}` : projectId;
                           })()
-                        : "همه پروژه‌ها"
+                        : t("my_work_board.all_projects")
                     }
                     onChange={(val: string) => setProjectId(val === ALL ? "" : val)}
                     maxHeight="lg"
                   >
-                    <CustomSelect.Option value={ALL}>همه پروژه‌ها</CustomSelect.Option>
+                    <CustomSelect.Option value={ALL}>{t("my_work_board.all_projects")}</CustomSelect.Option>
                     {filteredProjects.map((p) => (
                       <CustomSelect.Option key={p.id} value={p.id}>
                         {p.identifier} · {p.name}
@@ -126,14 +127,14 @@ export function MyWorkHeaderFilters() {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-caption-sm-medium text-placeholder">اولویت</div>
+                  <div className="text-caption-sm-medium text-placeholder">{t("my_work_board.priority")}</div>
                   <CustomSelect
                     value={priority || ALL}
-                    label={PRIORITY_OPTIONS.find((o) => o.key === (priority || ALL))?.label || "همه اولویت‌ها"}
+                    label={priorityOptions.find((o) => o.key === (priority || ALL))?.label || t("my_work_board.all_priorities")}
                     onChange={(val: string) => setPriority(val === ALL ? "" : val)}
                     maxHeight="lg"
                   >
-                    {PRIORITY_OPTIONS.map((o) => (
+                    {priorityOptions.map((o) => (
                       <CustomSelect.Option key={o.key} value={o.key}>
                         {o.label}
                       </CustomSelect.Option>
@@ -142,7 +143,7 @@ export function MyWorkHeaderFilters() {
                 </div>
 
                 <div className="flex items-center justify-between gap-2 py-1">
-                  <span className="text-13 text-secondary">انجام‌شده / لغوشده</span>
+                  <span className="text-13 text-secondary">{t("my_work_board.include_completed_cancelled")}</span>
                   <ToggleSwitch value={includeDone} onChange={setIncludeDone} />
                 </div>
               </div>

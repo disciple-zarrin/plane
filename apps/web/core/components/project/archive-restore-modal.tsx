@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-// ui
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
@@ -29,6 +29,7 @@ export function ArchiveRestoreProjectModal(props: Props) {
   // states
   const [isLoading, setIsLoading] = useState(false);
   // store hooks
+  const { t } = useTranslation();
   const { getProjectById, archiveProject, restoreProject } = useProject();
 
   const projectDetails = getProjectById(projectId);
@@ -45,8 +46,8 @@ export function ArchiveRestoreProjectModal(props: Props) {
       .then(() => {
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "Archive success",
-          message: `${projectDetails.name} has been archived successfully`,
+          title: t("entity.archive.success", { entity: t("common.project") }),
+          message: t("entity.archive.success", { entity: projectDetails.name }),
         });
         onClose();
         router.push(`/${workspaceSlug}/projects/`);
@@ -55,8 +56,8 @@ export function ArchiveRestoreProjectModal(props: Props) {
       .catch(() =>
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: "Project could not be archived. Please try again.",
+          title: `${t("common.errors.title") || "Error"}!`,
+          message: t("entity.archive.failed", { entity: t("common.project") }),
         })
       )
       .finally(() => setIsLoading(false));
@@ -68,8 +69,8 @@ export function ArchiveRestoreProjectModal(props: Props) {
       .then(() => {
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "Restore success",
-          message: `You can find ${projectDetails.name} in your projects.`,
+          title: t("entity.restore.success", { entity: t("common.project") }),
+          message: t("entity.restore.success", { entity: projectDetails.name }),
         });
         onClose();
         router.push(`/${workspaceSlug}/projects/`);
@@ -78,8 +79,8 @@ export function ArchiveRestoreProjectModal(props: Props) {
       .catch(() =>
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "Error!",
-          message: "Project could not be restored. Please try again.",
+          title: `${t("common.errors.title") || "Error"}!`,
+          message: t("entity.restore.failed", { entity: t("common.project") }),
         })
       )
       .finally(() => setIsLoading(false));
@@ -89,16 +90,19 @@ export function ArchiveRestoreProjectModal(props: Props) {
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.LG}>
       <div className="px-5 py-4">
         <h3 className="text-18 font-medium 2xl:text-20">
-          {archive ? "Archive" : "Restore"} {projectDetails.name}
+          {archive
+            ? t("entity.archive.title_with_name", { entity: t("common.project"), name: projectDetails.name })
+            : t("entity.restore.title_with_name", { entity: t("common.project"), name: projectDetails.name })}
         </h3>
         <p className="mt-3 text-13 text-secondary">
           {archive
-            ? "This project and its work items, cycles, modules, and pages will be archived. Its work items won't appear in search. Only project admins can restore the project."
-            : "Restoring a project will activate it and make it visible to all members of the project. Are you sure you want to continue?"}
+            ? t("project_actions.archive_description") ||
+              "This project and its work items, cycles, modules, and pages will be archived. Its work items won't appear in search. Only project admins can restore the project."
+            : t("entity.restore.confirm", { entity: t("common.project") })}
         </p>
         <div className="mt-3 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             variant="primary"
@@ -107,7 +111,13 @@ export function ArchiveRestoreProjectModal(props: Props) {
             onClick={archive ? handleArchiveProject : handleRestoreProject}
             loading={isLoading}
           >
-            {archive ? (isLoading ? "Archiving" : "Archive") : isLoading ? "Restoring" : "Restore"}
+            {archive
+              ? isLoading
+                ? t("archiving")
+                : t("archive")
+              : isLoading
+                ? t("restoring")
+                : t("restore")}
           </Button>
         </div>
       </div>

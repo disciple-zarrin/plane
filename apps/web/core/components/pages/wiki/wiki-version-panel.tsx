@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { History } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TPageVersion } from "@plane/types";
@@ -42,6 +43,7 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
     onOpenChange,
     hideTrigger,
   } = props;
+  const { t } = useTranslation();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = openProp ?? uncontrolledOpen;
   const setOpen = useCallback(
@@ -107,14 +109,14 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
       } catch {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "نسخه در سرور بازگردانی شد ولی ادیتور به‌روز نشد",
+          title: t("page_versions.server_restored_editor_failed"),
         });
         return;
       }
-      setToast({ type: TOAST_TYPE.SUCCESS, title: "بازگردانی شد" });
+      setToast({ type: TOAST_TYPE.SUCCESS, title: t("page_versions.restored_success") });
       setOpen(false);
     } catch {
-      setToast({ type: TOAST_TYPE.ERROR, title: "بازگردانی ناموفق" });
+      setToast({ type: TOAST_TYPE.ERROR, title: t("page_versions.restore_failed") });
     } finally {
       setRestoring(false);
     }
@@ -127,7 +129,7 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
       {!hideTrigger && (
         <Button variant="secondary" size="sm" onClick={() => setOpen((v) => !v)}>
           <History className="size-3.5" />
-          نسخه‌ها
+          {t("page_versions.versions")}
         </Button>
       )}
       {open && (
@@ -147,9 +149,9 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
             onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-subtle px-4 py-3">
-              <h3 className="text-body-sm-semibold">تاریخچه نسخه‌ها</h3>
+              <h3 className="text-body-sm-semibold">{t("page_versions.title")}</h3>
               <button type="button" className="text-11 text-tertiary" onClick={() => setOpen(false)}>
-                بستن
+                {t("page_versions.close")}
               </button>
             </div>
             <div className="flex min-h-0 flex-1">
@@ -170,18 +172,18 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
                   </li>
                 ))}
                 {!loading && versions.length === 0 && (
-                  <li className="px-2 py-1 text-11 text-tertiary">هنوز نسخه‌ای نیست</li>
+                  <li className="px-2 py-1 text-11 text-tertiary">{t("page_versions.no_versions")}</li>
                 )}
               </ul>
               <div className="min-w-0 flex-1 overflow-y-auto p-3">
                 {loadingDetail ? (
-                  <p className="text-11 text-tertiary">در حال بارگذاری…</p>
+                  <p className="text-11 text-tertiary">{t("page_versions.loading")}</p>
                 ) : active ? (
                   <div className="space-y-3">
                     <DocumentHtmlDiff
                       beforeHtml={active.description_html || ""}
                       afterHtml={afterHtml}
-                      caption="تفاوت این نسخه با سند فعلی"
+                      caption={t("page_versions.diff_caption")}
                     />
                     <Button
                       variant="primary"
@@ -190,11 +192,11 @@ export const WikiVersionPanel = observer(function WikiVersionPanel(props: Props)
                       disabled={!active.id}
                       onClick={() => void restore()}
                     >
-                      بازگردانی به این نسخه
+                      {t("page_versions.restore_button")}
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-11 text-tertiary">یک نسخه را انتخاب کنید</p>
+                  <p className="text-11 text-tertiary">{t("page_versions.select_a_version")}</p>
                 )}
               </div>
             </div>

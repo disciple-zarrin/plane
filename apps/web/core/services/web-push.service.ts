@@ -5,6 +5,7 @@
  */
 
 import { API_BASE_URL } from "@plane/constants";
+import { i18nInstance } from "@plane/i18n";
 import { APIService } from "@/services/api.service";
 import { issueAlarmsStore } from "@/store/issue-alarms.store";
 
@@ -230,7 +231,7 @@ export async function syncPendingAlarmsFromServer(): Promise<number> {
       if (!Number.isFinite(fireAtMs)) continue;
       const item = {
         tag: `alarm-${alarm.issue_id}`,
-        title: "زنگ ددلاین",
+        title: i18nInstance.t("deadline_alarm_notification_title"),
         body: `${alarm.issue_identifier} · ${alarm.issue_name}`,
         url: alarm.url || `/${alarm.workspace_slug}/projects/${alarm.project_id}/issues/${alarm.issue_id}`,
         fireAtMs,

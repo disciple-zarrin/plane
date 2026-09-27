@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { EditorRefApi } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import { EFileAssetType } from "@plane/types";
 import type { TNameDescriptionLoader } from "@plane/types";
 // components
@@ -47,6 +48,7 @@ type Props = {
 export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetails(props: Props) {
   const { editorRef, workspaceSlug, issueId, issueOperations, disabled, isArchived, isSubmitting, setIsSubmitting } =
     props;
+  const { t } = useTranslation();
   // store hooks
   const { data: currentUser } = useUser();
   const {
@@ -107,7 +109,7 @@ export const PeekOverviewIssueDetails = observer(function PeekOverviewIssueDetai
       />
 
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="text-11 text-tertiary">جهت پاراگراف فعلی</span>
+        <span className="text-11 text-tertiary">{t("editor_direction_label")}</span>
         <EditorRtlToggle editorRef={editorRef} disabled={disabled || isArchived} />
       </div>
       <DescriptionInput

@@ -8,7 +8,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Disclosure, Transition } from "@headlessui/react";
-// plane imports
+import { useTranslation } from "@plane/i18n";
 import { EditIcon, TrashIcon, ChevronDownIcon } from "@plane/propel/icons";
 import type { IIssueLabel } from "@plane/types";
 // components
@@ -51,6 +51,7 @@ export const ProjectSettingLabelGroup = observer(function ProjectSettingLabelGro
 
   // states
   const [isEditLabelForm, setEditLabelForm] = useState(false);
+  const { t } = useTranslation();
 
   const customMenuItems: ICustomMenuItem[] = [
     {
@@ -60,7 +61,7 @@ export const ProjectSettingLabelGroup = observer(function ProjectSettingLabelGro
         setIsUpdating(true);
       },
       isVisible: true,
-      text: "Edit label",
+      text: `${t("common.edit")} ${t("common.label")}`,
       key: "edit_label",
     },
     {
@@ -69,7 +70,7 @@ export const ProjectSettingLabelGroup = observer(function ProjectSettingLabelGro
         handleLabelDelete(label);
       },
       isVisible: true,
-      text: "Delete label",
+      text: t("entity.delete.label", { entity: t("common.label") }),
       key: "delete_label",
     },
   ];

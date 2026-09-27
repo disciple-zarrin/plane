@@ -163,8 +163,8 @@ export const NotificationsProfileSettingsForm = observer(function NotificationsP
         }
       />
       <SettingsControlItem
-        title="نوتیفیکیشن گوشی (Web Push)"
-        description="برای assign و زنگ ددلاین، حتی وقتی تب بسته است. بعد از فعال‌سازی، شورت‌کات سایت را هم به صفحهٔ اصلی اضافه کن."
+        title={t("web_push.title")}
+        description={t("web_push.description")}
         control={
           <button
             type="button"
@@ -175,21 +175,21 @@ export const NotificationsProfileSettingsForm = observer(function NotificationsP
                 const ok = await enableWebPush();
                 setToast({
                   type: ok ? TOAST_TYPE.SUCCESS : TOAST_TYPE.ERROR,
-                  title: ok ? "فعال شد" : "فعال نشد",
+                  title: ok ? t("web_push.enabled_title") : t("web_push.not_enabled_title"),
                   message: ok
-                    ? "پوش گوشی روشن شد."
-                    : "اجازه نوتیف یا کلید VAPID در دسترس نیست.",
+                    ? t("web_push.enabled_message")
+                    : t("web_push.perm_or_key_error"),
                 });
               } catch {
                 setToast({
                   type: TOAST_TYPE.ERROR,
-                  title: "خطا",
-                  message: "فعال‌سازی Web Push شکست خورد.",
+                  title: t("common.errors.title"),
+                  message: t("web_push.activate_failed"),
                 });
               }
             }}
           >
-            فعال‌سازی
+            {t("web_push.activate_btn")}
           </button>
         }
       />

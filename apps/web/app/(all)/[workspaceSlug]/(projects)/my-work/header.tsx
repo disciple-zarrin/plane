@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { useTranslation } from "@plane/i18n";
 import { Breadcrumbs, Header } from "@plane/ui";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { MyWorkHeaderFilters } from "@/components/workspace/my-work/my-work-header-filters";
@@ -11,13 +12,14 @@ import { useMyWork } from "@/components/workspace/my-work/my-work-provider";
 
 export function MyWorkHeader() {
   const { total, loading } = useMyWork();
+  const { t } = useTranslation();
 
   return (
     <Header>
       <Header.LeftItem>
         <Breadcrumbs>
           <Breadcrumbs.Item
-            component={<BreadcrumbLink label="کارهای من" disableTooltip isLast />}
+            component={<BreadcrumbLink label={t("my_work")} disableTooltip isLast />}
           />
         </Breadcrumbs>
         {!loading && <span className="rounded-full bg-layer-2 px-2 py-0.5 text-11 text-tertiary">{total}</span>}

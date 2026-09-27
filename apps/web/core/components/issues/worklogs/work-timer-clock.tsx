@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Pause, Play, Plus } from "lucide-react";
 import { Button } from "@plane/propel/button";
+import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 import { elapsedMs, formatClock, type TWorkTimerState } from "@/helpers/work-timer";
 
@@ -22,6 +23,7 @@ type Props = {
 
 export function WorkTimerClock(props: Props) {
   const { timer, belongsToThisIssue, disabled, onStart, onStop, onAdd, adding } = props;
+  const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
 
   const active = Boolean(timer && belongsToThisIssue);
@@ -42,11 +44,11 @@ export function WorkTimerClock(props: Props) {
   const minutesReady = Math.round(ms / 60000);
 
   const status = useMemo(() => {
-    if (!active) return "برای شروع زمان‌گیری دکمه شروع را بزن";
-    if (running) return "در حال زمان‌گیری…";
-    if (minutesReady < 1) return "متوقف شد — حداقل ۱ دقیقه لازم است";
-    return "متوقف شد — افزودن به ساعت کاری";
-  }, [active, running, minutesReady]);
+    if (!active) return t("worklog_panel.timer_idle_prompt");
+    if (running) return t("worklog_panel.timing_in_progress");
+    if (minutesReady < 1) return t("worklog_panel.timer_stopped_min_required");
+    return t("worklog_panel.timer_stopped_ready_to_add");
+  }, [active, running, minutesReady, t]);
 
   return (
     <div className="rounded-xl border border-subtle bg-gradient-to-b from-surface-2/80 to-surface-1 p-4">
@@ -74,7 +76,9 @@ export function WorkTimerClock(props: Props) {
             >
               {formatClock(ms)}
             </span>
-            <span className="mt-1 text-[10px] text-tertiary">{running ? "در حال کار" : "آماده"}</span>
+            <span className="mt-1 text-[10px] text-tertiary">
+              {running ? t("worklog_panel.working_status") : t("worklog_panel.ready_status")}
+            </span>
           </div>
           {running && <span className="absolute right-2 top-2 size-2.5 animate-pulse rounded-full bg-accent-primary" />}
         </div>
@@ -84,17 +88,17 @@ export function WorkTimerClock(props: Props) {
             {!running ? (
               <Button variant="primary" size="sm" onClick={onStart} disabled={adding}>
                 <Play className="size-3.5" />
-                شروع
+                {t("worklog_panel.start")}
               </Button>
             ) : (
               <Button variant="secondary" size="sm" onClick={onStop}>
                 <Pause className="size-3.5" />
-                توقف
+                {t("worklog_panel.stop")}
               </Button>
             )}
             <Button variant="tertiary" size="sm" onClick={onAdd} disabled={adding || running || minutesReady < 1}>
               <Plus className="size-3.5" />
-              {adding ? "…" : "افزودن به ساعت کاری"}
+              {adding ? "…" : t("worklog_panel.add_to_work_hours")}
             </Button>
           </div>
         )}

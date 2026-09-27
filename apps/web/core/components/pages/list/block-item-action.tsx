@@ -11,6 +11,7 @@ import { ArrowUpToLine, Earth, Info, Minus, Upload } from "lucide-react";
 // plane imports
 import { LockIcon } from "@plane/propel/icons";
 import { Tooltip } from "@plane/propel/tooltip";
+import { useTranslation } from "@plane/i18n";
 import { Avatar, FavoriteStar } from "@plane/ui";
 import { renderFormattedDate, getFileURL } from "@plane/utils";
 // hooks
@@ -34,6 +35,7 @@ type Props = {
 
 export const BlockItemAction = observer(function BlockItemAction(props: Props) {
   const { page, parentRef, storeType } = props;
+  const { t } = useTranslation();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const { workspaceSlug, projectId } = useParams();
@@ -52,19 +54,19 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
       {
         key: "export" as const,
         action: () => setIsExportModalOpen(true),
-        title: "خروجی (PDF / Word / ZIP)",
+        title: t("wiki_page.export_all_formats"),
         icon: ArrowUpToLine,
         shouldRender: true,
       },
       {
         key: "import-markdown" as const,
         action: () => setIsImportModalOpen(true),
-        title: "ایمپورت ZIP مارک‌داون",
+        title: t("wiki_page.import_markdown_zip"),
         icon: Upload,
         shouldRender: true,
       },
     ],
-    []
+    [t]
   );
 
   return (
@@ -86,7 +88,7 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
           workspaceSlug={slug}
           projectId={pid}
           destinationPageId={id}
-          destinationPageTitle={name || "بدون عنوان"}
+          destinationPageTitle={name || t("wiki_page.untitled")}
           onSuccess={async () => {
             await pageStore.fetchPagesList(slug, pid);
           }}

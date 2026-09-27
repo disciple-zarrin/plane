@@ -6,6 +6,7 @@
 
 import { createElement } from "react";
 import { useParams } from "next/navigation";
+import { useTranslation } from "@plane/i18n";
 import { EIssueFilterType } from "@plane/constants";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { EIssuesStoreType, TIssue, TIssueGroupByOptions, TIssueOrderByOptions } from "@plane/types";
@@ -36,6 +37,7 @@ export const useGroupIssuesDragNDrop = (
   subGroupBy?: TIssueGroupByOptions
 ) => {
   const { workspaceSlug, projectId } = useParams();
+  const { t } = useTranslation();
 
   const {
     issue: { getIssueById },
@@ -65,8 +67,8 @@ export const useGroupIssuesDragNDrop = (
   ) => {
     const errorToastProps = {
       type: TOAST_TYPE.ERROR,
-      title: "Error!",
-      message: "Error while updating work item",
+      title: `${t("common.errors.title") || "Error"}!`,
+      message: t("entity.update.failed", { entity: t("common.work_item") }),
     };
     const moduleKey = ISSUE_FILTER_DEFAULT_DATA["module"];
     const cycleKey = ISSUE_FILTER_DEFAULT_DATA["cycle"];
@@ -119,8 +121,8 @@ export const useGroupIssuesDragNDrop = (
       const filterProjectId = projectId?.toString() || sourceIssue?.project_id;
       setToast({
         type: TOAST_TYPE.INFO,
-        title: "مرتب‌سازی دستی",
-        message: "برای جابه‌جایی ترتیب داخل ستون، Manual را فعال کن؛ بعد دوباره بکش.",
+        title: t("kanban_drag_drop.manual_sort_title"),
+        message: t("kanban_drag_drop.manual_sort_message"),
         actionItems: filterProjectId
           ? createElement(
               "button",
@@ -133,13 +135,13 @@ export const useGroupIssuesDragNDrop = (
                   }).then(() => {
                     setToast({
                       type: TOAST_TYPE.SUCCESS,
-                      title: "فعال شد",
-                      message: "Order by روی Manual است؛ الان کارت‌ها را جابه‌جا کن.",
+                      title: t("kanban_drag_drop.manual_sort_enabled_title"),
+                      message: t("kanban_drag_drop.manual_sort_enabled_message"),
                     });
                   });
                 },
               },
-              "فعال کردن Manual"
+              t("kanban_drag_drop.enable_manual_button")
             )
           : undefined,
       });

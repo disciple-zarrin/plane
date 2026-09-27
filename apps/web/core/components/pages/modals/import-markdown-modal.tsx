@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
@@ -50,6 +51,7 @@ export function ImportMarkdownModal(props: Props) {
     onDestinationChange,
     onSuccess,
   } = props;
+  const { t } = useTranslation();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -81,8 +83,8 @@ export function ImportMarkdownModal(props: Props) {
     if (!lower.endsWith(".zip")) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "فرمت نامعتبر",
-        message: "فقط فایل ZIP خروجی Markdown پذیرفته می‌شود.",
+        title: t("page_import.invalid_format_title"),
+        message: t("page_import.invalid_format_message"),
       });
       return;
     }
@@ -92,8 +94,8 @@ export function ImportMarkdownModal(props: Props) {
       const count = await peekMarkdownZipPageCount(picked);
       setPageCount(count);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "خواندن ZIP ناموفق بود.";
-      setToast({ type: TOAST_TYPE.ERROR, title: "ZIP نامعتبر", message: msg });
+      const msg = e instanceof Error ? e.message : t("page_import.read_zip_failed");
+      setToast({ type: TOAST_TYPE.ERROR, title: t("page_import.invalid_zip_title"), message: msg });
       setFile(null);
       setPageCount(null);
     } finally {
@@ -106,14 +108,14 @@ export function ImportMarkdownModal(props: Props) {
     if (context === "project" && !projectId) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "ایمپورت ناموفق",
-        message: "شناسه پروژه در دسترس نیست.",
+        title: t("page_import.import_failed_title"),
+        message: t("page_import.missing_project_id"),
       });
       return;
     }
 
     setImporting(true);
-    setProgressLabel("شروع…");
+    setProgressLabel("…");
     try {
       const onProgress = (p: { done: number; total: number; currentTitle?: string }) => {
         const title = p.currentTitle ? ` — ${p.currentTitle}` : "";
@@ -140,14 +142,20 @@ export function ImportMarkdownModal(props: Props) {
       if (result.failed === 0) {
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "ایمپورت شد",
-          message: `${result.created} صفحه زیر «${destinationPageTitle}» ساخته شد.`,
+          title: t("page_import.import_success_title"),
+          message: t("page_import.import_success_message", {
+            createdCount: result.created,
+            title: destinationPageTitle,
+          }),
         });
       } else {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "ایمپورت ناقص",
-          message: `${result.created} موفق، ${result.failed} ناموفق${errorHint}`,
+          title: t("page_import.import_partial_title"),
+          message: `${t("page_import.import_partial_message", {
+            createdCount: result.created,
+            failedCount: result.failed,
+          })}${errorHint}`,
         });
       }
 
@@ -157,7 +165,7 @@ export function ImportMarkdownModal(props: Props) {
       onClose();
     } catch (e) {
       const msg = e instanceof Error ? e.message : undefined;
-      setToast({ type: TOAST_TYPE.ERROR, title: "ایمپورت ناموفق", message: msg });
+      setToast({ type: TOAST_TYPE.ERROR, title: t("page_import.import_failed_title"), message: msg });
     } finally {
       setImporting(false);
       setProgressLabel("");
@@ -170,17 +178,16 @@ export function ImportMarkdownModal(props: Props) {
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.SM}>
       <div>
         <div className="space-y-4 p-5">
-          <h3 className="text-18 font-medium text-secondary">ایمپورت ZIP مارک‌داون</h3>
+          <h3 className="text-18 font-medium text-secondary">{t("page_import.title")}</h3>
           <p className="text-13 text-tertiary leading-relaxed">
-            فایل ZIP خروجی همین سیستم را انتخاب کنید. صفحات جدید به‌صورت فرزند زیر صفحهٔ مقصد ساخته
-            می‌شوند (بازنویسی درجا نیست).
+            {t("page_import.description")}
           </p>
 
           {destinationOptions && destinationOptions.length > 0 ? (
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">صفحهٔ مقصد</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">{t("page_import.destination")}</h6>
               <CustomSelect
-                label={destinationPageTitle || "انتخاب صفحه"}
+                label={destinationPageTitle || t("page_import.select_page")}
                 buttonClassName="border-none max-w-[220px]"
                 value={destinationPageId}
                 onChange={(val: string) => onDestinationChange?.(val)}
@@ -198,7 +205,7 @@ export function ImportMarkdownModal(props: Props) {
             </div>
           ) : (
             <div className="rounded-md border border-subtle bg-surface-1 px-3 py-2 text-13 text-secondary">
-              مقصد: <span className="font-medium text-primary">{destinationPageTitle || "—"}</span>
+              {t("page_import.destination_prefix")}<span className="font-medium text-primary">{destinationPageTitle || "—"}</span>
             </div>
           )}
 
@@ -221,25 +228,25 @@ export function ImportMarkdownModal(props: Props) {
             className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-subtle px-3 py-6 text-13 text-tertiary hover:border-accent-primary/40 hover:text-accent-primary"
           >
             <Upload className="size-4" />
-            {file ? file.name : "انتخاب فایل ZIP"}
+            {file ? file.name : t("page_import.pick_zip")}
           </button>
 
-          {peeking && <p className="text-12 text-tertiary">در حال خواندن ZIP…</p>}
+          {peeking && <p className="text-12 text-tertiary">{t("page_import.peeking")}</p>}
           {!peeking && pageCount !== null && (
             <p className="text-13 text-secondary">
-              {pageCount} صفحه در ZIP یافت شد — زیر «{destinationPageTitle}» ساخته می‌شوند.
+              {t("page_import.found_pages", { pageCount, title: destinationPageTitle })}
             </p>
           )}
           {importing && (
-            <p className="text-13 text-accent-primary">در حال ایمپورت… {progressLabel}</p>
+            <p className="text-13 text-accent-primary">{t("page_import.importing_status", { progress: progressLabel })}</p>
           )}
         </div>
         <div className="flex items-center justify-end gap-2 border-t-[0.5px] border-subtle px-5 py-4">
           <Button variant="secondary" size="lg" onClick={handleClose} disabled={importing}>
-            انصراف
+            {t("cancel")}
           </Button>
           <Button variant="primary" size="lg" loading={importing} disabled={!canConfirm} onClick={() => void handleImport()}>
-            {importing ? "در حال ایمپورت…" : "تأیید ایمپورت"}
+            {importing ? t("page_import.importing_btn") : t("page_import.confirm_btn")}
           </Button>
         </div>
       </div>

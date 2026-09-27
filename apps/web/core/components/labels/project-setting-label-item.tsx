@@ -8,6 +8,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { EditIcon, CloseIcon } from "@plane/propel/icons";
+import { useTranslation } from "@plane/i18n";
 // types
 import type { IIssueLabel } from "@plane/types";
 // hooks
@@ -53,6 +54,7 @@ export function ProjectSettingLabelItem(props: Props) {
   // router
   const { workspaceSlug, projectId } = useParams();
   // store hooks
+  const { t } = useTranslation();
   const { updateLabel } = useLabel();
 
   const removeFromGroup = (label: IIssueLabel) => {
@@ -68,7 +70,7 @@ export function ProjectSettingLabelItem(props: Props) {
       CustomIcon: CloseIcon,
       onClick: removeFromGroup,
       isVisible: !!label.parent,
-      text: "Remove from group",
+      text: t("remove_from_group"),
       key: "remove_from_group",
     },
     {
@@ -78,7 +80,7 @@ export function ProjectSettingLabelItem(props: Props) {
         setIsUpdating(true);
       },
       isVisible: true,
-      text: "Edit label",
+      text: `${t("common.edit")} ${t("common.label")}`,
       key: "edit_label",
     },
   ];

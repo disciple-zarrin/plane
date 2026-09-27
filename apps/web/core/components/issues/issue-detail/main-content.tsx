@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { EditorRefApi } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import type { TNameDescriptionLoader } from "@plane/types";
 import { EFileAssetType, EIssueServiceType } from "@plane/types";
 // components
@@ -47,6 +48,7 @@ type Props = {
 
 export const IssueMainContent = observer(function IssueMainContent(props: Props) {
   const { workspaceSlug, projectId, issueId, issueOperations, isEditable, isArchived } = props;
+  const { t } = useTranslation();
   // refs
   const editorRef = useRef<EditorRefApi>(null);
   // states
@@ -109,7 +111,7 @@ export const IssueMainContent = observer(function IssueMainContent(props: Props)
         />
 
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-11 text-tertiary">جهت پاراگراف فعلی</span>
+          <span className="text-11 text-tertiary">{t("editor_direction_label")}</span>
           <EditorRtlToggle editorRef={editorRef} disabled={isArchived || !isEditable} />
         </div>
         <DescriptionInput

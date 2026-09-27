@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { ArrowUpToLine, ChevronDown, ChevronRight, FilePlus2, FileText, Plus, Upload } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { Button } from "@plane/propel/button";
+import { useTranslation } from "@plane/i18n";
 import { WikiIcon } from "@plane/propel/icons";
 import type { TPage } from "@plane/types";
 import { CustomMenu } from "@plane/ui";
@@ -44,12 +45,12 @@ function buildTree(pages: TPage[]): TreeNode[] {
   return roots;
 }
 
-function flattenTreeOptions(nodes: TreeNode[], depth = 0): TImportDestinationOption[] {
+function flattenTreeOptions(nodes: TreeNode[], depth = 0, defaultTitle = "Untitled"): TImportDestinationOption[] {
   const out: TImportDestinationOption[] = [];
   for (const n of nodes) {
     if (!n.id) continue;
-    out.push({ id: n.id, title: n.name || "بدون عنوان", depth });
-    out.push(...flattenTreeOptions(n.children, depth + 1));
+    out.push({ id: n.id, title: n.name || defaultTitle, depth });
+    out.push(...flattenTreeOptions(n.children, depth + 1, defaultTitle));
   }
   return out;
 }
@@ -65,6 +66,7 @@ const PageTreeItem = observer(function PageTreeItem({
   workspaceSlug: string;
   onExport: (page: TPage) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const hasChildren = node.children.length > 0;
   return (
@@ -85,7 +87,7 @@ const PageTreeItem = observer(function PageTreeItem({
           className="flex min-w-0 flex-1 items-center gap-2 text-body-sm-medium text-primary"
         >
           <FileText className="size-4 shrink-0 text-tertiary" />
-          <span className="truncate">{node.name || "بدون عنوان"}</span>
+          <span className="truncate">{node.name || t("wiki_page.untitled")}</span>
         </Link>
         <div
           className="opacity-0 group-hover:opacity-100 focus-within:opacity-100"
@@ -95,7 +97,7 @@ const PageTreeItem = observer(function PageTreeItem({
           <CustomMenu placement="bottom-end" ellipsis closeOnSelect>
             <CustomMenu.MenuItem onClick={() => onExport(node)} className="flex items-center gap-2">
               <ArrowUpToLine className="size-3" />
-              خروجی (PDF / Word / ZIP)
+              {t("wiki_page.export_all_formats")}
             </CustomMenu.MenuItem>
           </CustomMenu>
         </div>
@@ -115,6 +117,7 @@ const PageTreeItem = observer(function PageTreeItem({
 });
 
 export default observer(function WikiListPage() {
+  const { t } = useTranslation();
   const { workspaceSlug } = useParams();
   const slug = workspaceSlug?.toString() || "";
   const router = useAppRouter();
@@ -142,7 +145,7 @@ export default observer(function WikiListPage() {
   }, [load]);
 
   const tree = useMemo(() => buildTree(pages), [pages]);
-  const destinationOptions = useMemo(() => flattenTreeOptions(tree), [tree]);
+  const destinationOptions = useMemo(() => flattenTreeOptions(tree, 0, t("wiki_page.untitled")), [tree, t]);
 
   useEffect(() => {
     if (!importOpen) return;
@@ -155,7 +158,7 @@ export default observer(function WikiListPage() {
     if (!slug || creating) return;
     setCreating(true);
     try {
-      const page = await service.create(slug, { name: "صفحه جدید" });
+      const page = await service.create(slug, { name: t("wiki_page.new_page") });
       if (page?.id) router.push(`/${slug}/wiki/${page.id}`);
       else await load();
     } finally {
@@ -163,9 +166,9 @@ export default observer(function WikiListPage() {
     }
   };
 
-  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - Wiki` : "Wiki";
+  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - ${t("wiki_page.wiki")}` : t("wiki_page.wiki");
   const importDestinationTitle =
-    destinationOptions.find((o) => o.id === importDestinationId)?.title || "بدون عنوان";
+    destinationOptions.find((o) => o.id === importDestinationId)?.title || t("wiki_page.untitled");
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
@@ -201,9 +204,9 @@ export default observer(function WikiListPage() {
             <WikiIcon className="size-5" />
           </span>
           <div>
-            <h1 className="text-h3-medium text-primary">ویکی</h1>
+            <h1 className="text-h3-medium text-primary">{t("wiki_page.wiki")}</h1>
             <p className="text-body-xs-regular text-tertiary">
-              دانش‌نامهٔ فضای‌کار — صفحات تو‌در‌تو مثل Notion؛ با @ لینک بسازید و با / صفحه فرعی بسازید.
+              {t("wiki_page.workspace_knowledge_base")}
             </p>
           </div>
         </div>
@@ -218,26 +221,25 @@ export default observer(function WikiListPage() {
             disabled={destinationOptions.length === 0}
           >
             <Upload className="size-4" />
-            ایمپورت ZIP
+            {t("wiki_page.import_zip")}
           </Button>
           <Button variant="primary" size="lg" onClick={createRoot} disabled={creating}>
             <Plus className="size-4" />
-            صفحه جدید
+            {t("wiki_page.new_page")}
           </Button>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {loading && <p className="px-2 text-body-xs-regular text-tertiary">در حال بارگذاری…</p>}
+        {loading && <p className="px-2 text-body-xs-regular text-tertiary">{t("page_versions.loading")}</p>}
         {!loading && tree.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
             <FilePlus2 className="size-10 text-tertiary" />
-            <p className="text-body-sm-medium text-primary">هنوز صفحه‌ای نیست</p>
+            <p className="text-body-sm-medium text-primary">{t("wiki_page.no_pages_yet")}</p>
             <p className="max-w-sm text-body-xs-regular text-tertiary">
-              اولین صفحهٔ ویکی را بسازید و مثل یک کتابچه صفحات فرعی اضافه کنید. برای ایمپورت ZIP اول یک
-              صفحه بسازید.
+              {t("wiki_page.no_pages_description")}
             </p>
             <Button variant="primary" size="lg" onClick={createRoot}>
-              ساخت اولین صفحه
+              {t("wiki_page.create_first_page")}
             </Button>
           </div>
         )}

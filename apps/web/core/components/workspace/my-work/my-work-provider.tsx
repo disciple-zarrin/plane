@@ -14,6 +14,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useTranslation } from "@plane/i18n";
 import { EIssueLayoutTypes } from "@plane/types";
 import { IssueService } from "@/services/issue/issue.service";
 import { ProjectStateService } from "@/services/project/project-state.service";
@@ -92,6 +93,7 @@ export function issueTypeToLayout(type: EIssueLayoutTypes): TMyWorkLayout | null
 }
 
 export function MyWorkProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<TUserAssignedIssue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -144,7 +146,7 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
       setItems([]);
       setTotal(0);
       setTotalPages(1);
-      setError("بارگذاری تسک‌های من انجام نشد.");
+      setError(t("my_work_board.load_error"));
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }

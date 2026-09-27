@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useTranslation } from "@plane/i18n";
 import { Link } from "react-router";
 import { FileText } from "lucide-react";
 import { cn } from "@plane/utils";
@@ -17,11 +17,12 @@ type Props = {
 
 export const EditorPageMention = observer(function EditorPageMention(props: Props) {
   const { id } = props;
+  const { t } = useTranslation();
   const { workspaceSlug, projectId } = useParams();
   const slug = workspaceSlug?.toString() || "";
   const project = projectId?.toString();
   const href = project ? `/${slug}/projects/${project}/pages/${id}` : `/${slug}/wiki/${id}`;
-  const name = getCachedPageMentionName(id) || "صفحه فرعی";
+  const name = getCachedPageMentionName(id) || t("wiki_page.subpage");
 
   return (
     <Link

@@ -9,8 +9,8 @@ import { omit } from "lodash-es";
 import { observer } from "mobx-react";
 import { SquareStackIcon } from "lucide-react";
 import { CopyIcon, EditIcon, TrashIcon } from "@plane/propel/icons";
-// plane utils
 import { Tooltip } from "@plane/propel/tooltip";
+import { useTranslation } from "@plane/i18n";
 import type { TWorkspaceDraftIssue } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
 import type { TContextMenuItem } from "@plane/ui";
@@ -41,6 +41,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
   const [issueToEdit, setIssueToEdit] = useState<TWorkspaceDraftIssue | undefined>(undefined);
   const [deleteIssueModal, setDeleteIssueModal] = useState(false);
   // hooks
+  const { t } = useTranslation();
   const { getIssueById, updateIssue, deleteIssue } = useWorkspaceDraftIssues();
   const { sidebarCollapsed: isSidebarCollapsed } = useAppTheme();
   const { getProjectIdentifierById } = useProject();
@@ -54,7 +55,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
   const duplicateIssuePayload = omit(
     {
       ...issue,
-      name: `${issue.name} (copy)`,
+      name: `${issue.name} (${t("copy")})`,
       is_draft: true,
     },
     ["id"]
@@ -63,7 +64,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
   const MENU_ITEMS: TContextMenuItem[] = [
     {
       key: "edit",
-      title: "edit",
+      title: t("common.actions.edit"),
       icon: EditIcon,
       action: () => {
         setIssueToEdit(issue);
@@ -72,7 +73,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
     },
     {
       key: "make-a-copy",
-      title: "make_a_copy",
+      title: t("common.actions.make_a_copy"),
       icon: CopyIcon,
       action: () => {
         setCreateUpdateIssueModal(true);
@@ -80,7 +81,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
     },
     {
       key: "move-to-issues",
-      title: "move_to_project",
+      title: t("common.actions.move_to_project"),
       icon: SquareStackIcon,
       action: () => {
         setMoveToIssue(true);
@@ -90,7 +91,7 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
     },
     {
       key: "delete",
-      title: "delete",
+      title: t("common.actions.delete"),
       icon: TrashIcon,
       action: () => {
         setDeleteIssueModal(true);

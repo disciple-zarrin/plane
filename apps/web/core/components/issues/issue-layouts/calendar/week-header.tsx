@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 import { EStartOfTheWeek } from "@plane/types";
+import { useTranslation } from "@plane/i18n";
 import {
   getOrderedDays,
   isPersianLocale,
@@ -22,20 +23,21 @@ type Props = {
   showWeekends: boolean;
 };
 
-const FA_DAY_FULL: Record<number, string> = {
-  [EStartOfTheWeek.SUNDAY]: "یکشنبه",
-  [EStartOfTheWeek.MONDAY]: "دوشنبه",
-  [EStartOfTheWeek.TUESDAY]: "سه‌شنبه",
-  [EStartOfTheWeek.WEDNESDAY]: "چهارشنبه",
-  [EStartOfTheWeek.THURSDAY]: "پنج‌شنبه",
-  [EStartOfTheWeek.FRIDAY]: "جمعه",
-  [EStartOfTheWeek.SATURDAY]: "شنبه",
+const DAY_I18N_KEYS: Record<number, string> = {
+  [EStartOfTheWeek.SUNDAY]: "common.days.sunday",
+  [EStartOfTheWeek.MONDAY]: "common.days.monday",
+  [EStartOfTheWeek.TUESDAY]: "common.days.tuesday",
+  [EStartOfTheWeek.WEDNESDAY]: "common.days.wednesday",
+  [EStartOfTheWeek.THURSDAY]: "common.days.thursday",
+  [EStartOfTheWeek.FRIDAY]: "common.days.friday",
+  [EStartOfTheWeek.SATURDAY]: "common.days.saturday",
 };
 
 export const CalendarWeekHeader = observer(function CalendarWeekHeader(props: Props) {
   const { isLoading, showWeekends } = props;
   // hooks
   const { data } = useUserProfile();
+  const { t } = useTranslation();
   const startOfWeek = getCalendarStartOfWeek(data?.start_of_the_week);
   const persian = isPersianLocale();
 
@@ -53,7 +55,7 @@ export const CalendarWeekHeader = observer(function CalendarWeekHeader(props: Pr
       )}
       {visibleDays.map((day) => (
         <div key={day.shortTitle} className="flex h-11 items-center justify-center bg-layer-1 px-2 md:justify-end">
-          {persian ? FA_DAY_FULL[day.value] ?? day.title : day.shortTitle}
+          {persian ? t(DAY_I18N_KEYS[day.value]) : day.shortTitle}
         </div>
       ))}
     </div>

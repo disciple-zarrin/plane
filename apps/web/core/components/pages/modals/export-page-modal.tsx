@@ -10,6 +10,7 @@ import { pdf } from "@react-pdf/renderer";
 import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router";
 import type { EditorRefApi } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
@@ -57,26 +58,10 @@ type TFormValues = {
   export_scope: TExportScope;
 };
 
-const EXPORT_FORMATS: { key: TExportFormats; label: string }[] = [
-  { key: "pdf", label: "PDF" },
-  { key: "docx", label: "Word (DOCX)" },
-  { key: "markdown", label: "ZIP مارک‌داون (+ تصاویر)" },
-];
-
 const PAGE_FORMATS: { key: TPageFormats; label: string }[] = [
   { key: "A4", label: "A4" },
   { key: "A3", label: "A3" },
   { key: "LETTER", label: "Letter" },
-];
-
-const CONTENT_VARIETY: { key: TContentVariety; label: string }[] = [
-  { key: "everything", label: "همه چیز" },
-  { key: "no-assets", label: "بدون تصویر" },
-];
-
-const EXPORT_SCOPES: { key: TExportScope; label: string }[] = [
-  { key: "this_page", label: "فقط این صفحه" },
-  { key: "page_and_subpages", label: "این صفحه + صفحات فرعی" },
 ];
 
 const defaultValues: TFormValues = {
@@ -99,6 +84,7 @@ function initiateDownload(blob: Blob, filename: string) {
 
 export function ExportPageModal(props: Props) {
   const { editorRef, isOpen, onClose, pageTitle, pageId, exportContext = "project", isRtl } = props;
+  const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
   const { workspaceSlug, projectId } = useParams();
   const { control, reset, watch } = useForm<TFormValues>({ defaultValues });
@@ -106,6 +92,22 @@ export function ExportPageModal(props: Props) {
     projectId,
     workspaceSlug: workspaceSlug ?? "",
   });
+
+  const exportFormats = [
+    { key: "pdf" as const, label: "PDF" },
+    { key: "docx" as const, label: "Word (DOCX)" },
+    { key: "markdown" as const, label: t("page_export.markdown_zip_label") },
+  ];
+
+  const contentVarieties = [
+    { key: "everything" as const, label: t("page_export.everything") },
+    { key: "no-assets" as const, label: t("page_export.no_assets") },
+  ];
+
+  const exportScopes = [
+    { key: "this_page" as const, label: t("page_export.this_page_only") },
+    { key: "page_and_subpages" as const, label: t("page_export.page_and_subpages") },
+  ];
 
   const selectedExportFormat = watch("export_format");
   const selectedPageFormat = watch("page_format");
@@ -225,8 +227,11 @@ export function ExportPageModal(props: Props) {
       if (result.failedAssets.length > 0) {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خروجی ناقص",
-          message: `${result.pageCount} صفحه ذخیره شد، ولی ${result.failedAssets.length} تصویر دریافت نشد.`,
+          title: t("page_export.partial_title"),
+          message: t("page_export.partial_message", {
+            pageCount: result.pageCount,
+            failedCount: result.failedAssets.length,
+          }),
         });
         return "partial";
       }
@@ -277,12 +282,20 @@ export function ExportPageModal(props: Props) {
       if (selectedExportFormat === "markdown") markdownStatus = await handleExportAsMarkdown();
       if (selectedExportFormat === "docx") await handleExportAsDocx();
       if (markdownStatus !== "partial") {
-        setToast({ type: TOAST_TYPE.SUCCESS, title: "موفق", message: "خروجی آماده شد." });
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: t("page_export.success_title"),
+          message: t("page_export.success_message"),
+        });
       }
       handleClose();
     } catch (error) {
       console.error(error);
-      setToast({ type: TOAST_TYPE.ERROR, title: "خطا", message: "خروجی گرفته نشد." });
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: t("page_export.error_title"),
+        message: t("page_export.error_message"),
+      });
     } finally {
       setIsExporting(false);
     }
@@ -292,23 +305,23 @@ export function ExportPageModal(props: Props) {
     <ModalCore isOpen={isOpen} handleClose={handleClose} position={EModalPosition.CENTER} width={EModalWidth.SM}>
       <div>
         <div className="space-y-5 p-5">
-          <h3 className="text-18 font-medium text-secondary">خروجی صفحه</h3>
+          <h3 className="text-18 font-medium text-secondary">{t("page_export.title")}</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">فرمت</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">{t("page_export.format")}</h6>
               <Controller
                 control={control}
                 name="export_format"
                 render={({ field: { onChange, value } }) => (
                   <CustomSelect
-                    label={EXPORT_FORMATS.find((f) => f.key === value)?.label}
+                    label={exportFormats.find((f) => f.key === value)?.label}
                     buttonClassName="border-none"
                     value={value}
                     onChange={(val: TExportFormats) => onChange(val)}
                     className="flex-shrink-0"
                     placement="bottom-end"
                   >
-                    {EXPORT_FORMATS.map((format) => (
+                    {exportFormats.map((format) => (
                       <CustomSelect.Option key={format.key} value={format.key}>
                         {format.label}
                       </CustomSelect.Option>
@@ -319,20 +332,20 @@ export function ExportPageModal(props: Props) {
             </div>
             {pageId && (
               <div className="flex items-center justify-between gap-2">
-                <h6 className="flex-shrink-0 text-13 text-secondary">محدوده</h6>
+                <h6 className="flex-shrink-0 text-13 text-secondary">{t("page_export.scope")}</h6>
                 <Controller
                   control={control}
                   name="export_scope"
                   render={({ field: { onChange, value } }) => (
                     <CustomSelect
-                      label={EXPORT_SCOPES.find((s) => s.key === value)?.label}
+                      label={exportScopes.find((s) => s.key === value)?.label}
                       buttonClassName="border-none"
                       value={value}
                       onChange={(val: TExportScope) => onChange(val)}
                       className="flex-shrink-0"
                       placement="bottom-end"
                     >
-                      {EXPORT_SCOPES.map((s) => (
+                      {exportScopes.map((s) => (
                         <CustomSelect.Option key={s.key} value={s.key}>
                           {s.label}
                         </CustomSelect.Option>
@@ -343,20 +356,20 @@ export function ExportPageModal(props: Props) {
               </div>
             )}
             <div className="flex items-center justify-between gap-2">
-              <h6 className="flex-shrink-0 text-13 text-secondary">محتوا</h6>
+              <h6 className="flex-shrink-0 text-13 text-secondary">{t("page_export.content")}</h6>
               <Controller
                 control={control}
                 name="content_variety"
                 render={({ field: { onChange, value } }) => (
                   <CustomSelect
-                    label={CONTENT_VARIETY.find((v) => v.key === value)?.label}
+                    label={contentVarieties.find((v) => v.key === value)?.label}
                     buttonClassName="border-none"
                     value={value}
                     onChange={(val: TContentVariety) => onChange(val)}
                     className="flex-shrink-0"
                     placement="bottom-end"
                   >
-                    {CONTENT_VARIETY.map((variety) => (
+                    {contentVarieties.map((variety) => (
                       <CustomSelect.Option key={variety.key} value={variety.key}>
                         {variety.label}
                       </CustomSelect.Option>
@@ -367,7 +380,7 @@ export function ExportPageModal(props: Props) {
             </div>
             {isPDFSelected && (
               <div className="flex items-center justify-between gap-2">
-                <h6 className="flex-shrink-0 text-13 text-secondary">اندازه صفحه</h6>
+                <h6 className="flex-shrink-0 text-13 text-secondary">{t("page_export.page_size")}</h6>
                 <Controller
                   control={control}
                   name="page_format"
@@ -394,10 +407,10 @@ export function ExportPageModal(props: Props) {
         </div>
         <div className="flex items-center justify-end gap-2 border-t-[0.5px] border-subtle px-5 py-4">
           <Button variant="secondary" size="lg" onClick={handleClose}>
-            انصراف
+            {t("cancel")}
           </Button>
           <Button variant="primary" size="lg" loading={isExporting} onClick={handleExport}>
-            {isExporting ? "در حال خروجی…" : "خروجی"}
+            {isExporting ? t("page_export.exporting") : t("page_export.export_btn")}
           </Button>
         </div>
       </div>

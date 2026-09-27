@@ -6,6 +6,7 @@
 
 import { observer } from "mobx-react";
 // types
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { IProjectView } from "@plane/types";
 import { EIssuesStoreType } from "@plane/types";
@@ -33,6 +34,7 @@ export const CreateUpdateProjectViewModal = observer(function CreateUpdateProjec
   const { data, isOpen, onClose, preLoadedData, workspaceSlug, projectId } = props;
   // router
   const router = useAppRouter();
+  const { t } = useTranslation();
   // store hooks
   const { createView, updateView } = useProjectView();
   const {
@@ -51,14 +53,14 @@ export const CreateUpdateProjectViewModal = observer(function CreateUpdateProjec
       router.push(`/${workspaceSlug}/projects/${projectId}/views/${res.id}`);
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "Success!",
-        message: "View created successfully.",
+        title: t("common.success"),
+        message: t("entity.create.success", { entity: t("common.view") }),
       });
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Failed to create view. Please try again.",
+        title: t("common.errors.title"),
+        message: t("entity.create.failed", { entity: t("common.view") }),
       });
     }
   };
@@ -72,8 +74,8 @@ export const CreateUpdateProjectViewModal = observer(function CreateUpdateProjec
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Failed to update view. Please try again.",
+        title: t("common.errors.title"),
+        message: t("entity.update.failed", { entity: t("common.view") }),
       });
     }
   };

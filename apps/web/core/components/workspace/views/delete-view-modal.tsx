@@ -41,8 +41,8 @@ export const DeleteGlobalViewModal = observer(function DeleteGlobalViewModal(pro
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "Failed to delete the view. Please try again.",
+        title: `${t("common.errors.title") || "Error"}!`,
+        message: t("entity.delete.failed", { entity: t("common.view") }),
       });
     }
 
@@ -60,6 +60,11 @@ export const DeleteGlobalViewModal = observer(function DeleteGlobalViewModal(pro
       isOpen={isOpen}
       title={t("workspace_views.delete_view.title")}
       content={<>{t("workspace_views.delete_view.content")}</>}
+      primaryButtonText={{
+        loading: t("deleting"),
+        default: t("delete"),
+      }}
+      secondaryButtonText={t("cancel")}
     />
   );
 });

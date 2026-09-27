@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { RefObject } from "react";
 import { AlignLeft, AlignRight } from "lucide-react";
 import type { EditorRefApi } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@plane/propel/tooltip";
 import { cn } from "@plane/utils";
 
@@ -29,6 +30,7 @@ function resolveEditor(editorRef: Props["editorRef"]): EditorRefApi | null {
  */
 export function EditorRtlToggle(props: Props) {
   const { editorRef, disabled, className } = props;
+  const { t } = useTranslation();
   const [active, setActive] = useState<"ltr" | "rtl">("ltr");
   const [ready, setReady] = useState(() => Boolean(resolveEditor(editorRef)));
 
@@ -68,7 +70,7 @@ export function EditorRtlToggle(props: Props) {
 
   return (
     <div className={cn("inline-flex items-center gap-1", className)}>
-      <Tooltip tooltipContent="جهت این پاراگراف: چپ‌به‌راست (LTR)">
+      <Tooltip tooltipContent={t("editor_direction_ltr")}>
         <button
           type="button"
           disabled={disabled || !ready}
@@ -81,13 +83,13 @@ export function EditorRtlToggle(props: Props) {
             (disabled || !ready) && "cursor-not-allowed opacity-50"
           )}
           aria-pressed={active === "ltr"}
-          aria-label="Set paragraph direction to LTR"
+          aria-label={t("editor_direction_ltr")}
         >
           <AlignLeft className="size-3.5 shrink-0" />
           <span>LTR</span>
         </button>
       </Tooltip>
-      <Tooltip tooltipContent="جهت این پاراگراف: راست‌به‌چپ (RTL)">
+      <Tooltip tooltipContent={t("editor_direction_rtl")}>
         <button
           type="button"
           disabled={disabled || !ready}
@@ -100,7 +102,7 @@ export function EditorRtlToggle(props: Props) {
             (disabled || !ready) && "cursor-not-allowed opacity-50"
           )}
           aria-pressed={active === "rtl"}
-          aria-label="Set paragraph direction to RTL"
+          aria-label={t("editor_direction_rtl")}
         >
           <AlignRight className="size-3.5 shrink-0" />
           <span>RTL</span>

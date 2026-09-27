@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { EyeIcon, TriangleAlert } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TPageVersion } from "@plane/types";
@@ -49,6 +50,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
     restoreEnabled,
     storeType,
   } = props;
+  const { t } = useTranslation();
   const [isRestoring, setIsRestoring] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [showDiff, setShowDiff] = useState(true);
@@ -97,12 +99,12 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
     setIsRestoring(true);
     await handleRestore(versionDetails.description_html ?? "<p></p>", activeVersion)
       .then(() => {
-        setToast({ type: TOAST_TYPE.SUCCESS, title: "نسخه بازگردانی شد." });
+        setToast({ type: TOAST_TYPE.SUCCESS, title: t("page_versions.restored_success") });
         handleClose();
         return undefined;
       })
       .catch(() => {
-        setToast({ type: TOAST_TYPE.ERROR, title: "بازگردانی ناموفق بود." });
+        setToast({ type: TOAST_TYPE.ERROR, title: t("page_versions.restore_failed") });
         return undefined;
       })
       .finally(() => setIsRestoring(false));
@@ -129,10 +131,10 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
   const sameAsCurrent = effectiveMode === "vs_current" && stripSimple(selectedHtml) === stripSimple(currentHtml);
   const caption =
     effectiveMode === "introduced"
-      ? "تغییرات این نسخه نسبت به نسخهٔ قبلی (مثل GitLab)"
+      ? t("page_versions.caption_introduced")
       : sameAsCurrent
-        ? "این نسخه با سند فعلی یکی است — یک ویرایش دیگر ذخیره کنید تا تفاوت دیده شود."
-        : "تفاوت این نسخه (قبل) با سند فعلی — سبز (++): اضافه‌شده";
+        ? t("page_versions.caption_same")
+        : t("page_versions.caption_vs_current");
 
   return (
     <div className="flex flex-grow flex-col overflow-hidden">
@@ -143,11 +145,11 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
               <TriangleAlert className="size-10" />
             </span>
             <div>
-              <h6 className="text-16 font-semibold">خطا</h6>
-              <p className="text-13 text-tertiary">نسخه بارگذاری نشد.</p>
+              <h6 className="text-16 font-semibold">{t("common.error.label")}</h6>
+              <p className="text-13 text-tertiary">{t("page_versions.load_failed")}</p>
             </div>
             <Button variant="link" onClick={handleRetry} loading={isRetrying}>
-              تلاش دوباره
+              {t("page_versions.retry")}
             </Button>
           </div>
         </div>
@@ -158,14 +160,14 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
               <h6 className="text-14 font-medium">
                 {versionDetails
                   ? `${renderFormattedDate(versionDetails.last_saved_at)} ${renderFormattedTime(versionDetails.last_saved_at)}`
-                  : "در حال بارگذاری…"}
+                  : t("page_versions.loading")}
               </h6>
               <span className="flex flex-shrink-0 items-center gap-1 rounded-sm bg-accent-primary/20 px-1.5 py-1 text-11 font-medium text-accent-primary">
                 <EyeIcon className="size-3 flex-shrink-0" />
-                فقط مشاهده
+                {t("page_versions.view_only")}
               </span>
               <button type="button" className="text-11 text-accent-primary" onClick={() => setShowDiff((v) => !v)}>
-                {showDiff ? "پیش‌نمایش سند" : "دیف ++/−−"}
+                {showDiff ? t("page_versions.preview_document") : t("page_versions.diff_toggle")}
               </button>
               {showDiff && (
                 <div className="flex items-center gap-1 rounded-sm border border-subtle p-0.5 text-11">
@@ -178,9 +180,9 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
                     }
                     onClick={() => setDiffMode("introduced")}
                     disabled={!previousVersionMeta}
-                    title={!previousVersionMeta ? "نسخهٔ قبلی وجود ندارد" : undefined}
+                    title={!previousVersionMeta ? t("page_versions.no_previous_version") : undefined}
                   >
-                    این نسخه
+                    {t("page_versions.this_version")}
                   </button>
                   <button
                     type="button"
@@ -191,7 +193,7 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
                     }
                     onClick={() => setDiffMode("vs_current")}
                   >
-                    در برابر فعلی
+                    {t("page_versions.vs_current")}
                   </button>
                 </div>
               )}
@@ -204,14 +206,14 @@ export const PageVersionsMainContent = observer(function PageVersionsMainContent
                 loading={isRestoring}
                 disabled={!versionDetails || !activeVersion}
               >
-                {isRestoring ? "…" : "بازگردانی به این نسخه"}
+                {isRestoring ? "…" : t("page_versions.restore_button")}
               </Button>
             )}
           </div>
           <div className="vertical-scrollbar scrollbar-sm h-full overflow-y-scroll px-5 pt-6">
             {showDiff && versionDetails ? (
               showIntroducedSpinner ? (
-                <p className="text-13 text-tertiary">در حال بارگذاری دیف…</p>
+                <p className="text-13 text-tertiary">{t("page_versions.loading_diff")}</p>
               ) : (
                 <DocumentHtmlDiff
                   beforeHtml={beforeHtml}

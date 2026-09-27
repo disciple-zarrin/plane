@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { useTranslation } from "@plane/i18n";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@plane/utils";
@@ -18,7 +19,9 @@ type Props = {
  * Consistent back control: history.back() with optional fallback route.
  */
 export function HesarBackButton(props: Props) {
-  const { fallbackHref, className, label = "بازگشت" } = props;
+  const { fallbackHref, className, label } = props;
+  const { t } = useTranslation();
+  const resolvedLabel = label ?? t("common.back");
   const router = useAppRouter();
 
   const onBack = () => {
@@ -40,10 +43,10 @@ export function HesarBackButton(props: Props) {
         "hover:bg-layer-transparent-hover hover:text-primary",
         className
       )}
-      aria-label={label}
+      aria-label={resolvedLabel}
     >
       <ArrowLeft className="size-4 rtl:rotate-180" />
-      <span className="hidden sm:inline">{label}</span>
+      <span className="hidden sm:inline">{resolvedLabel}</span>
     </button>
   );
 }

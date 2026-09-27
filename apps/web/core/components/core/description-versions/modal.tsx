@@ -128,7 +128,7 @@ export const DescriptionVersionsModal = observer(function DescriptionVersionsMod
         <div className="mt-4 space-y-4 pb-4">
           {activeVersionId && activeVersionDescription && currentDescriptionHtml !== undefined && (
             <div className="space-y-2">
-              <p className="text-11 text-tertiary">تغییرات نسبت به نسخهٔ فعلی (سبز/قرمز)</p>
+              <p className="text-11 text-tertiary">{t("page_versions.changes_diff_hint")}</p>
               <DocumentHtmlDiff beforeHtml={activeVersionDescription} afterHtml={currentDescriptionHtml} />
             </div>
           )}

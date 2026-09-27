@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { Pause, Timer } from "lucide-react";
 import { Link } from "react-router";
+import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 import {
   WORK_TIMER_EVENT,
@@ -18,6 +19,7 @@ import {
 } from "@/helpers/work-timer";
 
 export function FloatingWorkTimer() {
+  const { t } = useTranslation();
   const [timer, setTimer] = useState<TWorkTimerState | null>(() => readWorkTimer());
   const [now, setNow] = useState(() => Date.now());
 
@@ -71,7 +73,9 @@ export function FloatingWorkTimer() {
           <Timer className="size-4" />
         </span>
         <Link to={href} className="min-w-0">
-          <div className="max-w-[11rem] truncate text-11 text-tertiary">{timer.issueName || "تسک فعال"}</div>
+          <div className="max-w-[11rem] truncate text-11 text-tertiary">
+            {timer.issueName || t("worklog_panel.active_task")}
+          </div>
           <div className="font-semibold tabular-nums text-primary">{formatClock(ms)}</div>
         </Link>
         {timer.running && (
@@ -79,7 +83,7 @@ export function FloatingWorkTimer() {
             type="button"
             className="flex size-8 items-center justify-center rounded-full bg-surface-2 text-secondary hover:bg-layer-transparent-hover hover:text-primary"
             onClick={onStop}
-            title="توقف"
+            title={t("worklog_panel.stop")}
           >
             <Pause className="size-3.5" />
           </button>

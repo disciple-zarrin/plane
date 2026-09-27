@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { CollaborationState, EditorRefApi } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@plane/types";
 // hooks
@@ -61,6 +62,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     workspaceSlug,
     customRealtimeEventHandlers,
   } = props;
+  const { t } = useTranslation();
   // states
   const [editorReady, setEditorReady] = useState(false);
   const [collaborationState, setCollaborationState] = useState<CollaborationState | null>(null);
@@ -134,16 +136,16 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
       creatingSubpageRef.current = true;
       try {
         const created = await handlers.create({
-          name: "صفحه فرعی",
+          name: t("wiki_page.subpage"),
           parent: page.id,
         });
         if (!created?.id) {
           throw new Error("empty");
         }
-        cachePageMentionName(created.id, created.name || "صفحه فرعی");
+        cachePageMentionName(created.id, created.name || t("wiki_page.subpage"));
         try {
           if (typeof editorRef.current?.insertPageLink === "function") {
-            editorRef.current.insertPageLink(created.id, created.name || "صفحه فرعی");
+            editorRef.current.insertPageLink(created.id, created.name || t("wiki_page.subpage"));
           } else {
             const mentionHtml = `<p><mention-component id="${created.id}" entity_identifier="${created.id}" entity_name="page"></mention-component></p>`;
             editorRef.current?.insertText(mentionHtml, true);
@@ -153,20 +155,20 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
         }
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "ساخته شد",
-          message: "صفحه فرعی به این صفحه اضافه شد — روی لینک کلیک کنید.",
+          title: t("wiki_page.subpage_created_title"),
+          message: t("wiki_page.subpage_created_link_message"),
         });
       } catch {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "ساخت صفحه فرعی انجام نشد.",
+          title: t("common.error.label"),
+          message: t("wiki_page.subpage_create_failed"),
         });
       } finally {
         creatingSubpageRef.current = false;
       }
     })();
-  }, [handlers, page.id]);
+  }, [handlers, page.id, t]);
 
   const createSubpageRef = useRef(createSubpage);
   createSubpageRef.current = createSubpage;

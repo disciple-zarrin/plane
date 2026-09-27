@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { ChevronDown, ChevronUp, Timer, Trash2 } from "lucide-react";
 import { Button } from "@plane/propel/button";
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn, renderFormattedPayloadDate } from "@plane/utils";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
@@ -34,12 +35,12 @@ type Props = {
 const service = new WorkLogService();
 
 const QUICK_ADD = [
-  { label: "۱۵د", minutes: 15 },
-  { label: "۳۰د", minutes: 30 },
-  { label: "۱س", minutes: 60 },
-  { label: "۲س", minutes: 120 },
-  { label: "۴س", minutes: 240 },
-  { label: "۸س", minutes: 480 },
+  { label: "15m", minutes: 15 },
+  { label: "30m", minutes: 30 },
+  { label: "1h", minutes: 60 },
+  { label: "2h", minutes: 120 },
+  { label: "4h", minutes: 240 },
+  { label: "8h", minutes: 480 },
 ];
 
 function formatHours(minutes: number) {
@@ -55,6 +56,7 @@ const MAX_ENTRY_MINUTES = 24 * 60;
 
 export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Props) {
   const { workspaceSlug, projectId, issueId, disabled } = props;
+  const { t } = useTranslation();
   const {
     issue: { getIssueById },
   } = useIssueDetail();
@@ -132,10 +134,10 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       if (current.running || msToMinutes(elapsedMs(current)) >= 1) {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "تایمر تسک دیگر باز است",
+          title: t("worklog_panel.other_timer_running"),
           message: current.running
-            ? "اول تایمر تسک قبلی را متوقف کن."
-            : "اول زمان تسک قبلی را به ساعت کاری اضافه کن.",
+            ? t("worklog_panel.stop_timer_first_message")
+            : t("worklog_panel.stop_timer_first_message"),
         });
         return;
       }
@@ -181,14 +183,14 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
     if (addingRef.current && !fromTimer) return;
     let duration = overrideMinutes ?? addMinutes;
     if (duration < 1) {
-      setError("حداقل ۱ دقیقه وارد کنید.");
+      setError(t("worklog_panel.min_1_minute"));
       return;
     }
     const capped = fromTimer && duration > MAX_ENTRY_MINUTES;
     if (duration > MAX_ENTRY_MINUTES) {
       if (fromTimer) duration = MAX_ENTRY_MINUTES;
       else {
-        setError("حداکثر ۲۴ ساعت در هر ثبت.");
+        setError(t("worklog_panel.max_24_hours"));
         return;
       }
     }
@@ -202,7 +204,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
     try {
       await service.createIssueWorkLog(workspaceSlug, projectId, issueId, {
         duration_minutes: duration,
-        description: fromTimer ? description || "تایمر" : description,
+        description: fromTimer ? description || t("worklog_panel.timer_default_desc") : description,
         logged_at: fromTimer ? renderFormattedPayloadDate(new Date()) || loggedAt : loggedAt,
       });
       setDescription("");
@@ -223,17 +225,15 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       await refresh();
       setToast({
         type: capped ? TOAST_TYPE.WARNING : TOAST_TYPE.SUCCESS,
-        title: "ثبت شد",
-        message: capped
-          ? `${formatHours(duration)} ثبت شد. باقی‌مانده هنوز روی تایمر است.`
-          : `${formatHours(duration)} به جمع زمان تسک اضافه شد.`,
+        title: t("worklog_panel.recorded_title"),
+        message: `${formatHours(duration)} ${t("common.saved")}`,
       });
     } catch {
-      setError("ثبت نشد. دوباره تلاش کنید.");
+      setError(t("worklog_panel.failed_retry"));
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "خطا",
-        message: "ثبت ساعت انجام نشد.",
+        title: t("common.error.label"),
+        message: t("worklog_panel.log_failed_message"),
       });
     } finally {
       setSaving(false);
@@ -247,7 +247,11 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
     const current = readWorkTimer();
     if (!current || current.issueId !== issueId) return;
     if (current.running) {
-      setToast({ type: TOAST_TYPE.ERROR, title: "اول توقف بزن", message: "بعد از توقف می‌توانی به ساعت کاری اضافه کنی." });
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: t("worklog_panel.stop_timer_first_title"),
+        message: t("worklog_panel.stop_timer_first_message"),
+      });
       return;
     }
     const mins = msToMinutes(elapsedMs(current));
@@ -262,14 +266,14 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
       await refresh();
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "حذف شد",
-        message: "ثبت زمان حذف شد.",
+        title: t("worklog_panel.deleted_title"),
+        message: t("worklog_panel.deleted_message"),
       });
     } catch {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "خطا",
-        message: "حذف انجام نشد.",
+        title: t("common.error.label"),
+        message: t("worklog_panel.delete_failed_message"),
       });
     }
   };
@@ -278,7 +282,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
 
   return (
     <div className="w-full space-y-2">
-      <SidebarPropertyListItem icon={Timer} label="زمان صرف‌شده">
+      <SidebarPropertyListItem icon={Timer} label={t("worklog_panel.time_spent")}>
         <div className="flex w-full items-center justify-between gap-2">
           <button
             type="button"
@@ -314,7 +318,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           />
 
           <div className="flex items-center justify-between gap-2 rounded-md border border-subtle bg-surface-2/60 px-3 py-2">
-            <div className="text-body-xs-regular text-tertiary">جمع فعلی</div>
+            <div className="text-body-xs-regular text-tertiary">{t("worklog_panel.current_total")}</div>
             <div className="flex items-center gap-2 text-body-xs-medium">
               <span className="tabular-nums text-primary">{formatHours(totalMinutes)}</span>
               {addMinutes > 0 && (
@@ -346,7 +350,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
 
           <div className="grid grid-cols-2 gap-2">
             <label className="space-y-1 text-11 text-tertiary">
-              ساعت
+              {t("worklog_panel.hours")}
               <input
                 className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
                 type="number"
@@ -357,7 +361,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
               />
             </label>
             <label className="space-y-1 text-11 text-tertiary">
-              دقیقه
+              {t("worklog_panel.minutes")}
               <input
                 className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
                 type="number"
@@ -371,7 +375,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           </div>
 
           <label className="block space-y-1 text-11 text-tertiary">
-            تاریخ
+            {t("worklog_panel.date")}
             <input
               className="w-full rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
               type="date"
@@ -381,11 +385,11 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
           </label>
 
           <label className="block space-y-1 text-11 text-tertiary">
-            توضیح (اختیاری)
+            {t("worklog_panel.description_optional")}
             <textarea
               className="w-full resize-none rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
               rows={2}
-              placeholder="چه کاری انجام شد؟"
+              placeholder={t("worklog_panel.description_placeholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -395,10 +399,10 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
 
           <div className="flex items-center gap-2">
             <Button variant="secondary" size="sm" onClick={() => onSave()} disabled={saving || addMinutes < 1}>
-              {saving ? "…" : `ثبت دستی ${addMinutes > 0 ? formatHours(addMinutes) : ""}`}
+              {saving ? "…" : `${t("worklog_panel.manual_log")} ${addMinutes > 0 ? formatHours(addMinutes) : ""}`}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={saving}>
-              بستن
+              {t("common.close")}
             </Button>
           </div>
         </div>
@@ -428,7 +432,7 @@ export const IssueWorklogsPanel = observer(function IssueWorklogsPanel(props: Pr
                   type="button"
                   className="shrink-0 rounded p-1 text-tertiary opacity-0 transition-opacity hover:bg-surface-1 hover:text-danger-primary group-hover:opacity-100"
                   onClick={() => onDelete(log)}
-                  title="حذف"
+                  title={t("common.delete")}
                 >
                   <Trash2 className="size-3.5" />
                 </button>

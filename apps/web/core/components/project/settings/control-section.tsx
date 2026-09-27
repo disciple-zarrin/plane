@@ -60,7 +60,7 @@ export const GeneralProjectSettingsControlSection = observer(function GeneralPro
         <SettingsBoxedControlItem
           className="rounded-b-none border-0 border-b"
           title={t("archive")}
-          description={t("project_settings.settings.general.archive_project.description")}
+          description={t("project_settings.general.archive_project.description")}
           control={
             <Button variant="secondary" onClick={() => setArchiveProject(true)}>
               {t("archive")}
@@ -71,7 +71,7 @@ export const GeneralProjectSettingsControlSection = observer(function GeneralPro
         <SettingsBoxedControlItem
           className="rounded-t-none border-0"
           title={t("delete")}
-          description={t("project_settings.settings.general.delete_project.description")}
+          description={t("project_settings.general.delete_project.description")}
           control={
             <Button
               variant="error-outline"

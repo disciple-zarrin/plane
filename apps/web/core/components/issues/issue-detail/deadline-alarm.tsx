@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Bell, Settings } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { ToggleSwitch } from "@plane/ui";
 import { cn } from "@plane/utils";
@@ -30,6 +31,7 @@ type Props = {
 
 export function IssueDeadlineAlarmControl(props: Props) {
   const { workspaceSlug, projectId, issueId, issueName, issueIdentifier, targetDate, disabled } = props;
+  const { t } = useTranslation();
   const [alarm, setAlarm] = useState<TIssueUserAlarm | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,7 +68,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
       if (saved.enabled && saved.fire_at) {
         await scheduleLocalAlarm({
           tag,
-          title: "زنگ ددلاین",
+          title: t("deadline_alarm.title"),
           body: `${issueIdentifier} · ${issueName}`,
           url: `/${workspaceSlug}/projects/${projectId}/issues/${issueId}`,
           fireAtMs: new Date(saved.fire_at).getTime(),
@@ -76,14 +78,14 @@ export function IssueDeadlineAlarmControl(props: Props) {
       }
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "زنگ",
-        message: saved.enabled ? "زنگ ددلاین ذخیره شد." : "زنگ خاموش شد.",
+        title: t("deadline_alarm.alarm"),
+        message: saved.enabled ? t("deadline_alarm.saved") : t("deadline_alarm.disabled"),
       });
     } catch (e: any) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "خطا",
-        message: e?.error || e?.message || "ذخیره زنگ نشد.",
+        title: t("common.errors.title"),
+        message: e?.error || e?.message || t("deadline_alarm.save_failed"),
       });
     } finally {
       setSaving(false);
@@ -97,7 +99,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-12 font-medium text-secondary">
           <Bell className="size-3.5" />
-          زنگ ددلاین
+          {t("deadline_alarm.title")}
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -108,13 +110,13 @@ export function IssueDeadlineAlarmControl(props: Props) {
               } else {
                 setToast({
                   type: TOAST_TYPE.INFO,
-                  title: "تنظیمات زنگ",
-                  message: "برای انتخاب آهنگ زنگ و رفتار ساعت زنگ‌دار، از اپلیکیشن اندروید استفاده کنید.",
+                  title: t("deadline_alarm.settings_title"),
+                  message: t("deadline_alarm.settings_hint"),
                 });
               }
             }}
             className="p-1 text-tertiary hover:text-primary transition-colors rounded hover:bg-surface-1"
-            title="تنظیمات آهنگ زنگ و ساعت"
+            title={t("deadline_alarm.settings_sound_tooltip")}
           >
             <Settings className="size-3.5" />
           </button>
@@ -126,7 +128,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
           />
         </div>
       </div>
-      {!targetDate && <p className="text-11 text-tertiary">اول ددلاین را مشخص کن.</p>}
+      {!targetDate && <p className="text-11 text-tertiary">{t("deadline_alarm.set_target_date_first")}</p>}
       {targetDate && (
         <div className="space-y-1.5">
           <select
@@ -140,8 +142,8 @@ export function IssueDeadlineAlarmControl(props: Props) {
               })
             }
           >
-            <option value="at_time_on_due_date">ساعت مشخص در روز ددلاین</option>
-            <option value="hours_before">چند ساعت قبل از پایان روز ددلاین</option>
+            <option value="at_time_on_due_date">{t("deadline_alarm.mode_at_time")}</option>
+            <option value="hours_before">{t("deadline_alarm.mode_hours_before")}</option>
           </select>
           {alarm.mode === "at_time_on_due_date" ? (
             <input
@@ -165,8 +167,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
             />
           )}
           <p className="text-[10px] text-tertiary">
-            می‌تونی روی مک ست کنی؛ یک‌بار موبایل را آنلاین باز کن تا زنگ‌ها همگام شوند، بعد آفلاین هم در همان زمان روی
-            گوشی زنگ می‌زند (Chrome/Android بهترین پشتیبانی را دارد). اول روی موبایل «فعال‌سازی» Web Push را بزن.
+            {t("deadline_alarm.mobile_sync_tip")}
           </p>
         </div>
       )}

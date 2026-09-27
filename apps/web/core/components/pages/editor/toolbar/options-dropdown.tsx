@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ArrowUpToLine, Clipboard, History, Upload } from "lucide-react";
-// plane imports
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { ToggleSwitch } from "@plane/ui";
 // hooks
@@ -34,6 +34,7 @@ type Props = {
 
 export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: Props) {
   const { page, storeType } = props;
+  const { t } = useTranslation();
   // states
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -64,7 +65,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
           action: () => handleFullWidth(!isFullWidth),
           customContent: (
             <>
-              تمام‌عرض
+              {t("page_editor.full_width")}
               <ToggleSwitch value={isFullWidth} onChange={() => {}} />
             </>
           ),
@@ -75,7 +76,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
           action: () => handleStickyToolbar(!isStickyToolbarEnabled),
           customContent: (
             <>
-              نوار ابزار چسبان
+              {t("page_editor.sticky_toolbar")}
               <ToggleSwitch value={isStickyToolbarEnabled} onChange={() => {}} />
             </>
           ),
@@ -89,11 +90,11 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
             editorRef.copyMarkdownToClipboard();
             setToast({
               type: TOAST_TYPE.SUCCESS,
-              title: "موفق",
-              message: "مارک‌داون در کلیپ‌بورد کپی شد.",
+              title: t("page_export.success_title"),
+              message: t("page_editor.markdown_copied_success"),
             });
           },
-          title: "کپی مارک‌داون",
+          title: t("page_editor.copy_markdown"),
           icon: Clipboard,
           shouldRender: true,
         },
@@ -107,21 +108,21 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
             });
             router.push(updatedRoute);
           },
-          title: "تاریخچه نسخه‌ها",
+          title: t("page_versions.title"),
           icon: History,
           shouldRender: true,
         },
         {
           key: "export",
           action: () => setIsExportModalOpen(true),
-          title: "خروجی (PDF / Word / ZIP)",
+          title: t("page_editor.export_modal_title"),
           icon: ArrowUpToLine,
           shouldRender: true,
         },
         {
           key: "import-markdown",
           action: () => setIsImportModalOpen(true),
-          title: "ایمپورت ZIP مارک‌داون",
+          title: t("page_editor.import_modal_title"),
           icon: Upload,
           shouldRender: true,
         },
@@ -136,6 +137,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
       editorRef,
       updateQueryParams,
       router,
+      t,
     ]
   );
 
@@ -158,7 +160,7 @@ export const PageOptionsDropdown = observer(function PageOptionsDropdown(props: 
           workspaceSlug={slug}
           projectId={pid || undefined}
           destinationPageId={page.id}
-          destinationPageTitle={name || "بدون عنوان"}
+          destinationPageTitle={name || t("wiki_page.untitled")}
           onSuccess={async () => {
             if (pid) {
               await pageStore.fetchPagesList(slug, pid);

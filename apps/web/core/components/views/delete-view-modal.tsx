@@ -46,14 +46,14 @@ export const DeleteProjectViewModal = observer(function DeleteProjectViewModal(p
       router.push(`/${workspaceSlug}/projects/${projectId}/views`);
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "Success!",
-        message: "View deleted successfully.",
+        title: `${t("common.success") || "Success"}!`,
+        message: t("entity.delete.success", { entity: t("common.view") }),
       });
     } catch (_error) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "Error!",
-        message: "View could not be deleted. Please try again.",
+        title: `${t("common.errors.title") || "Error"}!`,
+        message: t("entity.delete.failed", { entity: t("common.view") }),
       });
     }
     setIsDeleteLoading(false);
@@ -67,6 +67,11 @@ export const DeleteProjectViewModal = observer(function DeleteProjectViewModal(p
       isOpen={isOpen}
       title={t("project_views.delete_view.title")}
       content={<>{t("project_views.delete_view.content")}</>}
+      primaryButtonText={{
+        loading: t("deleting"),
+        default: t("delete"),
+      }}
+      secondaryButtonText={t("cancel")}
     />
   );
 });

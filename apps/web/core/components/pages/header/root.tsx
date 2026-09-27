@@ -71,10 +71,10 @@ export const PagesListHeaderRoot = observer(function PagesListHeaderRoot(props: 
       rootPageIds
         .map((id) => {
           const page = getPageById(id);
-          return page?.id ? { id: page.id, title: page.name || "بدون عنوان", depth: 0 } : null;
+          return page?.id ? { id: page.id, title: page.name || t("wiki_page.untitled"), depth: 0 } : null;
         })
         .filter((opt): opt is TImportDestinationOption => !!opt),
-    [getPageById, rootPageIds]
+    [getPageById, rootPageIds, t]
   );
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export const PagesListHeaderRoot = observer(function PagesListHeaderRoot(props: 
     }
   }, [destinationOptions, selectedPageId]);
 
-  const selectedPageTitle = destinationOptions.find((opt) => opt.id === selectedPageId)?.title || "بدون عنوان";
+  const selectedPageTitle = destinationOptions.find((opt) => opt.id === selectedPageId)?.title || t("wiki_page.untitled");
 
   return (
     <>
@@ -164,11 +164,11 @@ export const PagesListHeaderRoot = observer(function PagesListHeaderRoot(props: 
               </CustomSelect>
               <Button variant="secondary" size="sm" onClick={() => setIsExportModalOpen(true)}>
                 <ArrowUpToLine className="size-3.5" />
-                خروجی ZIP
+                {t("page_export.title")}
               </Button>
               <Button variant="secondary" size="sm" onClick={() => setIsImportModalOpen(true)}>
                 <Upload className="size-3.5" />
-                ایمپورت ZIP
+                {t("wiki_page.import_zip")}
               </Button>
             </>
           )}

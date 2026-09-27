@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useMemo } from "react";
+import { useTranslation } from "@plane/i18n";
 // hooks
 import { useMultipleSelectStore } from "@/hooks/store/use-multiple-select-store";
 //
@@ -58,9 +59,11 @@ export const useMultipleSelect = (props: Props) => {
     getEntityDetailsFromEntityID,
   } = useMultipleSelectStore();
 
+  const { t } = useTranslation();
+
   useReloadConfirmations(
     selectedEntityIds && selectedEntityIds.length > 0,
-    "Are you sure you want to leave? Your current bulk operation selections will be lost.",
+    t("bulk_operation_leave_confirmation"),
     true,
     () => {
       clearSelection();

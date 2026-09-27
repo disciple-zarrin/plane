@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { useTranslation } from "@plane/i18n";
 import { Bell } from "lucide-react";
 import { Tooltip } from "@plane/propel/tooltip";
 import { cn } from "@plane/utils";
@@ -17,18 +18,19 @@ type Props = {
 /** Blue bell on issue cards when the current user has an enabled deadline alarm. */
 export function IssueAlarmBell(props: Props) {
   const { issueId, className } = props;
+  const { t } = useTranslation();
   const hasAlarm = useIssueHasAlarm(issueId);
 
   if (!hasAlarm || !issueId) return null;
 
   return (
-    <Tooltip tooltipContent="زنگ ددلاین فعال است" position="top">
+    <Tooltip tooltipContent={t("deadline_alarm.active_tooltip")} position="top">
       <span
         className={cn(
           "inline-flex size-4 flex-shrink-0 items-center justify-center rounded-full bg-accent-primary/15 text-accent-primary",
           className
         )}
-        aria-label="زنگ ددلاین"
+        aria-label={t("deadline_alarm.active_aria_label")}
       >
         <Bell className="size-2.5 fill-current" strokeWidth={2.5} />
       </span>

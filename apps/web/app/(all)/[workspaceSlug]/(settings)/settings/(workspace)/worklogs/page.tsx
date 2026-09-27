@@ -12,6 +12,7 @@ import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { BarChart } from "@plane/propel/charts/bar-chart";
 import { PieChart } from "@plane/propel/charts/pie-chart";
 import { Button } from "@plane/propel/button";
+import { useTranslation } from "@plane/i18n";
 import { Card, ECardSpacing } from "@plane/ui";
 import { cn } from "@plane/utils";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
@@ -44,6 +45,7 @@ function formatHours(minutes: number) {
 }
 
 function WorklogsPage() {
+  const { t } = useTranslation();
   const { workspaceSlug } = useParams();
   const [searchParams] = useSearchParams();
   const projectFromQuery = searchParams.get("project_id") || "";
@@ -152,7 +154,7 @@ function WorklogsPage() {
     return <NotAuthorizedView section="settings" className="h-auto" />;
   }
 
-  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - کارکرد` : undefined;
+  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - ${t("worklogs_dashboard.worklog")}` : undefined;
 
   return (
     <SettingsContentWrapper hugging>
@@ -165,11 +167,11 @@ function WorklogsPage() {
               <span className="flex size-8 items-center justify-center rounded-md bg-accent-primary/10 text-accent-primary">
                 <Timer className="size-4" />
               </span>
-              داشبورد کارکرد
+              {t("worklogs_dashboard.title")}
               {rows.length > 0 && <CountChip count={rows.length} className="h-5" />}
             </span>
           }
-          description="ساعت کار اعضای تیم، بر اساس فرد و تگ. هر ثبت جدید روی تسک به جمع قبلی اضافه می‌شود."
+          description={t("worklogs_dashboard.description")}
           control={
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="secondary" size="lg" onClick={downloadCsv} disabled={rows.length === 0}>
@@ -177,7 +179,7 @@ function WorklogsPage() {
                 CSV
               </Button>
               <Button variant="primary" size="lg" onClick={load} disabled={loading}>
-                {loading ? "در حال بارگذاری…" : "به‌روزرسانی"}
+                {loading ? t("page_versions.loading") : t("worklogs_dashboard.refresh")}
               </Button>
             </div>
           }
@@ -185,22 +187,22 @@ function WorklogsPage() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Card spacing={ECardSpacing.SM}>
-            <p className="text-body-xs-regular text-tertiary">جمع کل بازه</p>
+            <p className="text-body-xs-regular text-tertiary">{t("worklogs_dashboard.total_range")}</p>
             <p className="mt-1 text-h3-medium tabular-nums text-primary">{formatHours(totalMinutesAll)}</p>
           </Card>
           <Card spacing={ECardSpacing.SM}>
-            <p className="text-body-xs-regular text-tertiary">انتخاب‌شده</p>
+            <p className="text-body-xs-regular text-tertiary">{t("worklogs_dashboard.selected")}</p>
             <p className="mt-1 text-h3-medium tabular-nums text-accent-primary">{formatHours(selectedMinutes)}</p>
           </Card>
           <Card spacing={ECardSpacing.SM}>
-            <p className="text-body-xs-regular text-tertiary">تعداد افراد</p>
+            <p className="text-body-xs-regular text-tertiary">{t("worklogs_dashboard.people_count")}</p>
             <p className="mt-1 text-h3-medium tabular-nums text-primary">{summary.length}</p>
           </Card>
         </div>
 
         <div className="flex flex-wrap items-end gap-3 rounded-lg border border-subtle bg-surface-1 p-3">
           <label className="space-y-1 text-body-xs-regular text-tertiary">
-            از
+            {t("worklogs_dashboard.from_date")}
             <input
               className="block rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
               type="date"
@@ -209,7 +211,7 @@ function WorklogsPage() {
             />
           </label>
           <label className="space-y-1 text-body-xs-regular text-tertiary">
-            تا
+            {t("worklogs_dashboard.to_date")}
             <input
               className="block rounded-md border border-subtle bg-surface-2 px-2.5 py-1.5 text-body-xs-regular text-primary outline-none focus:border-accent-primary"
               type="date"
@@ -218,7 +220,7 @@ function WorklogsPage() {
             />
           </label>
           <Button variant="secondary" size="sm" onClick={load} disabled={loading}>
-            اعمال فیلتر
+            {t("worklogs_dashboard.apply_filter")}
           </Button>
         </div>
 
@@ -233,7 +235,7 @@ function WorklogsPage() {
                 : "border-subtle bg-surface-1 text-secondary hover:border-accent-primary/40"
             )}
           >
-            همه افراد
+            {t("worklogs_dashboard.all_people")}
           </button>
           {summary.map((p, i) => (
             <button
@@ -259,7 +261,7 @@ function WorklogsPage() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card spacing={ECardSpacing.SM} className="!p-4">
-            <h3 className="mb-3 text-body-sm-medium text-primary">ساعت کار بر اساس افراد</h3>
+            <h3 className="mb-3 text-body-sm-medium text-primary">{t("worklogs_dashboard.hours_by_person")}</h3>
             {personChartData.length > 0 ? (
               <BarChart
                 className="h-[280px] w-full"
@@ -268,7 +270,7 @@ function WorklogsPage() {
                 bars={[
                   {
                     key: "hours",
-                    label: "ساعت",
+                    label: t("worklogs_dashboard.hour_label"),
                     stackId: "h",
                     fill: (payload: any) => payload.color || PERSON_COLORS[0],
                     textClassName: "",
@@ -278,17 +280,17 @@ function WorklogsPage() {
                   },
                 ]}
                 xAxis={{ key: "name", label: "" }}
-                yAxis={{ key: "hours", label: "ساعت" }}
+                yAxis={{ key: "hours", label: t("worklogs_dashboard.hour_label") }}
                 barSize={28}
                 showTooltip
               />
             ) : (
-              <p className="py-16 text-center text-body-xs-regular text-tertiary">در این بازه داده‌ای نیست</p>
+              <p className="py-16 text-center text-body-xs-regular text-tertiary">{t("worklogs_dashboard.no_data_range")}</p>
             )}
           </Card>
 
           <Card spacing={ECardSpacing.SM} className="!p-4">
-            <h3 className="mb-3 text-body-sm-medium text-primary">ساعت کار بر اساس تگ‌ها</h3>
+            <h3 className="mb-3 text-body-sm-medium text-primary">{t("worklogs_dashboard.hours_by_tags")}</h3>
             {labelChartData.length > 0 ? (
               <div className="grid h-[280px] grid-cols-1 gap-2 md:grid-cols-2">
                 <PieChart
@@ -297,7 +299,7 @@ function WorklogsPage() {
                   data={labelChartData}
                   cells={labelChartData.map((g) => ({ key: g.key, fill: g.color }))}
                   showTooltip
-                  tooltipLabel="ساعت"
+                  tooltipLabel={t("worklogs_dashboard.hour_label")}
                   paddingAngle={3}
                   cornerRadius={4}
                   innerRadius="45%"
@@ -319,28 +321,28 @@ function WorklogsPage() {
                 </div>
               </div>
             ) : (
-              <p className="py-16 text-center text-body-xs-regular text-tertiary">تگی روی تسک‌های دارای لاگ نیست</p>
+              <p className="py-16 text-center text-body-xs-regular text-tertiary">{t("worklogs_dashboard.no_tags_logged")}</p>
             )}
           </Card>
         </div>
 
         <Card spacing={ECardSpacing.SM} className="!overflow-hidden !p-0">
           <div className="border-b border-subtle px-4 py-3">
-            <h3 className="text-body-sm-medium text-primary">جمع ساعت افراد</h3>
+            <h3 className="text-body-sm-medium text-primary">{t("worklogs_dashboard.summary_table_title")}</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-body-xs-regular">
               <thead className="bg-surface-2 text-tertiary">
                 <tr>
-                  <th className="px-4 py-2.5 text-start font-medium">فرد</th>
-                  <th className="px-4 py-2.5 text-start font-medium">جمع ساعت</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.member")}</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.total_hours")}</th>
                 </tr>
               </thead>
               <tbody>
                 {summary.length === 0 && (
                   <tr>
                     <td className="px-4 py-4 text-tertiary" colSpan={2}>
-                      در این بازه لاگی نیست
+                      {t("worklogs_dashboard.no_logs_range")}
                     </td>
                   </tr>
                 )}
@@ -365,25 +367,25 @@ function WorklogsPage() {
 
         <Card spacing={ECardSpacing.SM} className="!overflow-hidden !p-0">
           <div className="border-b border-subtle px-4 py-3">
-            <h3 className="text-body-sm-medium text-primary">جزئیات ثبت‌ها</h3>
+            <h3 className="text-body-sm-medium text-primary">{t("worklogs_dashboard.details_table_title")}</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-body-xs-regular">
               <thead className="bg-surface-2 text-tertiary">
                 <tr>
-                  <th className="px-4 py-2.5 text-start font-medium">تاریخ</th>
-                  <th className="px-4 py-2.5 text-start font-medium">فرد</th>
-                  <th className="px-4 py-2.5 text-start font-medium">تسک</th>
-                  <th className="px-4 py-2.5 text-start font-medium">عنوان</th>
-                  <th className="px-4 py-2.5 text-start font-medium">ساعت</th>
-                  <th className="px-4 py-2.5 text-start font-medium">توضیح</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.date")}</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.member")}</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.task")}</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.title_col")}</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.hour_label")}</th>
+                  <th className="px-4 py-2.5 text-start font-medium">{t("worklogs_dashboard.description_col")}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 && (
                   <tr>
                     <td className="px-4 py-4 text-tertiary" colSpan={6}>
-                      ثبتی در این فیلتر نیست
+                      {t("worklogs_dashboard.no_records_filter")}
                     </td>
                   </tr>
                 )}

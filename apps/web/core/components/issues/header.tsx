@@ -120,7 +120,7 @@ export const IssuesHeader = observer(function IssuesHeader() {
           }}
         >
           <Timer className="h-4 w-4" />
-          <span className="hidden sm:inline">کارکرد</span>
+          <span className="hidden sm:inline">{t("worklogs_dashboard.worklog")}</span>
         </Button>
         <div className="hidden gap-2 md:flex">
           <HeaderFilters

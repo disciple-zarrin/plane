@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import type { EditorRefApi } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TIssue, TNameDescriptionLoader } from "@plane/types";
 import { EFileAssetType, EInboxIssueSource, EInboxIssueStatus } from "@plane/types";
@@ -50,6 +51,7 @@ export const InboxIssueMainContent = observer(function InboxIssueMainContent(pro
   // refs
   const editorRef = useRef<EditorRefApi>(null);
   // store hooks
+  const { t } = useTranslation();
   const { data: currentUser } = useUser();
   const { getUserDetails } = useMember();
   const { loader } = useProjectInbox();
@@ -82,16 +84,16 @@ export const InboxIssueMainContent = observer(function InboxIssueMainContent(pro
         try {
           await removeIssue(workspaceSlug, projectId, _issueId);
           setToast({
-            title: "Success!",
+            title: `${t("common.success") || "Success"}!`,
             type: TOAST_TYPE.SUCCESS,
-            message: "Work item deleted successfully",
+            message: t("entity.delete.success", { entity: t("issue.label") }),
           });
         } catch (error) {
           console.log("Error in deleting work item:", error);
           setToast({
-            title: "Error!",
+            title: `${t("common.errors.title") || "Error"}!`,
             type: TOAST_TYPE.ERROR,
-            message: "Work item delete failed",
+            message: t("entity.delete.failed", { entity: t("issue.label") }),
           });
         }
       },

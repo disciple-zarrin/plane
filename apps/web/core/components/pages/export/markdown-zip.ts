@@ -346,8 +346,16 @@ export type TParsedMdPage = {
 };
 
 export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
+  const isRtl =
+    typeof document !== "undefined" &&
+    (document.documentElement.dir === "rtl" || document.documentElement.lang === "fa");
+
   if (file.size > MAX_ZIP_BYTES) {
-    throw new Error(`حجم فایل زیپ بیش از حد مجاز است (حداکثر ${MAX_ZIP_BYTES / (1024 * 1024)} مگابایت).`);
+    throw new Error(
+      isRtl
+        ? `حجم فایل زیپ بیش از حد مجاز است (حداکثر ${MAX_ZIP_BYTES / (1024 * 1024)} مگابایت).`
+        : `Zip file size exceeds limit (maximum ${MAX_ZIP_BYTES / (1024 * 1024)} MB).`
+    );
   }
 
   const zip = await JSZip.loadAsync(file);
@@ -362,7 +370,11 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
   );
 
   if (mdFiles.length > MAX_PAGES) {
-    throw new Error(`تعداد صفحات بیش از حد مجاز است (حداکثر ${MAX_PAGES}).`);
+    throw new Error(
+      isRtl
+        ? `تعداد صفحات بیش از حد مجاز است (حداکثر ${MAX_PAGES}).`
+        : `Number of pages exceeds limit (maximum ${MAX_PAGES}).`
+    );
   }
 
   return Promise.all(
@@ -392,18 +404,30 @@ export async function parseMarkdownZip(file: File): Promise<TParsedMdPage[]> {
       const assets: TParsedMdAsset[] = [];
       const imgLinks = [...body.matchAll(/!\[[^\]]*]\((\.\/)?\.\.\/assets\/([^)]+)\)/g)];
       if (imgLinks.length > MAX_ASSETS_PER_PAGE) {
-        throw new Error(`تعداد تصاویر صفحه «${title}» بیش از حد مجاز است.`);
+        throw new Error(
+          isRtl
+            ? `تعداد تصاویر صفحه «${title}» بیش از حد مجاز است.`
+            : `Image count for page "${title}" exceeds limit.`
+        );
       }
       let assetIndex = 0;
       for (const m of imgLinks) {
         const assetName = m[2];
         const assetFile = zip.file(`assets/${assetName}`) || zip.file(`assets/${decodeURIComponent(assetName)}`);
         if (!assetFile) {
-          throw new Error(`فایل پیوست یافت نشد: assets/${assetName} (صفحه «${title}»)`);
+          throw new Error(
+            isRtl
+              ? `فایل پیوست یافت نشد: assets/${assetName} (صفحه «${title}»)`
+              : `Attachment file not found: assets/${assetName} (page "${title}")`
+          );
         }
         const bytes = await assetFile.async("arraybuffer");
         if (bytes.byteLength > MAX_ASSET_BYTES) {
-          throw new Error(`فایل پیوست بیش از حد بزرگ است: assets/${assetName}`);
+          throw new Error(
+            isRtl
+              ? `فایل پیوست بیش از حد بزرگ است: assets/${assetName}`
+              : `Attachment file exceeds size limit: assets/${assetName}`
+          );
         }
         const placeholder = `IMG_PLACEHOLDER_${assetIndex++}_${assetName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
         assets.push({

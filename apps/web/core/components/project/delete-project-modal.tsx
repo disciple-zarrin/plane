@@ -45,7 +45,10 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
     watch,
   } = useForm({ defaultValues });
 
-  const canDelete = watch("projectName") === project?.name && watch("confirmDelete") === "delete my project";
+  const confirmVal = watch("confirmDelete")?.trim().toLowerCase();
+  const canDelete =
+    watch("projectName") === project?.name &&
+    (confirmVal === "delete my project" || confirmVal === "حذف پروژه من");
 
   const handleClose = () => {
     const timer = setTimeout(() => {
@@ -97,7 +100,7 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
         </span>
         <div className="text-secondary">
           <p className="text-13 break-words">
-            Enter the project name <span className="font-medium text-primary">{project?.name}</span> to continue:
+            {t("delete_project_enter_name", { name: project?.name || "" })}
           </p>
           <Controller
             control={control}
@@ -111,7 +114,7 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.projectName)}
-                placeholder="Project name"
+                placeholder={t("common.project_name")}
                 className="mt-2 w-full"
                 autoComplete="off"
               />
@@ -120,7 +123,7 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
         </div>
         <div className="text-secondary">
           <p className="text-13">
-            To confirm, type <span className="font-medium text-primary">delete my project</span> below:
+            {t("delete_project_type_confirm")}
           </p>
           <Controller
             control={control}
@@ -134,7 +137,7 @@ export function DeleteProjectModal(props: DeleteProjectModal) {
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.confirmDelete)}
-                placeholder="Enter 'delete my project'"
+                placeholder={t("delete_project_placeholder")}
                 className="mt-2 w-full"
                 autoComplete="off"
               />

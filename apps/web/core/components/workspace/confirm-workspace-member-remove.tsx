@@ -52,9 +52,11 @@ export const ConfirmWorkspaceMemberRemove = observer(function ConfirmWorkspaceMe
           <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-danger-subtle sm:mx-0 sm:h-10 sm:w-10">
             <AlertTriangle className="h-6 w-6 text-danger-primary" aria-hidden="true" />
           </div>
-          <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+          <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-start">
             <h3 className="text-h5-medium leading-6 text-primary">
-              {currentUser?.id === userDetails.id ? "Leave workspace?" : `Remove ${userDetails?.display_name}?`}
+              {currentUser?.id === userDetails.id
+                ? t("entity.leave.title", { entity: t("common.workspace") })
+                : t("remove_member_title", { name: userDetails?.display_name || "" })}
             </h3>
             <div className="mt-2">
               {currentUser?.id === userDetails.id ? (
@@ -63,9 +65,10 @@ export const ConfirmWorkspaceMemberRemove = observer(function ConfirmWorkspaceMe
                 </p>
               ) : (
                 <p className="text-body-xs-regular text-secondary">
-                  {/* TODO: Add translation here */}
-                  Are you sure you want to remove member- <span className="font-bold">{userDetails?.display_name}</span>
-                  ? They will no longer have access to this workspace. This action cannot be undone.
+                  {t("remove_member_confirm", {
+                    name: userDetails?.display_name || "",
+                    entity: t("common.workspace"),
+                  })}
                 </p>
               )}
             </div>

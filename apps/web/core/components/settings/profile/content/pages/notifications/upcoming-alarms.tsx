@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Bell } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { ToggleSwitch } from "@plane/ui";
 import {
@@ -42,6 +43,7 @@ type Props = {
 };
 
 export function UpcomingAlarmsList({ variant = "settings" }: Props) {
+  const { t } = useTranslation();
   const [alarms, setAlarms] = useState<TPendingIssueAlarm[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export function UpcomingAlarmsList({ variant = "settings" }: Props) {
       if (saved.enabled && saved.fire_at) {
         await scheduleLocalAlarm({
           tag,
-          title: "زنگ ددلاین",
+          title: t("deadline_alarm.title"),
           body: `${alarm.issue_identifier} · ${alarm.issue_name}`,
           url: alarm.url,
           fireAtMs: new Date(saved.fire_at).getTime(),
@@ -104,14 +106,14 @@ export function UpcomingAlarmsList({ variant = "settings" }: Props) {
       );
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: "زنگ",
-        message: enabled ? "زنگ روشن شد." : "زنگ خاموش شد.",
+        title: t("deadline_alarm.alarm"),
+        message: enabled ? t("deadline_alarm.enabled") : t("deadline_alarm.disabled"),
       });
     } catch (e: any) {
       setToast({
         type: TOAST_TYPE.ERROR,
-        title: "خطا",
-        message: e?.error || e?.message || "تغییر زنگ نشد.",
+        title: t("common.errors.title"),
+        message: e?.error || e?.message || t("deadline_alarm.update_failed"),
       });
     } finally {
       setBusyId(null);
@@ -130,17 +132,17 @@ export function UpcomingAlarmsList({ variant = "settings" }: Props) {
     >
       <div className="mb-2 flex items-center gap-1.5 text-13 font-medium text-primary">
         <Bell className="size-3.5" />
-        زنگ‌های پیش‌رو
+        {t("deadline_alarm.upcoming_title")}
       </div>
       {!isHome && (
         <p className="mb-3 text-11 text-tertiary">
-          زنگ‌هایی که برای تسک‌ها ست کرده‌ای. از اینجا روشن/خاموش کن؛ با باز کردن صفحه روی موبایل همگام می‌شوند.
+          {t("deadline_alarm.upcoming_description")}
         </p>
       )}
       {loading ? (
-        <p className="text-12 text-tertiary">در حال بارگذاری…</p>
+        <p className="text-12 text-tertiary">{t("page_versions.loading")}</p>
       ) : alarms.length === 0 ? (
-        <p className="text-12 text-tertiary">زنگ پیش‌رویی نیست. از داخل تسک، «زنگ ددلاین» را روشن کن.</p>
+        <p className="text-12 text-tertiary">{t("deadline_alarm.no_upcoming")}</p>
       ) : (
         <ul className="divide-y divide-subtle">
           {alarms.map((alarm) => (

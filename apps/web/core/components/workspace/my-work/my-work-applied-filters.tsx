@@ -5,18 +5,20 @@
  */
 
 import { X } from "lucide-react";
+import { useTranslation } from "@plane/i18n";
 import { EHeaderVariant, Header } from "@plane/ui";
 import { useMyWork } from "./my-work-provider";
 
-const PRIORITY_LABEL: Record<string, string> = {
-  urgent: "فوری",
-  high: "بالا",
-  medium: "متوسط",
-  low: "پایین",
-  none: "بدون اولویت",
-};
-
 export function MyWorkAppliedFilters() {
+  const { t } = useTranslation();
+  const priorityLabel: Record<string, string> = {
+    urgent: t("my_work_board.urgent"),
+    high: t("my_work_board.high"),
+    medium: t("my_work_board.medium"),
+    low: t("my_work_board.low"),
+    none: t("my_work_board.none_priority"),
+  };
+
   const {
     workspaceSlug,
     projectId,
@@ -39,7 +41,7 @@ export function MyWorkAppliedFilters() {
   if (searchInput.trim()) {
     chips.push({
       key: "q",
-      label: `جستجو: ${searchInput.trim()}`,
+      label: `${t("my_work_board.search_prefix")}: ${searchInput.trim()}`,
       onClear: clearSearch,
     });
   }
@@ -54,21 +56,21 @@ export function MyWorkAppliedFilters() {
     const p = filteredProjects.find((x) => x.id === projectId);
     chips.push({
       key: "project",
-      label: p ? p.identifier : "پروژه",
+      label: p ? p.identifier : t("my_work_board.project"),
       onClear: () => setProjectId(""),
     });
   }
   if (priority) {
     chips.push({
       key: "priority",
-      label: PRIORITY_LABEL[priority] || priority,
+      label: priorityLabel[priority] || priority,
       onClear: () => setPriority(""),
     });
   }
   if (includeDone) {
     chips.push({
       key: "done",
-      label: "شامل انجام‌شده",
+      label: t("my_work_board.includes_completed"),
       onClear: () => setIncludeDone(false),
     });
   }
@@ -90,7 +92,7 @@ export function MyWorkAppliedFilters() {
           </button>
         ))}
         <button type="button" onClick={clearFilters} className="px-2 py-1 text-11 text-accent-primary hover:underline">
-          پاک کردن همه
+          {t("my_work_board.clear_all")}
         </button>
       </Header.LeftItem>
     </Header>

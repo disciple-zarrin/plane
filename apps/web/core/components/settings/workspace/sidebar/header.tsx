@@ -42,7 +42,7 @@ export const WorkspaceSettingsSidebarHeader = observer(function WorkspaceSetting
           iconClassName="rtl:rotate-180"
           onClick={() => router.push(`/${currentWorkspace?.slug}/`)}
         />
-        <p>Workspace settings</p>
+        <p>{t("common.workspace_settings")}</p>
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 px-5 py-0.5">
         <div className="flex items-center gap-2 truncate">

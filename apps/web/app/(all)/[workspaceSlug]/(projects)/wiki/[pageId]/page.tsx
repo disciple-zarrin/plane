@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { ArrowRight, ArrowUpToLine, FilePlus2, FileText, History, Plus, Upload } from "lucide-react";
 import { Link, useParams } from "react-router";
 import type { EditorRefApi, IEditorPropsExtended } from "@plane/editor";
+import { useTranslation } from "@plane/i18n";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TPage, TSearchEntityRequestPayload } from "@plane/types";
 import { EFileAssetType } from "@plane/types";
@@ -40,6 +41,7 @@ declare global {
 }
 
 export default observer(function WikiDetailPage() {
+  const { t } = useTranslation();
   const { workspaceSlug, pageId } = useParams();
   const slug = workspaceSlug?.toString() || "";
   const id = pageId?.toString() || "";
@@ -112,8 +114,8 @@ export default observer(function WikiDetailPage() {
       if (!slug || !id) {
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
-          message: "صفحه والد پیدا نشد. صفحه را دوباره باز کنید.",
+          title: t("common.error.label"),
+          message: t("wiki_page.parent_page_not_found"),
         });
         return;
       }
@@ -122,16 +124,16 @@ export default observer(function WikiDetailPage() {
       setCreating(true);
       try {
         const child = await pageService.create(slug, {
-          name: "صفحه فرعی",
+          name: t("wiki_page.subpage"),
           parent: id,
         });
         if (!child?.id) {
           throw new Error("empty");
         }
-        cachePageMentionName(child.id, child.name || "صفحه فرعی");
+        cachePageMentionName(child.id, child.name || t("wiki_page.subpage"));
         try {
           if (typeof editorRef.current?.insertPageLink === "function") {
-            editorRef.current.insertPageLink(child.id, child.name || "صفحه فرعی");
+            editorRef.current.insertPageLink(child.id, child.name || t("wiki_page.subpage"));
           } else {
             const mentionHtml = `<p><mention-component id="${child.id}" entity_identifier="${child.id}" entity_name="page"></mention-component></p>`;
             editorRef.current?.insertText(mentionHtml, true);
@@ -153,8 +155,8 @@ export default observer(function WikiDetailPage() {
         }
         setToast({
           type: TOAST_TYPE.SUCCESS,
-          title: "ساخته شد",
-          message: "صفحه فرعی به این صفحه اضافه شد.",
+          title: t("wiki_page.subpage_created_title"),
+          message: t("wiki_page.subpage_created_message"),
         });
         await load();
         if (opts?.open === true) {
@@ -164,10 +166,10 @@ export default observer(function WikiDetailPage() {
         const message =
           error && typeof error === "object" && "error" in error
             ? String((error as { error?: string }).error)
-            : "ساخت صفحه فرعی انجام نشد.";
+            : t("wiki_page.subpage_create_failed");
         setToast({
           type: TOAST_TYPE.ERROR,
-          title: "خطا",
+          title: t("common.error.label"),
           message,
         });
       } finally {
@@ -175,7 +177,7 @@ export default observer(function WikiDetailPage() {
         setCreating(false);
       }
     },
-    [slug, id, router, load]
+    [slug, id, router, load, t]
   );
 
   const createChildRef = useRef(createChild);
@@ -217,9 +219,9 @@ export default observer(function WikiDetailPage() {
   );
 
   const pageTitle = useMemo(() => {
-    const ws = currentWorkspace?.name || "Wiki";
-    return `${ws} - ${title || "صفحه"}`;
-  }, [currentWorkspace?.name, title]);
+    const ws = currentWorkspace?.name || t("wiki_page.wiki");
+    return `${ws} - ${title || t("common.page")}`;
+  }, [currentWorkspace?.name, title, t]);
 
   if (loading || !page) {
     return (
@@ -236,26 +238,26 @@ export default observer(function WikiDetailPage() {
         <div className="flex min-w-0 items-center gap-2 text-body-xs-regular text-tertiary">
           <HesarBackButton fallbackHref={`/${slug}/wiki`} />
           <Link to={`/${slug}/wiki`} className="hover:text-primary">
-            ویکی
+            {t("wiki_page.wiki")}
           </Link>
           <ArrowRight className="size-3 rotate-180" />
-          <span className="truncate text-primary">{title || "بدون عنوان"}</span>
-          {saving && <span className="text-tertiary">در حال ذخیره…</span>}
+          <span className="truncate text-primary">{title || t("wiki_page.untitled")}</span>
+          {saving && <span className="text-tertiary">{t("common.saving")}…</span>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <EditorRtlToggle editorRef={editorRef} />
           <CustomMenu placement="bottom-end" ellipsis closeOnSelect>
             <CustomMenu.MenuItem onClick={() => setExportOpen(true)} className="flex items-center gap-2">
               <ArrowUpToLine className="size-3" />
-              خروجی (PDF / Word / ZIP)
+              {t("wiki_page.export_all_formats")}
             </CustomMenu.MenuItem>
             <CustomMenu.MenuItem onClick={() => setVersionsOpen(true)} className="flex items-center gap-2">
               <History className="size-3" />
-              تاریخچه نسخه‌ها
+              {t("page_versions.title")}
             </CustomMenu.MenuItem>
             <CustomMenu.MenuItem onClick={() => setImportOpen(true)} className="flex items-center gap-2">
               <Upload className="size-3" />
-              ایمپورت ZIP مارک‌داون
+              {t("wiki_page.import_markdown_zip")}
             </CustomMenu.MenuItem>
             <CustomMenu.MenuItem
               onClick={() => void createChild()}
@@ -263,7 +265,7 @@ export default observer(function WikiDetailPage() {
               disabled={creating}
             >
               <Plus className="size-3" />
-              صفحه فرعی
+              {t("wiki_page.subpage")}
             </CustomMenu.MenuItem>
           </CustomMenu>
         </div>
@@ -299,7 +301,7 @@ export default observer(function WikiDetailPage() {
           context="wiki"
           workspaceSlug={slug}
           destinationPageId={id}
-          destinationPageTitle={title || "بدون عنوان"}
+          destinationPageTitle={title || t("wiki_page.untitled")}
           onSuccess={async () => {
             await load();
           }}
@@ -311,7 +313,7 @@ export default observer(function WikiDetailPage() {
           <input
             className="mb-4 w-full border-none bg-transparent text-h1-semibold text-primary outline-none placeholder:text-placeholder"
             value={title}
-            placeholder="عنوان صفحه"
+            placeholder={t("wiki_page.page_title_placeholder")}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={(e) => saveTitle(e.target.value)}
           />
@@ -319,14 +321,14 @@ export default observer(function WikiDetailPage() {
           {children.length > 0 && (
             <div className="mb-6 rounded-lg border border-subtle bg-surface-1 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-body-xs-medium text-tertiary">صفحات فرعی</h3>
+                <h3 className="text-body-xs-medium text-tertiary">{t("wiki_page.subpages")}</h3>
                 <button
                   type="button"
                   className="text-11 text-accent-primary"
                   onClick={() => void createChild()}
                   disabled={creating}
                 >
-                  + افزودن
+                  {t("wiki_page.add_btn")}
                 </button>
               </div>
               <div className="space-y-1">
@@ -337,7 +339,7 @@ export default observer(function WikiDetailPage() {
                     className="flex items-center gap-2 rounded-md px-2 py-1.5 text-body-xs-medium text-primary hover:bg-layer-transparent-hover"
                   >
                     <FileText className="size-3.5 text-tertiary" />
-                    <span className="truncate">{child.name || "بدون عنوان"}</span>
+                    <span className="truncate">{child.name || t("wiki_page.untitled")}</span>
                   </Link>
                 ))}
               </div>
@@ -355,7 +357,7 @@ export default observer(function WikiDetailPage() {
               )}
             >
               <FilePlus2 className="size-4" />
-              افزودن صفحه فرعی — یا در ادیتور / بزن و «صفحه فرعی» را انتخاب کن
+              {t("wiki_page.add_subpage_hint")}
             </button>
           )}
 
@@ -394,7 +396,7 @@ export default observer(function WikiDetailPage() {
                 });
                 return asset_id;
               }}
-              placeholder="بنویسید… با @ لینک صفحه، با / صفحه فرعی"
+              placeholder={t("wiki_page.editor_placeholder")}
             />
           )}
         </div>
