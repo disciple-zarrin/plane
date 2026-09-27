@@ -65,7 +65,7 @@ export const SidebarItemBase = observer(function SidebarItemBase({
   if (!isPinned && !staticItems.includes(item.key)) return null;
 
   const itemHref =
-    item.key === "your_work" && data?.id ? joinUrlPath(slug, item.href, data?.id) : joinUrlPath(slug, item.href);
+    item.key === "your_work" ? joinUrlPath(slug, "/my-work/") : joinUrlPath(slug, item.href);
   const icon = getSidebarNavigationItemIcon(item.key);
 
   return (

@@ -27,6 +27,9 @@ export const coreRedirectRoutes: RouteConfigEntry[] = [
   // → /:workspaceSlug/projects/:projectId/intake
   route(":workspaceSlug/projects/:projectId/inbox", "routes/redirects/core/inbox.tsx"),
 
+  // Profile redirect: /:workspaceSlug/profile → /:workspaceSlug/my-work
+  route(":workspaceSlug/profile", "routes/redirects/core/profile.tsx"),
+
   // ========================================================================
   // AUTHENTICATION REDIRECTS
   // ========================================================================

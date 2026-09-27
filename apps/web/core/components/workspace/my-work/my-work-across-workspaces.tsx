@@ -602,7 +602,7 @@ export function MyWorkAcrossWorkspaces() {
         {!loading && error && <p className="py-10 text-center text-13 text-danger-primary">{error}</p>}
 
         {!loading && !error && items.length === 0 && (
-          <p className="py-16 text-center text-13 text-tertiary">تسک بازی برای تو پیدا نشد.</p>
+          <p className="py-16 text-center text-13 text-tertiary">تسکی برای شما یافت نشد.</p>
         )}
 
         {!loading && !error && items.length > 0 && layout === "list" && (

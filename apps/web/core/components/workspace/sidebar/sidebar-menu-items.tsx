@@ -55,10 +55,11 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
 
     // Add personal items based on preferences with their sort_order
     const myWorkItem = WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["my-work"];
-    if (myWorkItem) {
+    const isMyWorkEnabled = personalPreferences.items.your_work?.enabled ?? true;
+    if (isMyWorkEnabled && myWorkItem) {
       personalItems.push({
         ...myWorkItem,
-        sort_order: -1, // always near top of personal block
+        sort_order: personalPreferences.items.your_work?.sort_order ?? -1,
       });
     }
     const stickiesItem = WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["stickies"];
@@ -66,12 +67,6 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
       personalItems.push({
         ...stickiesItem,
         sort_order: personalPreferences.items.stickies.sort_order,
-      });
-    }
-    if (personalPreferences.items.your_work?.enabled && WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["your-work"]) {
-      personalItems.push({
-        ...WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["your-work"],
-        sort_order: personalPreferences.items.your_work.sort_order,
       });
     }
     if (personalPreferences.items.drafts?.enabled && WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["drafts"]) {
