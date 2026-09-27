@@ -14,7 +14,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "@plane/propel/icons";
 // plane helpers
 // helpers
 import { useDropdownKeyDown } from "../hooks/use-dropdown-key-down";
-import { cn } from "../utils";
+import { cn, getRTLPlacement } from "../utils";
 // hooks
 // types
 import type {
@@ -94,7 +94,22 @@ function CustomMenu(props: ICustomMenuDropdownProps) {
   const submenuClosersRef = React.useRef<Set<() => void>>(new Set());
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
-    placement: placement ?? "auto",
+    placement: placement ? getRTLPlacement(placement) : "auto",
+    strategy: "fixed",
+    modifiers: [
+      {
+        name: "offset",
+        options: {
+          offset: [0, 4],
+        },
+      },
+      {
+        name: "preventOverflow",
+        options: {
+          padding: 12,
+        },
+      },
+    ],
   });
 
   const closeAllSubmenus = React.useCallback(() => {
@@ -205,7 +220,7 @@ function CustomMenu(props: ICustomMenuDropdownProps) {
     >
       <div
         className={cn(
-          "shadow-md my-1 min-w-[12rem] overflow-y-scroll rounded-md border border-strong-1 bg-surface-1 px-2 py-2.5 text-11 whitespace-nowrap ring-1 ring-strong-1/15 outline-none focus:outline-none",
+          "shadow-md min-w-[12rem] overflow-y-scroll rounded-md border border-strong-1 bg-surface-1 px-2 py-2.5 text-11 whitespace-nowrap ring-1 ring-strong-1/15 outline-none focus:outline-none",
           {
             "max-h-60": maxHeight === "lg",
             "max-h-48": maxHeight === "md",

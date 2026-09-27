@@ -8,9 +8,10 @@ import { useEffect, useRef, useState } from "react";
 import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { usePopper } from "react-popper";
+import { createPortal } from "react-dom";
 // components
 import { Combobox } from "@headlessui/react";
+import { useDropdownPopper } from "@/hooks/use-dropdown-popper";
 // i18n
 import { useTranslation } from "@plane/i18n";
 // icon
@@ -62,16 +63,8 @@ export const CycleOptions = observer(function CycleOptions(props: CycleOptionsPr
   }, [isOpen, isMobile]);
 
   // popper-js init
-  const { styles, attributes } = usePopper(referenceElement, popperElement, {
-    placement: placement ?? "bottom-start",
-    modifiers: [
-      {
-        name: "preventOverflow",
-        options: {
-          padding: 12,
-        },
-      },
-    ],
+  const { styles, attributes } = useDropdownPopper(referenceElement, popperElement, {
+    placement,
   });
 
   const cycleIds = (getProjectCycleIds(projectId) ?? [])?.filter((cycleId) => {
@@ -123,10 +116,10 @@ export const CycleOptions = observer(function CycleOptions(props: CycleOptionsPr
   const filteredOptions =
     query === "" ? options : options?.filter((o) => o.query.toLowerCase().includes(query.toLowerCase()));
 
-  return (
-    <Combobox.Options className="fixed z-10" static>
+  return createPortal(
+    <Combobox.Options data-prevent-outside-click static>
       <div
-        className="my-1 w-48 rounded-sm border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 text-11 shadow-raised-200 focus:outline-none"
+        className="z-50 w-48 rounded-sm border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 text-11 shadow-raised-200 focus:outline-none"
         ref={setPopperElement}
         style={styles.popper}
         {...attributes.popper}
@@ -173,6 +166,7 @@ export const CycleOptions = observer(function CycleOptions(props: CycleOptionsPr
           )}
         </div>
       </div>
-    </Combobox.Options>
+    </Combobox.Options>,
+    document.body
   );
 });

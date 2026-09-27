@@ -6,11 +6,12 @@
 
 import type { ReactNode } from "react";
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { observer } from "mobx-react";
-import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
+import { useDropdownPopper } from "@/hooks/use-dropdown-popper";
 import { SearchIcon, StateGroupIcon, ChevronDownIcon } from "@plane/propel/icons";
 import type { IState } from "@plane/types";
 import { ComboDropDown, Spinner } from "@plane/ui";
@@ -86,16 +87,8 @@ export const WorkItemStateDropdownBase = observer(function WorkItemStateDropdown
   const defaultState = statesList?.find((state) => state?.default);
   const stateValue = value ? value : showDefaultState ? defaultState?.id : undefined;
   // popper-js init
-  const { styles, attributes } = usePopper(referenceElement, popperElement, {
-    placement: placement ?? "bottom-start",
-    modifiers: [
-      {
-        name: "preventOverflow",
-        options: {
-          padding: 12,
-        },
-      },
-    ],
+  const { styles, attributes } = useDropdownPopper(referenceElement, popperElement, {
+    placement,
   });
   // dropdown init
   const { handleClose, handleKeyDown, handleOnClick, searchInputKeyDown } = useDropdown({
@@ -216,49 +209,51 @@ export const WorkItemStateDropdownBase = observer(function WorkItemStateDropdown
       button={comboButton}
       renderByDefault={renderByDefault}
     >
-      {isOpen && (
-        <Combobox.Options className="fixed z-10" static>
-          <div
-            className="my-1 w-48 rounded-sm border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 text-11 shadow-raised-200 focus:outline-none"
-            ref={setPopperElement}
-            style={styles.popper}
-            {...attributes.popper}
-          >
-            <div className="flex items-center gap-1.5 rounded-sm border border-subtle bg-surface-2 px-2">
-              <SearchIcon className="h-3.5 w-3.5 text-placeholder" strokeWidth={1.5} />
-              <Combobox.Input
-                as="input"
-                ref={inputRef}
-                className="w-full bg-transparent py-1 text-11 text-secondary placeholder:text-placeholder focus:outline-none"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("common.search.label")}
-                displayValue={(assigned: any) => assigned?.name}
-                onKeyDown={searchInputKeyDown}
-              />
-            </div>
-            <div className="mt-2 max-h-48 space-y-1 overflow-y-scroll">
-              {filteredOptions ? (
-                filteredOptions.length > 0 ? (
-                  filteredOptions.map((option) => (
-                    <StateOption
-                      {...props}
-                      key={option.value}
-                      option={option}
-                      selectedValue={value}
-                      className="flex w-full cursor-pointer items-center justify-between gap-2 truncate rounded-sm px-1 py-1.5 select-none"
-                    />
-                  ))
+      {isOpen &&
+        createPortal(
+          <Combobox.Options data-prevent-outside-click static>
+            <div
+              className="z-50 w-48 rounded-sm border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 text-11 shadow-raised-200 focus:outline-none"
+              ref={setPopperElement}
+              style={styles.popper}
+              {...attributes.popper}
+            >
+              <div className="flex items-center gap-1.5 rounded-sm border border-subtle bg-surface-2 px-2">
+                <SearchIcon className="h-3.5 w-3.5 text-placeholder" strokeWidth={1.5} />
+                <Combobox.Input
+                  as="input"
+                  ref={inputRef}
+                  className="w-full bg-transparent py-1 text-11 text-secondary placeholder:text-placeholder focus:outline-none"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("common.search.label")}
+                  displayValue={(assigned: any) => assigned?.name}
+                  onKeyDown={searchInputKeyDown}
+                />
+              </div>
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-scroll">
+                {filteredOptions ? (
+                  filteredOptions.length > 0 ? (
+                    filteredOptions.map((option) => (
+                      <StateOption
+                        {...props}
+                        key={option.value}
+                        option={option}
+                        selectedValue={value}
+                        className="flex w-full cursor-pointer items-center justify-between gap-2 truncate rounded-sm px-1 py-1.5 select-none"
+                      />
+                    ))
+                  ) : (
+                    <p className="px-1.5 py-1 text-placeholder italic">{t("no_matching_results")}</p>
+                  )
                 ) : (
-                  <p className="px-1.5 py-1 text-placeholder italic">{t("no_matching_results")}</p>
-                )
-              ) : (
-                <p className="px-1.5 py-1 text-placeholder italic">{t("loading")}</p>
-              )}
+                  <p className="px-1.5 py-1 text-placeholder italic">{t("loading")}</p>
+                )}
+              </div>
             </div>
-          </div>
-        </Combobox.Options>
-      )}
+          </Combobox.Options>,
+          document.body
+        )}
     </ComboDropDown>
   );
 });

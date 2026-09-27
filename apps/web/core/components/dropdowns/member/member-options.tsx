@@ -9,8 +9,8 @@ import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { createPortal } from "react-dom";
-import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
+import { useDropdownPopper } from "@/hooks/use-dropdown-popper";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { CheckIcon, SearchIcon, SuspendedUserIcon } from "@plane/propel/icons";
@@ -62,16 +62,8 @@ export const MemberOptions = observer(function MemberOptions(props: Props) {
   } = useMember();
   const { isMobile } = usePlatformOS();
   // popper-js init
-  const { styles, attributes } = usePopper(referenceElement, popperElement, {
-    placement: placement ?? "bottom-start",
-    modifiers: [
-      {
-        name: "preventOverflow",
-        options: {
-          padding: 12,
-        },
-      },
-    ],
+  const { styles, attributes } = useDropdownPopper(referenceElement, popperElement, {
+    placement,
   });
 
   useEffect(() => {
@@ -129,7 +121,7 @@ export const MemberOptions = observer(function MemberOptions(props: Props) {
     <Combobox.Options data-prevent-outside-click static>
       <div
         className={cn(
-          "z-30 my-1 w-48 rounded-sm border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 text-11 shadow-raised-200 focus:outline-none",
+          "z-50 w-48 rounded-sm border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 text-11 shadow-raised-200 focus:outline-none",
           optionsClassName
         )}
         ref={setPopperElement}

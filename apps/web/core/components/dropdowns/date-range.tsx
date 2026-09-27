@@ -8,11 +8,11 @@ import React, { useEffect, useRef, useState } from "react";
 import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
 import { createPortal } from "react-dom";
-import { usePopper } from "react-popper";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
+import { useDropdownPopper } from "@/hooks/use-dropdown-popper";
 // ui
 import type { DateRange, Matcher } from "@plane/propel/calendar";
 import { Calendar } from "@plane/propel/calendar";
@@ -104,7 +104,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
     customTooltipContent,
     customTooltipHeading,
     defaultOpen = false,
-    renderInPortal = false,
+    renderInPortal = true,
   } = props;
   // states
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -118,16 +118,8 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
   const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   // popper-js init
-  const { styles, attributes } = usePopper(referenceElement, popperElement, {
-    placement: placement ?? "bottom-start",
-    modifiers: [
-      {
-        name: "preventOverflow",
-        options: {
-          padding: 12,
-        },
-      },
-    ],
+  const { styles, attributes } = useDropdownPopper(referenceElement, popperElement, {
+    placement,
   });
 
   const onOpen = () => {
@@ -264,7 +256,7 @@ export const DateRangeDropdown = observer(function DateRangeDropdown(props: Prop
   const comboOptions = (
     <Combobox.Options data-prevent-outside-click static>
       <div
-        className="z-30 my-1 overflow-hidden rounded-md border-[0.5px] border-subtle-1 bg-surface-1"
+        className="z-50 overflow-hidden rounded-md border-[0.5px] border-subtle-1 bg-surface-1"
         ref={setPopperElement}
         style={styles.popper}
         {...attributes.popper}
