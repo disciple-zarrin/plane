@@ -72,6 +72,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
           body: `${issueIdentifier} · ${issueName}`,
           url: `/${workspaceSlug}/projects/${projectId}/issues/${issueId}`,
           fireAtMs: new Date(saved.fire_at).getTime(),
+          repeatInterval: saved.repeat_interval || "none",
         });
       } else {
         await cancelLocalAlarm(tag);
@@ -166,6 +167,23 @@ export function IssueDeadlineAlarmControl(props: Props) {
               onChange={(e) => void persist({ hours_before: Number(e.target.value) || 0, enabled: alarm.enabled })}
             />
           )}
+          <div className="pt-0.5">
+            <select
+              className="w-full rounded border border-subtle bg-surface-1 px-2 py-1 text-12 text-primary"
+              disabled={disabled || saving || !alarm.enabled}
+              value={alarm.repeat_interval || "none"}
+              onChange={(e) =>
+                void persist({
+                  repeat_interval: e.target.value as "none" | "weekly" | "daily",
+                  enabled: alarm.enabled,
+                })
+              }
+            >
+              <option value="none">یک‌باره (بدون تکرار)</option>
+              <option value="weekly">🔁 تکرار هفتگی (هر هفته)</option>
+              <option value="daily">🔁 تکرار روزانه (هر روز)</option>
+            </select>
+          </div>
           <p className="text-[10px] text-tertiary">{t("deadline_alarm.mobile_sync_tip")}</p>
         </div>
       )}

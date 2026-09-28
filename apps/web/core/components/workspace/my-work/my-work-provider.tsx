@@ -44,6 +44,10 @@ type TMyWorkContext = {
   layoutAsIssueType: EIssueLayoutTypes;
   includeDone: boolean;
   setIncludeDone: (v: boolean) => void;
+  stateFilter: string;
+  setStateFilter: (s: string) => void;
+  hideDone: boolean;
+  toggleHideDone: () => void;
   workspaceSlug: string;
   setWorkspaceSlug: (slug: string) => void;
   projectId: string;
@@ -98,6 +102,7 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [includeDone, setIncludeDoneState] = useState(false);
+  const [stateFilter, setStateFilterState] = useState<string>("all");
   const [layout, setLayoutState] = useState<TMyWorkLayout>("list");
   const [page, setPageState] = useState(1);
   const [total, setTotal] = useState(0);
@@ -114,11 +119,11 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
   const pageSize = layout === "list" ? 25 : 200;
 
   useEffect(() => {
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setPageState(1);
       setSearch(searchInput.trim());
     }, 300);
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(timer);
   }, [searchInput]);
 
   const refresh = useCallback(async () => {
@@ -127,7 +132,8 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const data = await service.assignedIssuesAcrossWorkspaces({
-        include_done: includeDone,
+        include_done: includeDone || stateFilter === "completed" || stateFilter === "cancelled",
+        state_filter: stateFilter !== "all" ? stateFilter : undefined,
         page,
         page_size: pageSize,
         workspace_slug: workspaceSlug || undefined,
@@ -136,7 +142,15 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
         q: search || undefined,
       });
       if (requestId !== requestIdRef.current) return;
-      setItems(Array.isArray(data?.results) ? data.results : []);
+      let rawResults = Array.isArray(data?.results) ? data.results : [];
+      if (stateFilter === "hide_done") {
+        rawResults = rawResults.filter(
+          (i) => i.state?.group !== "completed" && i.state?.group !== "cancelled"
+        );
+      } else if (stateFilter && stateFilter !== "all") {
+        rawResults = rawResults.filter((i) => i.state?.group === stateFilter);
+      }
+      setItems(rawResults);
       setTotal(data?.count || 0);
       setTotalPages(data?.total_pages || 1);
       setWorkspaces(data?.facets?.workspaces || []);
@@ -150,7 +164,7 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [includeDone, page, pageSize, workspaceSlug, projectId, priority, search]);
+  }, [includeDone, stateFilter, page, pageSize, workspaceSlug, projectId, priority, search, t]);
 
   useEffect(() => {
     void refresh();
@@ -166,6 +180,15 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
   const setIncludeDone = useCallback((v: boolean) => {
     setPageState(1);
     setIncludeDoneState(v);
+  }, []);
+  const hideDone = stateFilter === "hide_done";
+  const toggleHideDone = useCallback(() => {
+    setPageState(1);
+    setStateFilterState((prev) => (prev === "hide_done" ? "all" : "hide_done"));
+  }, []);
+  const setStateFilter = useCallback((s: string) => {
+    setPageState(1);
+    setStateFilterState(s);
   }, []);
   const setWorkspaceSlug = useCallback((slug: string) => {
     setPageState(1);
@@ -187,7 +210,13 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
   );
 
   const hasActiveFilters = Boolean(
-    workspaceSlug || projectId || priority || search || searchInput.trim() || includeDone
+    workspaceSlug ||
+      projectId ||
+      priority ||
+      (stateFilter && stateFilter !== "all") ||
+      search ||
+      searchInput.trim() ||
+      includeDone
   );
 
   const clearSearch = useCallback(() => {
@@ -201,6 +230,7 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
     setWorkspaceSlugState("");
     setProjectIdState("");
     setPriorityState("");
+    setStateFilterState("all");
     setSearchInput("");
     setSearch("");
     setIncludeDoneState(false);
@@ -222,6 +252,10 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
       layoutAsIssueType: layoutToIssueType(layout),
       includeDone,
       setIncludeDone,
+      stateFilter,
+      setStateFilter,
+      hideDone,
+      toggleHideDone,
       workspaceSlug,
       setWorkspaceSlug,
       projectId,
@@ -251,6 +285,10 @@ export function MyWorkProvider({ children }: { children: ReactNode }) {
       setLayout,
       includeDone,
       setIncludeDone,
+      stateFilter,
+      setStateFilter,
+      hideDone,
+      toggleHideDone,
       workspaceSlug,
       setWorkspaceSlug,
       projectId,

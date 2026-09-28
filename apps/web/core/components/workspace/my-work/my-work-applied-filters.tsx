@@ -23,6 +23,8 @@ export function MyWorkAppliedFilters() {
     workspaceSlug,
     projectId,
     priority,
+    stateFilter,
+    setStateFilter,
     searchInput,
     includeDone,
     workspaces,
@@ -31,11 +33,19 @@ export function MyWorkAppliedFilters() {
     setWorkspaceSlug,
     setProjectId,
     setPriority,
-    setSearchInput,
     setIncludeDone,
     clearFilters,
     clearSearch,
   } = useMyWork();
+
+  const stateLabel: Record<string, string> = {
+    hide_done: t("my_work_board.hide_done"),
+    started: t("my_work_board.state_started"),
+    unstarted: t("my_work_board.state_unstarted"),
+    completed: t("my_work_board.state_completed"),
+    cancelled: t("my_work_board.state_cancelled"),
+    backlog: t("my_work_board.state_backlog"),
+  };
 
   const chips: { key: string; label: string; onClear: () => void }[] = [];
   if (searchInput.trim()) {
@@ -58,6 +68,13 @@ export function MyWorkAppliedFilters() {
       key: "project",
       label: p ? p.identifier : t("my_work_board.project"),
       onClear: () => setProjectId(""),
+    });
+  }
+  if (stateFilter && stateFilter !== "all" && stateFilter !== "__all__") {
+    chips.push({
+      key: "state",
+      label: stateLabel[stateFilter] || stateFilter,
+      onClear: () => setStateFilter("all"),
     });
   }
   if (priority) {

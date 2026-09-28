@@ -78,6 +78,7 @@ export class UserService extends APIService {
 
   async assignedIssuesAcrossWorkspaces(params?: {
     include_done?: boolean;
+    state_filter?: string;
     page?: number;
     page_size?: number;
     workspace_slug?: string;

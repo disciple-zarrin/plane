@@ -18,6 +18,7 @@ export type TIssueUserAlarm = {
   timezone: string;
   fire_at: string | null;
   fired_at: string | null;
+  repeat_interval?: "none" | "weekly" | "daily";
 };
 
 export type TPendingIssueAlarm = TIssueUserAlarm & {
@@ -137,17 +138,29 @@ export async function scheduleLocalAlarm(params: {
   body: string;
   url: string;
   fireAtMs: number;
+  repeatInterval?: string;
 }) {
   // 1. Android Native AlarmManager (wakes phone from deep sleep / closed app)
   if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge) {
     try {
-      (window as any).PlaneAndroidBridge.scheduleAlarm(
-        params.tag,
-        params.title,
-        params.body,
-        params.url,
-        params.fireAtMs
-      );
+      if ((window as any).PlaneAndroidBridge.scheduleAlarmWithRepeat) {
+        (window as any).PlaneAndroidBridge.scheduleAlarmWithRepeat(
+          params.tag,
+          params.title,
+          params.body,
+          params.url,
+          params.fireAtMs,
+          params.repeatInterval || "none"
+        );
+      } else {
+        (window as any).PlaneAndroidBridge.scheduleAlarm(
+          params.tag,
+          params.title,
+          params.body,
+          params.url,
+          params.fireAtMs
+        );
+      }
     } catch (e) {
       console.warn("Failed to schedule native alarm:", e);
     }
@@ -235,6 +248,7 @@ export async function syncPendingAlarmsFromServer(): Promise<number> {
         body: `${alarm.issue_identifier} · ${alarm.issue_name}`,
         url: alarm.url || `/${alarm.workspace_slug}/projects/${alarm.project_id}/issues/${alarm.issue_id}`,
         fireAtMs,
+        repeatInterval: alarm.repeat_interval || "none",
       };
       await scheduleLocalAlarm(item);
       nativePayload.push(item);

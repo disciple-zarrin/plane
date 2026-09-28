@@ -9,6 +9,7 @@ import { Search } from "lucide-react";
 import { useTranslation } from "@plane/i18n";
 import { EIssueLayoutTypes } from "@plane/types";
 import { CustomSelect, Input, ToggleSwitch } from "@plane/ui";
+import { cn } from "@plane/utils";
 import { FiltersDropdown, LayoutSelection } from "@/components/issues/issue-layouts/filters";
 import { FilterHeader } from "@/components/issues/issue-layouts/filters/header/helpers/filter-header";
 import { issueTypeToLayout, useMyWork } from "./my-work-provider";
@@ -25,6 +26,15 @@ export function MyWorkHeaderFilters() {
     { key: "low", label: t("my_work_board.low") },
     { key: "none", label: t("my_work_board.none_priority") },
   ];
+  const stateOptions = [
+    { key: ALL, label: t("my_work_board.all_states") },
+    { key: "hide_done", label: t("my_work_board.hide_done") },
+    { key: "started", label: t("my_work_board.state_started") },
+    { key: "unstarted", label: t("my_work_board.state_unstarted") },
+    { key: "completed", label: t("my_work_board.state_completed") },
+    { key: "cancelled", label: t("my_work_board.state_cancelled") },
+    { key: "backlog", label: t("my_work_board.state_backlog") },
+  ];
   const {
     layoutAsIssueType,
     setLayout,
@@ -34,6 +44,10 @@ export function MyWorkHeaderFilters() {
     setProjectId,
     priority,
     setPriority,
+    stateFilter,
+    setStateFilter,
+    hideDone,
+    toggleHideDone,
     searchInput,
     setSearchInput,
     includeDone,
@@ -60,6 +74,19 @@ export function MyWorkHeaderFilters() {
           if (mapped) setLayout(mapped);
         }}
       />
+      <button
+        type="button"
+        onClick={toggleHideDone}
+        className={cn(
+          "flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-12 font-medium transition-colors",
+          hideDone
+            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+            : "border-subtle bg-surface-1 text-secondary hover:bg-surface-2 hover:text-primary"
+        )}
+        title={hideDone ? t("my_work_board.show_all_btn") : t("my_work_board.hide_done_btn")}
+      >
+        <span>{hideDone ? `✓ ${t("my_work_board.hide_done_btn")}` : t("my_work_board.hide_done_btn")}</span>
+      </button>
       <FiltersDropdown title={t("my_work_board.filters")} placement="bottom-end" isFiltersApplied={hasActiveFilters}>
         <div className="vertical-scrollbar scrollbar-sm relative max-h-[30rem] w-[18rem] overflow-hidden overflow-y-auto px-2.5 py-2">
           <div className="space-y-3">
@@ -79,6 +106,22 @@ export function MyWorkHeaderFilters() {
                     placeholder={t("my_work_board.search_placeholder")}
                     className="w-full border-none bg-transparent px-0 text-13"
                   />
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-caption-sm-medium text-placeholder">{t("my_work_board.state_filter")}</div>
+                  <CustomSelect
+                    value={stateFilter || ALL}
+                    label={stateOptions.find((o) => o.key === (stateFilter || ALL))?.label || t("my_work_board.all_states")}
+                    onChange={(val: string) => setStateFilter(val === ALL ? "all" : val)}
+                    maxHeight="lg"
+                  >
+                    {stateOptions.map((o) => (
+                      <CustomSelect.Option key={o.key} value={o.key}>
+                        {o.label}
+                      </CustomSelect.Option>
+                    ))}
+                  </CustomSelect>
                 </div>
 
                 <div className="space-y-1">

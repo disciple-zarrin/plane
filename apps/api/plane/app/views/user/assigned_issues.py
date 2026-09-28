@@ -48,6 +48,7 @@ class UserAssignedIssuesEndpoint(BaseAPIView):
 
     def get(self, request):
         include_done = str(request.GET.get("include_done", "")).lower() in ("1", "true", "yes")
+        state_filter = (request.GET.get("state_filter") or request.GET.get("state_group") or "").strip().lower()
         workspace_slug = (request.GET.get("workspace_slug") or "").strip() or None
         project_id = (request.GET.get("project_id") or "").strip() or None
         priority = (request.GET.get("priority") or "").strip() or None
@@ -76,7 +77,27 @@ class UserAssignedIssuesEndpoint(BaseAPIView):
             .distinct()
         )
 
-        if not include_done:
+        if state_filter == "hide_done":
+            qs = qs.exclude(
+                state__group__in=[StateGroup.COMPLETED.value, StateGroup.CANCELLED.value]
+            )
+        elif state_filter in (
+            StateGroup.BACKLOG.value,
+            StateGroup.UNSTARTED.value,
+            StateGroup.STARTED.value,
+            StateGroup.COMPLETED.value,
+            StateGroup.CANCELLED.value,
+        ):
+            qs = qs.filter(state__group=state_filter)
+        elif state_filter == "active":
+            qs = qs.filter(
+                state__group__in=[
+                    StateGroup.BACKLOG.value,
+                    StateGroup.UNSTARTED.value,
+                    StateGroup.STARTED.value,
+                ]
+            )
+        elif not include_done:
             qs = qs.exclude(
                 state__group__in=[StateGroup.COMPLETED.value, StateGroup.CANCELLED.value]
             )
