@@ -16,15 +16,15 @@ export function MyWorkHeader() {
 
   return (
     <Header>
-      <Header.LeftItem>
+      <Header.LeftItem className="min-w-0 shrink">
         <Breadcrumbs>
           <Breadcrumbs.Item
             component={<BreadcrumbLink label={t("my_work")} disableTooltip isLast />}
           />
         </Breadcrumbs>
-        {!loading && <span className="rounded-full bg-layer-2 px-2 py-0.5 text-11 text-tertiary">{total}</span>}
+        {!loading && <span className="rounded-full bg-layer-2 px-2 py-0.5 text-11 text-tertiary tabular-nums shrink-0">{total}</span>}
       </Header.LeftItem>
-      <Header.RightItem>
+      <Header.RightItem className="shrink-0">
         <MyWorkHeaderFilters />
       </Header.RightItem>
     </Header>

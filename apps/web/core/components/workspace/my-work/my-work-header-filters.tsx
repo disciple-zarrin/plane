@@ -10,7 +10,7 @@ import { useTranslation } from "@plane/i18n";
 import { EIssueLayoutTypes } from "@plane/types";
 import { CustomSelect, Input, ToggleSwitch } from "@plane/ui";
 import { cn } from "@plane/utils";
-import { FiltersDropdown, LayoutSelection } from "@/components/issues/issue-layouts/filters";
+import { FiltersDropdown, LayoutSelection, MobileLayoutSelection } from "@/components/issues/issue-layouts/filters";
 import { FilterHeader } from "@/components/issues/issue-layouts/filters/header/helpers/filter-header";
 import { issueTypeToLayout, useMyWork } from "./my-work-provider";
 
@@ -60,35 +60,57 @@ export function MyWorkHeaderFilters() {
   const [filtersPreview, setFiltersPreview] = useState(true);
 
   return (
-    <div className="relative flex items-center justify-end gap-2">
-      <LayoutSelection
-        layouts={[
-          EIssueLayoutTypes.LIST,
-          EIssueLayoutTypes.KANBAN,
-          EIssueLayoutTypes.CALENDAR,
-          EIssueLayoutTypes.GANTT,
-        ]}
-        selectedLayout={layoutAsIssueType}
-        onChange={(next) => {
-          const mapped = issueTypeToLayout(next);
-          if (mapped) setLayout(mapped);
-        }}
-      />
+    <div className="relative flex items-center justify-end gap-1.5 sm:gap-2">
+      <div className="hidden sm:block">
+        <LayoutSelection
+          layouts={[
+            EIssueLayoutTypes.LIST,
+            EIssueLayoutTypes.KANBAN,
+            EIssueLayoutTypes.CALENDAR,
+            EIssueLayoutTypes.GANTT,
+          ]}
+          selectedLayout={layoutAsIssueType}
+          onChange={(next) => {
+            const mapped = issueTypeToLayout(next);
+            if (mapped) setLayout(mapped);
+          }}
+        />
+      </div>
+      <div className="block sm:hidden">
+        <MobileLayoutSelection
+          layouts={[
+            EIssueLayoutTypes.LIST,
+            EIssueLayoutTypes.KANBAN,
+            EIssueLayoutTypes.CALENDAR,
+            EIssueLayoutTypes.GANTT,
+          ]}
+          activeLayout={layoutAsIssueType}
+          onChange={(next) => {
+            const mapped = issueTypeToLayout(next);
+            if (mapped) setLayout(mapped);
+          }}
+        />
+      </div>
       <button
         type="button"
         onClick={toggleHideDone}
         className={cn(
-          "flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-12 font-medium transition-colors",
+          "flex items-center gap-1 rounded-md border px-2 py-1 text-12 font-medium transition-colors shrink-0",
           hideDone
             ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
             : "border-subtle bg-surface-1 text-secondary hover:bg-surface-2 hover:text-primary"
         )}
         title={hideDone ? t("my_work_board.show_all_btn") : t("my_work_board.hide_done_btn")}
       >
-        <span>{hideDone ? `✓ ${t("my_work_board.hide_done_btn")}` : t("my_work_board.hide_done_btn")}</span>
+        <span className="hidden sm:inline">
+          {hideDone ? `✓ ${t("my_work_board.hide_done_btn")}` : t("my_work_board.hide_done_btn")}
+        </span>
+        <span className="inline sm:hidden text-11">
+          {hideDone ? "✓ Done" : "Done"}
+        </span>
       </button>
       <FiltersDropdown title={t("my_work_board.filters")} placement="bottom-end" isFiltersApplied={hasActiveFilters}>
-        <div className="vertical-scrollbar scrollbar-sm relative max-h-[30rem] w-[18rem] overflow-hidden overflow-y-auto px-2.5 py-2">
+        <div className="vertical-scrollbar scrollbar-sm relative max-h-[30rem] w-[18rem] max-w-[calc(100vw-2rem)] overflow-hidden overflow-y-auto px-2.5 py-2">
           <div className="space-y-3">
             <FilterHeader
               title={t("my_work_board.search_and_filter")}

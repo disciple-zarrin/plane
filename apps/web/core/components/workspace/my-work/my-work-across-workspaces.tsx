@@ -1051,7 +1051,7 @@ export function MyWorkAcrossWorkspaces() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-auto px-page-x py-page-y">
+      <div className="min-h-0 flex-1 overflow-auto px-3 sm:px-page-x py-3 sm:py-page-y">
         {loading && (
           <div className="flex items-center justify-center gap-2 py-16 text-tertiary">
             <Loader2 className="size-4 animate-spin" />
@@ -1073,7 +1073,49 @@ export function MyWorkAcrossWorkspaces() {
                   <h2 className="text-14 font-medium text-primary">{group.name}</h2>
                   <span className="rounded-full bg-surface-2 px-2 py-0.5 text-11 text-tertiary">{group.issues.length}</span>
                 </div>
-                <div className="overflow-hidden rounded-lg border border-subtle">
+                {/* Mobile View: Touch-Friendly Issue Cards */}
+                <div className="space-y-4 md:hidden">
+                  {STATE_GROUP_ORDER.map((groupKey) => {
+                    const sectionIssues = sortIssues(
+                      group.issues.filter((i) => stateGroupOf(i) === groupKey)
+                    );
+                    if (
+                      sectionIssues.length === 0 &&
+                      !["backlog", "unstarted", "started"].includes(groupKey)
+                    ) {
+                      return null;
+                    }
+                    return (
+                      <div key={groupKey} className="space-y-2">
+                        <div className="flex items-center justify-between rounded-md bg-surface-2/80 px-3 py-1.5 text-12 font-medium text-secondary">
+                          <span>{getStateGroupLabel(groupKey, t)}</span>
+                          <span className="rounded-full bg-surface-1 px-2 py-0.5 text-11 tabular-nums text-tertiary">
+                            {sectionIssues.length}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {sectionIssues.map((issue) => (
+                            <IssueCard
+                              key={issue.id}
+                              issue={issue}
+                              onStateChange={handleStateChange}
+                              onPriorityChange={handlePriorityChange}
+                              onTargetDateChange={handleTargetDateChange}
+                            />
+                          ))}
+                          {sectionIssues.length === 0 && (
+                            <div className="rounded-md border border-dashed border-subtle p-3 text-center text-11 text-tertiary">
+                              {t("my_work_board.empty")}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop View: Full 7-column Table */}
+                <div className="hidden md:block overflow-x-auto rounded-lg border border-subtle">
                   <table className="w-full text-start text-13">
                     <thead className="bg-surface-2 text-11 text-tertiary">
                       <tr>
@@ -1218,7 +1260,7 @@ export function MyWorkAcrossWorkspaces() {
                     })}
                   </table>
                 </div>
-                <p className="mt-2 text-11 text-tertiary">
+                <p className="mt-2 text-11 text-tertiary hidden md:block">
                   {t("my_work_board.drag_hint_table")}
                 </p>
               </section>
@@ -1227,61 +1269,85 @@ export function MyWorkAcrossWorkspaces() {
         )}
 
         {!loading && !error && items.length > 0 && layout === "board" && (
-          <div className="flex min-h-full gap-3 overflow-x-auto pb-2">
-            {boardColumns.map((col) => (
-              <div
-                key={col.key}
-                className="w-72 shrink-0 rounded-lg border border-subtle bg-surface-2/40 p-2"
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = "move";
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const id = e.dataTransfer.getData("text/plain") || draggingId;
-                  if (id) void persistBoardOrder(id, col.key, null);
-                  else clearDragging();
-                }}
-              >
-                <div className="mb-2 flex items-center justify-between px-1">
-                  <span className="text-13 font-medium text-primary">{col.label}</span>
-                  <span className="text-11 text-tertiary">{col.issues.length}</span>
+          <div>
+            {/* Mobile Column Jump Pill Bar */}
+            <div className="flex md:hidden items-center gap-1.5 overflow-x-auto pb-2 mb-2 text-12 scrollbar-none">
+              {boardColumns.map((col) => (
+                <button
+                  key={col.key}
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById(`board-col-${col.key}`);
+                    el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                  }}
+                  className="shrink-0 rounded-full border border-subtle bg-surface-1 px-2.5 py-1 text-secondary hover:text-primary transition-colors flex items-center gap-1.5"
+                >
+                  <span>{col.label}</span>
+                  <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-10 text-tertiary tabular-nums">
+                    {col.issues.length}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex min-h-full gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+              {boardColumns.map((col) => (
+                <div
+                  id={`board-col-${col.key}`}
+                  key={col.key}
+                  className="w-[85vw] max-w-sm sm:w-72 shrink-0 snap-center rounded-lg border border-subtle bg-surface-2/40 p-2"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const id = e.dataTransfer.getData("text/plain") || draggingId;
+                    if (id) void persistBoardOrder(id, col.key, null);
+                    else clearDragging();
+                  }}
+                >
+                  <div className="mb-2 flex items-center justify-between px-1">
+                    <span className="text-13 font-medium text-primary">{col.label}</span>
+                    <span className="text-11 text-tertiary tabular-nums">{col.issues.length}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {col.issues.map((issue) => (
+                      <IssueCard
+                        key={issue.id}
+                        issue={issue}
+                        draggable
+                        onDragStart={setDraggingId}
+                        onDragEnd={clearDragging}
+                        onDrop={(e, targetId) => {
+                          const id = e.dataTransfer.getData("text/plain") || draggingId;
+                          if (id) void persistBoardOrder(id, col.key, targetId);
+                          else clearDragging();
+                        }}
+                        onStateChange={handleStateChange}
+                        onPriorityChange={handlePriorityChange}
+                        onTargetDateChange={handleTargetDateChange}
+                      />
+                    ))}
+                    {col.issues.length === 0 && (
+                      <div className="rounded-md border border-dashed border-subtle px-2 py-6 text-center text-11 text-tertiary">
+                        {t("my_work_board.empty")}
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 px-1 text-11 text-tertiary hidden sm:block">
+                    {t("my_work_board.drag_hint_kanban")}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  {col.issues.map((issue) => (
-                    <IssueCard
-                      key={issue.id}
-                      issue={issue}
-                      draggable
-                      onDragStart={setDraggingId}
-                      onDragEnd={clearDragging}
-                      onDrop={(e, targetId) => {
-                        const id = e.dataTransfer.getData("text/plain") || draggingId;
-                        if (id) void persistBoardOrder(id, col.key, targetId);
-                        else clearDragging();
-                      }}
-                      onStateChange={handleStateChange}
-                      onPriorityChange={handlePriorityChange}
-                      onTargetDateChange={handleTargetDateChange}
-                    />
-                  ))}
-                  {col.issues.length === 0 && (
-                    <div className="rounded-md border border-dashed border-subtle px-2 py-6 text-center text-11 text-tertiary">
-                      {t("my_work_board.empty")}
-                    </div>
-                  )}
-                </div>
-                <p className="mt-2 px-1 text-11 text-tertiary">
-                  {t("my_work_board.drag_hint_kanban")}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
         {!loading && !error && items.length > 0 && layout === "calendar" && (
-          <div>
-            <div className="mb-3 flex items-center justify-between">
+          <div className="overflow-x-auto pb-4">
+            <div className="min-w-[620px] md:min-w-0">
+              <div className="mb-3 flex items-center justify-between">
               <button
                 type="button"
                 className="rounded-md border border-subtle px-2 py-1 text-13 text-secondary hover:bg-surface-2"
@@ -1409,7 +1475,8 @@ export function MyWorkAcrossWorkspaces() {
             </div>
             <p className="mt-2 text-11 text-tertiary">{t("my_work_board.drag_day_hint")}</p>
           </div>
-        )}
+        </div>
+      )}
 
         {!loading && !error && items.length > 0 && layout === "timeline" && (
           <div className="overflow-x-auto rounded-lg border border-subtle">

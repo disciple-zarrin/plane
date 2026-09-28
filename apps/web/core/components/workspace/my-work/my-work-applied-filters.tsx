@@ -96,19 +96,19 @@ export function MyWorkAppliedFilters() {
 
   return (
     <Header variant={EHeaderVariant.TERNARY}>
-      <Header.LeftItem className="max-w-full gap-1.5">
+      <Header.LeftItem className="max-w-full gap-1.5 flex-wrap overflow-x-auto py-1">
         {chips.map((chip) => (
           <button
             key={chip.key}
             type="button"
             onClick={chip.onClear}
-            className="inline-flex items-center gap-1 rounded-sm border border-subtle bg-layer-2 px-2 py-1 text-11 text-secondary hover:bg-layer-2-hover"
+            className="inline-flex items-center gap-1 rounded-sm border border-subtle bg-layer-2 px-2 py-0.5 text-11 text-secondary hover:bg-layer-2-hover shrink-0"
           >
             <span>{chip.label}</span>
             <X className="size-3" />
           </button>
         ))}
-        <button type="button" onClick={clearFilters} className="px-2 py-1 text-11 text-accent-primary hover:underline">
+        <button type="button" onClick={clearFilters} className="px-2 py-0.5 text-11 text-accent-primary hover:underline shrink-0">
           {t("my_work_board.clear_all")}
         </button>
       </Header.LeftItem>
