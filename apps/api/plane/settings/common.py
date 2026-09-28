@@ -389,6 +389,9 @@ SESSION_SAVE_EVERY_REQUEST = os.environ.get("SESSION_SAVE_EVERY_REQUEST", "0") =
 ADMIN_SESSION_COOKIE_NAME = "admin-session-id"
 ADMIN_SESSION_COOKIE_AGE = int(os.environ.get("ADMIN_SESSION_COOKIE_AGE", 3600))
 
+# Android Mobile App Cookie (default 1 year / 365 days rolling)
+ANDROID_SESSION_COOKIE_AGE = int(os.environ.get("ANDROID_SESSION_COOKIE_AGE", 31536000))
+
 # CSRF cookies
 CSRF_COOKIE_SECURE = secure_origins
 CSRF_COOKIE_HTTPONLY = True

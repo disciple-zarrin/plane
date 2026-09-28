@@ -26,6 +26,25 @@ class SessionMiddleware(MiddlewareMixin):
             session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME)
         request.session = self.SessionStore(session_key)
 
+        # Android mobile app rolling session support (1-year lifetime)
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
+        is_android = (
+            "PlaneAndroid" in user_agent
+            or request.META.get("HTTP_X_PLANE_CLIENT") == "android"
+            or (not request.session.is_empty() and request.session.get("is_android"))
+        )
+
+        if is_android and not request.session.is_empty():
+            android_age = getattr(settings, "ANDROID_SESSION_COOKIE_AGE", 31536000)
+            now = int(time.time())
+            last_touch = request.session.get("last_touch", 0)
+            # Refresh expiry once every 24 hours so active Android users never get logged out
+            if (now - last_touch) > 86400:
+                request.session["last_touch"] = now
+                request.session["is_android"] = True
+                request.session.set_expiry(android_age)
+                request.session.modified = True
+
     def process_response(self, request, response):
         """
         If request.session was modified, or if the configuration is to save the
