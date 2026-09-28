@@ -105,7 +105,9 @@ export function IssueDeadlineAlarmControl(props: Props) {
           <button
             type="button"
             onClick={() => {
-              if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge?.openAlarmSettings) {
+              if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge?.openAlarmsScreen) {
+                (window as any).PlaneAndroidBridge.openAlarmsScreen();
+              } else if (typeof window !== "undefined" && (window as any).PlaneAndroidBridge?.openAlarmSettings) {
                 (window as any).PlaneAndroidBridge.openAlarmSettings();
               } else {
                 setToast({
@@ -115,7 +117,7 @@ export function IssueDeadlineAlarmControl(props: Props) {
                 });
               }
             }}
-            className="p-1 text-tertiary hover:text-primary transition-colors rounded hover:bg-surface-1"
+            className="rounded p-1 text-tertiary transition-colors hover:bg-surface-1 hover:text-primary"
             title={t("deadline_alarm.settings_sound_tooltip")}
           >
             <Settings className="size-3.5" />
@@ -161,14 +163,10 @@ export function IssueDeadlineAlarmControl(props: Props) {
               className="w-full rounded border border-subtle bg-surface-1 px-2 py-1 text-12 text-primary"
               disabled={disabled || saving || !alarm.enabled}
               value={alarm.hours_before ?? 2}
-              onChange={(e) =>
-                void persist({ hours_before: Number(e.target.value) || 0, enabled: alarm.enabled })
-              }
+              onChange={(e) => void persist({ hours_before: Number(e.target.value) || 0, enabled: alarm.enabled })}
             />
           )}
-          <p className="text-[10px] text-tertiary">
-            {t("deadline_alarm.mobile_sync_tip")}
-          </p>
+          <p className="text-[10px] text-tertiary">{t("deadline_alarm.mobile_sync_tip")}</p>
         </div>
       )}
     </div>
