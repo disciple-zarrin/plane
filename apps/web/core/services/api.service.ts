@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import { create } from "axios";
+import { isValidRedirectPath } from "@/helpers/authentication.helper";
 
 export abstract class APIService {
   protected baseURL: string;
@@ -40,7 +40,11 @@ export abstract class APIService {
 
             if (!isAuthPage) {
               const fullPath = currentPath + window.location.search;
-              window.location.replace(`/?next_path=${encodeURIComponent(fullPath)}`);
+              if (isValidRedirectPath(fullPath)) {
+                window.location.replace(`/?next_path=${encodeURIComponent(fullPath)}`);
+              } else {
+                window.location.replace("/");
+              }
             }
           }
         }

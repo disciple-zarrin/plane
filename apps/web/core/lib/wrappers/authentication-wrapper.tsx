@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { observer } from "mobx-react";
 import { useSearchParams, usePathname } from "next/navigation";
 import useSWR from "swr";
@@ -24,12 +24,23 @@ type TAuthenticationWrapper = {
   pageType?: TPageType;
 };
 
-
 export const AuthenticationWrapper = observer(function AuthenticationWrapper(props: TAuthenticationWrapper) {
   const pathname = usePathname();
   const router = useAppRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next_path");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && searchParams.has("next_path")) {
+      const np = searchParams.get("next_path");
+      if (!np || !isValidRedirectPath(np)) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("next_path");
+        const cleanUrl = url.pathname + (url.search ? url.search : "") + (url.hash || "");
+        window.history.replaceState({}, "", cleanUrl);
+      }
+    }
+  }, [searchParams]);
   // props
   const { children, pageType = EPageTypes.AUTHENTICATED } = props;
   // hooks

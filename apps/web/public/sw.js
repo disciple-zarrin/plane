@@ -66,30 +66,10 @@ if (!self.define) {
 define(["./workbox-9f2f79cf"], function (workbox) {
   "use strict";
 
+  // v1.4.1-cache-bust-20261006
   importScripts();
   self.skipWaiting();
   workbox.clientsClaim();
-  workbox.registerRoute(
-    "/",
-    new workbox.NetworkFirst({
-      cacheName: "start-url",
-      plugins: [
-        {
-          cacheWillUpdate: async ({ request, response, event, state }) => {
-            if (response && response.type === "opaqueredirect") {
-              return new Response(response.body, {
-                status: 200,
-                statusText: "OK",
-                headers: response.headers,
-              });
-            }
-            return response;
-          },
-        },
-      ],
-    }),
-    "GET"
-  );
   workbox.registerRoute(
     /.*/i,
     new workbox.NetworkOnly({
@@ -235,12 +215,7 @@ self.addEventListener("push", (event) => {
     silent: false,
     vibrate: data.type === "deadline_alarm" || data.type === "assign" ? [200, 100, 200, 100, 400] : undefined,
   };
-  event.waitUntil(
-    Promise.all([
-      self.registration.showNotification(data.title || "Plane", options),
-      flushDueAlarms(),
-    ])
-  );
+  event.waitUntil(Promise.all([self.registration.showNotification(data.title || "Plane", options), flushDueAlarms()]));
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -262,6 +237,10 @@ self.addEventListener("notificationclick", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      try {
+        const cacheKeys = await caches.keys();
+        await Promise.all(cacheKeys.map((k) => caches.delete(k)));
+      } catch (_) {}
       await self.clients.claim();
       await flushDueAlarms();
     })()

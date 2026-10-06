@@ -10,12 +10,23 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { DevErrorComponent } from "./dev";
 import { ProdErrorComponent } from "./prod";
 
+const handleReload = () => window.location.reload();
+
 export function CustomErrorComponent({ error }: { error: unknown }) {
   // router
   const router = useAppRouter();
 
-  const handleGoHome = () => router.push("/");
-  const handleReload = () => window.location.reload();
+  console.error("Plane Root ErrorBoundary captured error:", error);
+
+  const handleGoHome = () => {
+    if (typeof window !== "undefined") {
+      if (window.location.pathname === "/") {
+        window.location.reload();
+        return;
+      }
+    }
+    router.push("/");
+  };
 
   if (import.meta.env.DEV) {
     return <DevErrorComponent error={error} onGoHome={handleGoHome} onReload={handleReload} />;

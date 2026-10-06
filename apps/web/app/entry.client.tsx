@@ -12,36 +12,51 @@ import polyfills from "@/lib/polyfills";
 
 void polyfills;
 
-if (typeof window !== "undefined") {
-  const syncAlarms = () => {
-    void import("@/services/web-push.service")
-      .then(async (m) => {
-        await m.syncPendingAlarmsFromServer();
-        await m.flushLocalAlarms();
-      })
-      .catch((err) => {
-        console.warn("Alarm sync error:", err);
-      });
-  };
-
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
-        .then(() => syncAlarms())
-        .catch(() => syncAlarms());
-    });
-  } else {
-    window.addEventListener("load", () => {
-      syncAlarms();
-    });
+const purgeStaleCaches = async () => {
+  if (typeof window !== "undefined" && "caches" in window) {
+    try {
+      const keys = await caches.keys();
+      const deletePromises = keys
+        .filter((key) => key === "start-url" || key.includes("precache") || key.includes("workbox"))
+        .map((key) => caches.delete(key));
+      await Promise.all(deletePromises);
+    } catch (_) {}
   }
+};
+
+const syncAlarms = async () => {
+  try {
+    const m = await import("@/services/web-push.service");
+    await m.syncPendingAlarmsFromServer();
+    await m.flushLocalAlarms();
+  } catch (err) {
+    console.warn("Alarm sync error:", err);
+  }
+};
+
+const registerServiceWorker = async () => {
+  await purgeStaleCaches();
+  if ("serviceWorker" in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      try {
+        await registration.update();
+      } catch (_) {}
+    } catch (_) {}
+  }
+  await syncAlarms();
+};
+
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
+    void registerServiceWorker();
+  });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") syncAlarms();
+    if (document.visibilityState === "visible") void syncAlarms();
   });
   window.addEventListener("online", () => {
-    syncAlarms();
+    void syncAlarms();
   });
 }
 
