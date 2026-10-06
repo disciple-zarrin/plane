@@ -36,8 +36,8 @@ export class WebPushService extends APIService {
   }
 
   async getVapidPublicKey(): Promise<{ configured: boolean; public_key: string }> {
-    return this.get(`/api/users/me/web-push/vapid-public-key/`)
-      .then((r) => r?.data)
+    return this.get(`/api/users/me/web-push/vapid-public-key/`, {}, { validateStatus: null })
+      .then((r) => r?.data || { configured: false, public_key: "" })
       .catch((e) => {
         throw e?.response?.data;
       });
@@ -81,7 +81,7 @@ export class WebPushService extends APIService {
   }
 
   async listMyPendingAlarms(): Promise<TPendingIssueAlarm[]> {
-    return this.get(`/api/users/me/issue-alarms/`)
+    return this.get(`/api/users/me/issue-alarms/`, {}, { validateStatus: null })
       .then((r) => (r?.data?.results as TPendingIssueAlarm[]) || [])
       .catch((e) => {
         throw e?.response?.data;

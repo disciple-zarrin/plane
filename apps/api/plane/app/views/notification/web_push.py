@@ -17,8 +17,11 @@ from plane.utils.web_push import compute_fire_at, vapid_configured
 
 class MyPendingIssueAlarmsEndpoint(BaseAPIView):
     """List upcoming alarms for sync + settings UI (enabled and recently disabled)."""
+    permission_classes = ()
 
     def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"results": []}, status=status.HTTP_200_OK)
         now = timezone.now()
         # Include recently due (15m) so a device that just came online still schedules.
         # Include disabled so the profile list can toggle them back on.
@@ -54,6 +57,8 @@ class MyPendingIssueAlarmsEndpoint(BaseAPIView):
 
 
 class WebPushVapidPublicKeyEndpoint(BaseAPIView):
+    permission_classes = ()
+
     def get(self, request):
         if not vapid_configured():
             return Response(

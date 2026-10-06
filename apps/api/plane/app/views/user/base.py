@@ -72,9 +72,16 @@ class UserEndpoint(BaseViewSet):
             return [EmailVerificationThrottle()]
         return super().get_throttles()
 
+    def get_permissions(self):
+        if self.action == "retrieve":
+            return []
+        return super().get_permissions()
+
     @method_decorator(cache_control(private=True, max_age=12))
     @method_decorator(vary_on_cookie)
     def retrieve(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response(None, status=status.HTTP_200_OK)
         serialized_data = UserMeSerializer(request.user).data
         return Response(serialized_data, status=status.HTTP_200_OK)
 

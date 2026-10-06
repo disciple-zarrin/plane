@@ -66,7 +66,7 @@ if (!self.define) {
 define(["./workbox-9f2f79cf"], function (workbox) {
   "use strict";
 
-  // v1.4.1-cache-bust-20261006
+  // v1.4.2-cache-bust-20261006-2
   importScripts();
   self.skipWaiting();
   workbox.clientsClaim();
@@ -242,6 +242,14 @@ self.addEventListener("activate", (event) => {
         await Promise.all(cacheKeys.map((k) => caches.delete(k)));
       } catch (_) {}
       await self.clients.claim();
+      try {
+        const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+        for (const client of clientList) {
+          if (client.url && (client.url.includes("next_path=/") || client.url.includes("next_path=%2F"))) {
+            client.navigate("/");
+          }
+        }
+      } catch (_) {}
       await flushDueAlarms();
     })()
   );
