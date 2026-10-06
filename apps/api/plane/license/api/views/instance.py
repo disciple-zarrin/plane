@@ -26,6 +26,8 @@ from django.views.decorators.cache import cache_control
 
 
 class InstanceEndpoint(BaseAPIView):
+    throttle_classes = ()
+
     def get_permissions(self):
         if self.request.method == "PATCH":
             return [InstanceAdminPermission()]
