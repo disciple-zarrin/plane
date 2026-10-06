@@ -12,7 +12,7 @@ import { Button } from "@plane/propel/button";
 import { Input, Spinner } from "@plane/ui";
 // constants
 // helpers
-import { EAuthModes } from "@/helpers/authentication.helper";
+import { EAuthModes, isValidRedirectPath } from "@/helpers/authentication.helper";
 // hooks
 import useTimer from "@/hooks/use-timer";
 // services
@@ -93,7 +93,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
     >
       <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
       <input type="hidden" value={uniqueCodeFormData.email} name="email" />
-      {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
+      {nextPath && isValidRedirectPath(nextPath) && <input type="hidden" value={nextPath} name="next_path" />}
       <div className="space-y-1">
         <label htmlFor="email" className="text-13 font-medium text-tertiary">
           {t("auth.common.email.label")}

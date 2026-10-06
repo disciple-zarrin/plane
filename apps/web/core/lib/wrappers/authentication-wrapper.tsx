@@ -11,7 +11,7 @@ import useSWR from "swr";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 // helpers
-import { EPageTypes } from "@/helpers/authentication.helper";
+import { EPageTypes, isValidRedirectPath, getSignInUrl } from "@/helpers/authentication.helper";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserProfile, useUserSettings } from "@/hooks/store/user";
@@ -24,10 +24,6 @@ type TAuthenticationWrapper = {
   pageType?: TPageType;
 };
 
-const isValidURL = (url: string): boolean => {
-  const disallowedSchemes = /^(https?|ftp):\/\//i;
-  return !disallowedSchemes.test(url);
-};
 
 export const AuthenticationWrapper = observer(function AuthenticationWrapper(props: TAuthenticationWrapper) {
   const pathname = usePathname();
@@ -59,7 +55,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
     let redirectionRoute = "/create-workspace";
 
     // validating the nextPath from the router query
-    if (nextPath && isValidURL(nextPath.toString())) {
+    if (nextPath && isValidRedirectPath(nextPath.toString())) {
       redirectionRoute = nextPath.toString();
       return redirectionRoute;
     }
@@ -103,7 +99,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
 
   if (pageType === EPageTypes.ONBOARDING) {
     if (!currentUser?.id) {
-      router.push(`/${pathname ? `?next_path=${pathname}` : ``}`);
+      router.push(getSignInUrl(pathname));
       return <></>;
     } else {
       if (currentUser && currentUserProfile?.id && isUserOnboard) {
@@ -116,7 +112,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
 
   if (pageType === EPageTypes.SET_PASSWORD) {
     if (!currentUser?.id) {
-      router.push(`/${pathname ? `?next_path=${pathname}` : ``}`);
+      router.push(getSignInUrl(pathname));
       return <></>;
     } else {
       if (currentUser && !currentUser?.is_password_autoset && currentUserProfile?.id && isUserOnboard) {
@@ -135,7 +131,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
         return <></>;
       }
     } else {
-      router.push(`/${pathname ? `?next_path=${pathname}` : ``}`);
+      router.push(getSignInUrl(pathname));
       return <></>;
     }
   }

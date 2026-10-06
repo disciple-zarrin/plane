@@ -448,3 +448,35 @@ export const passwordErrors = [
   EAuthenticationErrorCodes.PASSWORD_TOO_WEAK,
   EAuthenticationErrorCodes.INVALID_NEW_PASSWORD,
 ];
+
+export const isValidRedirectPath = (path: string | null | undefined): boolean => {
+  if (!path || typeof path !== "string") return false;
+  const trimmed = path.trim();
+  if (trimmed === "" || trimmed === "/") return false;
+  // Disallow external schemes or protocol-relative URLs (e.g. http:, https:, //, ftp:)
+  if (/^(https?:|\/\/|ftp:)/i.test(trimmed)) return false;
+  // Ensure it starts with a single slash
+  if (!trimmed.startsWith("/")) return false;
+  // Disallow paths starting with double slash
+  if (trimmed.startsWith("//")) return false;
+  // Disallow auth routes and next_path loops
+  if (
+    trimmed.startsWith("/accounts") ||
+    trimmed === "/sign-in" ||
+    trimmed === "/sign-up" ||
+    trimmed === "/set-password" ||
+    trimmed === "/magic-sign-in" ||
+    trimmed.startsWith("/?next_path")
+  ) {
+    return false;
+  }
+  return true;
+};
+
+export const getSignInUrl = (currentPath?: string | null): string => {
+  if (currentPath && isValidRedirectPath(currentPath)) {
+    return `/?next_path=${encodeURIComponent(currentPath)}`;
+  }
+  return "/";
+};
+

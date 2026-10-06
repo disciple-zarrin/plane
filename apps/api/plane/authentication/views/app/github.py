@@ -20,7 +20,7 @@ from plane.authentication.adapter.error import (
     AuthenticationException,
     AUTHENTICATION_ERROR_CODES,
 )
-from plane.utils.path_validator import get_safe_redirect_url
+from plane.utils.path_validator import get_safe_redirect_url, validate_next_path
 
 
 class GitHubOauthInitiateEndpoint(View):
@@ -90,8 +90,9 @@ class GitHubCallbackEndpoint(View):
             user = provider.authenticate()
             # Login the user and record his device info
             user_login(request=request, user=user, is_app=True)
-            if next_path:
-                path = next_path
+            safe_next_path = validate_next_path(next_path)
+            if safe_next_path:
+                path = safe_next_path
             else:
                 path = get_redirection_path(user=user)
 

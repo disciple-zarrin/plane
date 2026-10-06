@@ -27,8 +27,22 @@ export abstract class APIService {
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
-          const currentPath = window.location.pathname;
-          window.location.replace(`/${currentPath ? `?next_path=${currentPath}` : ``}`);
+          if (typeof window !== "undefined") {
+            const currentPath = window.location.pathname;
+            const isAuthPage =
+              !currentPath ||
+              currentPath === "/" ||
+              currentPath.startsWith("/accounts") ||
+              currentPath === "/sign-in" ||
+              currentPath === "/sign-up" ||
+              currentPath === "/magic-sign-in" ||
+              currentPath === "/set-password";
+
+            if (!isAuthPage) {
+              const fullPath = currentPath + window.location.search;
+              window.location.replace(`/?next_path=${encodeURIComponent(fullPath)}`);
+            }
+          }
         }
         return Promise.reject(error);
       }

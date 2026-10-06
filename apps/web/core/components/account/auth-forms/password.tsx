@@ -20,7 +20,7 @@ import { getPasswordStrength } from "@plane/utils";
 import { ForgotPasswordPopover } from "@/components/account/auth-forms/forgot-password-popover";
 // constants
 // helpers
-import { EAuthModes, EAuthSteps } from "@/helpers/authentication.helper";
+import { EAuthModes, EAuthSteps, isValidRedirectPath } from "@/helpers/authentication.helper";
 // services
 import { AuthService } from "@/services/auth.service";
 
@@ -169,7 +169,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
       >
         <input type="hidden" name="csrfmiddlewaretoken" />
         <input type="hidden" value={passwordFormData.email} name="email" />
-        {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
+        {nextPath && isValidRedirectPath(nextPath) && <input type="hidden" value={nextPath} name="next_path" />}
         <div className="space-y-1">
           <label htmlFor="email" className="text-13 font-medium text-tertiary">
             {t("auth.common.email.label")}

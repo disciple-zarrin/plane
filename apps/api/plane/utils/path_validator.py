@@ -131,6 +131,10 @@ def validate_next_path(next_path: str) -> str:
     if _contains_suspicious_patterns(next_path):
         return ""
 
+    # Prevent redirect loops: root or auth paths cannot be a next_path redirection destination
+    if next_path == "/" or next_path.startswith("/?next_path"):
+        return ""
+
     return next_path
 
 
@@ -158,7 +162,7 @@ def get_safe_redirect_url(base_url: str, next_path: str = "", params: dict = {})
     encoded_params = ""
 
     # Add the next path to the parameters
-    if validated_path:
+    if validated_path and validated_path != "/":
         query_parts.append(f"next_path={validated_path}")
 
     # Add additional parameters

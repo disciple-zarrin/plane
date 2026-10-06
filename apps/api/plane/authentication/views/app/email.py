@@ -20,12 +20,12 @@ from plane.authentication.adapter.error import (
     AuthenticationException,
     AUTHENTICATION_ERROR_CODES,
 )
-from plane.utils.path_validator import get_safe_redirect_url
+from plane.utils.path_validator import get_safe_redirect_url, validate_next_path
 
 
 class SignInAuthEndpoint(View):
     def post(self, request):
-        next_path = request.POST.get("next_path")
+        next_path = validate_next_path(request.POST.get("next_path"))
         # Check instance configuration
         instance = Instance.objects.first()
         if instance is None or not instance.is_setup_done:
@@ -110,8 +110,9 @@ class SignInAuthEndpoint(View):
             # Login the user and record his device info
             user_login(request=request, user=user, is_app=True)
             # Get the redirection path
-            if next_path:
-                path = next_path
+            safe_next_path = validate_next_path(next_path)
+            if safe_next_path:
+                path = safe_next_path
             else:
                 path = get_redirection_path(user=user)
 
@@ -217,8 +218,9 @@ class SignUpAuthEndpoint(View):
             # Login the user and record his device info
             user_login(request=request, user=user, is_app=True)
             # Get the redirection path
-            if next_path:
-                path = next_path
+            safe_next_path = validate_next_path(next_path)
+            if safe_next_path:
+                path = safe_next_path
             else:
                 path = get_redirection_path(user=user)
 
