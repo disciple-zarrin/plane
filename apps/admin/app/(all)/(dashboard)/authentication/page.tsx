@@ -56,9 +56,9 @@ const InstanceAuthenticationPage = observer(function InstanceAuthenticationPage(
           if (!canDisable) {
             setToast({
               type: TOAST_TYPE.ERROR,
-              title: "Cannot disable authentication",
+              title: "غیرفعال‌سازی امکان‌پذیر نیست",
               message:
-                "At least one authentication method must remain enabled. Please enable another method before disabling this one.",
+                "حداقل یک روش احراز هویت باید فعال باقی بماند. لطفاً قبل از غیرفعال کردن این مورد، روش دیگری را فعال کنید.",
             });
             return;
           }
@@ -75,14 +75,14 @@ const InstanceAuthenticationPage = observer(function InstanceAuthenticationPage(
       const updateConfigPromise = updateInstanceConfigurations(payload);
 
       setPromiseToast(updateConfigPromise, {
-        loading: "Saving configuration",
+        loading: "در حال ذخیره تنظیمات...",
         success: {
-          title: "Success",
-          message: () => "Configuration saved successfully",
+          title: "موفقیت‌آمیز",
+          message: () => "تنظیمات با موفقیت ذخیره شد.",
         },
         error: {
-          title: "Error",
-          message: () => "Failed to save configuration",
+          title: "خطا",
+          message: () => "خطا در ذخیره تنظیمات.",
         },
       });
 
